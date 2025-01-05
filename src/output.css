@@ -684,6 +684,14 @@ video {
   padding: 1rem;
 }
 
+.p-2 {
+  padding: 0.5rem;
+}
+
+.p-1 {
+  padding: 0.25rem;
+}
+
 .px-8 {
   padding-left: 2rem;
   padding-right: 2rem;
@@ -692,6 +700,18 @@ video {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
+}
+
+.pt-2 {
+  padding-top: 0.5rem;
+}
+
+.pt-1 {
+  padding-top: 0.25rem;
+}
+
+.pb-1 {
+  padding-bottom: 0.25rem;
 }
 
 .text-center {
@@ -741,6 +761,54 @@ video {
 
 .opacity-100 {
   opacity: 1;
+}
+
+.outline {
+  outline-style: solid;
+}
+
+.outline-2 {
+  outline-width: 2px;
+}
+
+.outline-1 {
+  outline-width: 1px;
+}
+
+.outline-blue-500 {
+  outline-color: #3b82f6;
+}
+
+.outline-sky-500 {
+  outline-color: #0ea5e9;
+}
+
+.outline-sky-400 {
+  outline-color: #38bdf8;
+}
+
+.outline-slate-800 {
+  outline-color: #1e293b;
+}
+
+.outline-slate-600 {
+  outline-color: #475569;
+}
+
+.outline-slate-700 {
+  outline-color: #334155;
+}
+
+.outline-slate-500 {
+  outline-color: #64748b;
+}
+
+.outline-slate-300 {
+  outline-color: #cbd5e1;
+}
+
+.outline-slate-400 {
+  outline-color: #94a3b8;
 }
 
 .drop-shadow-md {
@@ -793,6 +861,10 @@ video {
 .hover\:text-white:hover {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.hover\:outline-sky-400:hover {
+  outline-color: #38bdf8;
 }
 
 @media (min-width: 640px) {

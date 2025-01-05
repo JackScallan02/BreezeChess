@@ -1,5 +1,5 @@
 import Home from "../../components/Home";
-import Page1 from "../../components/Page1";
+import Login from "../../components/Login";
 
 export const ROUTES = [
   {
@@ -7,7 +7,7 @@ export const ROUTES = [
     element: <Home />,
   },
   {
-    path: "/page1",
-    element: <Page1 />,
+    path: "/login",
+    element: <Login />,
   },
 ];

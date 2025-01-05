@@ -1,14 +1,14 @@
 import { React } from 'react';
 
-const Page1 = () => {
+const Login = () => {
     
   return (
     <>
       <div className="w-full h-full absolute bg-gradient-to-r from-sky-50 to-sky-100">
-        <p>This is page1</p>
+        <p>This is the login page</p>
       </div>
     </>
   );
 }
 
-export default Page1;
+export default Login;
