@@ -1,15 +1,10 @@
-import { React } from 'react';
-import MainToolBar from './components/MainToolBar';
+import { RouterProvider } from "react-router-dom";
+import { router } from "./constants/router/router";
 
-const App = () => {
-    
+export default function App() {
   return (
-    <>
-      <div className="w-full h-full absolute bg-gradient-to-r from-sky-400 to-blue-400">
-        <MainToolBar />
-      </div>
-    </>
+    <div className="App">
+      <RouterProvider router={router} />
+    </div>
   );
 }
-
-export default App;
