@@ -8,7 +8,7 @@ const MainToolBar = () => {
     const menuItems = {
       'Home': '/',
       'Donate': '/donate',
-      'Store': '/store',
+      'About': '/about',
       'Contact': '/contact',
       'Sign in': '/login'
     }
