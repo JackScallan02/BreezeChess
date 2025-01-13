@@ -20,7 +20,7 @@ const MainToolBar = () => {
           </a>
           <ul className="xl:flex hidden items-center gap-12 font-semibold text-base">
           {Object.keys(menuItems).map((menuItem) => (
-              <li className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${menuItem === 'Sign in' && 'outline outline-2 outline-slate-600 pt-1 pb-1 hover:outline-sky-400'}`}>{<a href={menuItems[menuItem]}>{menuItem}</a>}</li>
+              <li className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${menuItem === 'Sign in' && 'outline outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}>{<a href={menuItems[menuItem]}>{menuItem}</a>}</li>
            )
           )}
           </ul>

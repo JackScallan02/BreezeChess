@@ -29,7 +29,7 @@ const LoginForm = () => {
                         />
                         <label className='ml-2 font-medium text-base' for='remember'>Remember me</label>
                     </div>
-                    <button className='font-medium text-base text-sky-500'>Forgot password</button>
+                    <button className='font-medium text-base text-sky-500 hover:text-sky-400'>Forgot password</button>
                 </div>
                 <div className='mt-8 flex flex-col gap-y-4'>
                     <button className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'>Sign in</button>
@@ -45,7 +45,7 @@ const LoginForm = () => {
                 </div>
                 <div className='mt-8 flex justify-center items-center'>
                     <p className='font-medium text-base'>Don't have an account?</p>
-                    <button className='text-sky-500 text-base font-medium ml-2'>Sign up</button>
+                    <button className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400'>Sign up</button>
                 </div>
             </div>
         </div>

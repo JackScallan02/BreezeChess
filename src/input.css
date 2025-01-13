@@ -3,6 +3,5 @@
 @tailwind utilities;
 
 body {
-    margin: 0;
-    background: #f1f1f1;
+    margin: 0;    
 }
