@@ -1,5 +1,6 @@
 import Home from "../../pages/Home";
 import Login from "../../pages/Login";
+import About from "../../pages/About";
 
 export const ROUTES = [
   {
@@ -9,5 +10,9 @@ export const ROUTES = [
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/about",
+    element: <About />,
   },
 ];
