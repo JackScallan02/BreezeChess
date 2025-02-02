@@ -3,7 +3,7 @@ import { router } from "./constants/router/router";
 
 export default function App() {
   return (
-    <div className="App min-h-screen bg-gradient-to-r from-sky-50 to-sky-100">
+    <div className="App min-h-screen bg-gradient-to-r from-sky-100 to-sky-200">
       <RouterProvider router={router} />
     </div>
   );
