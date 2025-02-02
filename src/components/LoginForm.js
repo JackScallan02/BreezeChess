@@ -84,7 +84,7 @@ const LoginForm = () => {
                 </div>
                 <div className='mt-8 flex justify-center items-center'>
                     <p className='font-medium text-base'>Don't have an account?</p>
-                    <button className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400'>Sign up</button>
+                    <button className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400'><a href={'/Register'}>Sign up</a></button>
                 </div>
             </div>
         </div>
