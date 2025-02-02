@@ -1,24 +1,56 @@
-import { React } from 'react';
+import { React, useState, useEffect } from 'react';
 
 const LoginForm = () => {
+
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [remember, setRemember] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+    const [redBorder, setRedBorder] = useState({username: false, password: false});
+
+    const validateUsername = () => {
+        return username !== '';
+    }
+
+    const validatePassword = () => {
+        return password !== '';
+    }
+
+    const validateLogin = () => {
+        if (username === '' && password === '') {
+            setErrorMsg('Please enter a username and password');
+        }
+        else if (username === '') {
+            setErrorMsg('Please enter a username');
+        }
+        else if (password === '') {
+            setErrorMsg('Please enter a password')
+        } else {
+            setErrorMsg('');
+        }
+        return username !== '' && password !== '';
+    }
+
     return (
         <div className='bg-white px-10 py-20 rounded-3xl border-2 border-gray-200 relative mt-4'>
             <h1 className='text-5xl font-semibold'>BreezeChess</h1>
             <p className='font-medium text-lg text-gray-500 mt-4'>Welcome back! Please enter your details.</p>
             <div className='mt-4'>
                 <div>
-                    <label className='text-lg font-medium'>Email</label>
+                    <label className='text-lg font-medium'>Login</label>
                     <input
-                        className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                        placeHolder='Enter your email'
+                        className={`w-full border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.username && !validateUsername()) ? 'border-red-400' :  'border-gray-100' }`}
+                        placeholder='Username, Phone, or Email'
+                        onInput={(event) => {setRedBorder({username: false, password: redBorder.password}); setUsername(event.target.value)}}
                     />
                 </div>
                 <div>
                 <label className='text-lg font-medium'>Password</label>
                 <input
-                        className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                        placeHolder='Enter your password'
+                        className={`w-full border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100' }`}
+                        placeholder='Password'
                         type='password'
+                        onInput={(event) => {setRedBorder({username: redBorder.username, password: false}); setPassword(event.target.value)}}
                     />
                 </div>
                 <div className='mt-8 flex justify-between items-center'>
@@ -26,13 +58,20 @@ const LoginForm = () => {
                         <input
                             type='checkbox'
                             id='remember'
+                            onClick={(event) => setRemember(!remember)}
                         />
-                        <label className='ml-2 font-medium text-base' for='remember'>Remember me</label>
+                        <label className='ml-2 font-medium text-base' htmlFor='remember'>Remember me</label>
                     </div>
                     <button className='font-medium text-base text-sky-500 hover:text-sky-400'>Forgot password</button>
                 </div>
+                <p className='mt-4 text-red-400'>{errorMsg}</p>
                 <div className='mt-8 flex flex-col gap-y-4'>
-                    <button className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'>Sign in</button>
+                    <button
+                        className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'
+                        onClick={(event) => {setRedBorder({username: !validateUsername(), password: !validatePassword()}); validateLogin()}}
+                    >
+                        Sign in
+                    </button>
                     <button className='flex py-3 rounded-xl border-2 border-gray-100 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M5.26644 9.76453C6.19903 6.93863 8.85469 4.90909 12.0002 4.90909C13.6912 4.90909 15.2184 5.50909 16.4184 6.49091L19.9093 3C17.7821 1.14545 15.0548 0 12.0002 0C7.27031 0 3.19799 2.6983 1.24023 6.65002L5.26644 9.76453Z" fill="#EA4335"/>
