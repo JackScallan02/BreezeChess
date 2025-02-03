@@ -37,12 +37,14 @@ const MainToolBar = () => {
     }
 
     useEffect(() => {
+      console.log("isAUth: ", isAuthenticated);
+
       updateToolBar();
     }, [isAuthenticated])
 
     return (
         <header className="flex justify-between items-center text-black py-6 px-8 md:px-32 bg-white drop-shadow-md">
-          <a href="/">
+          <a href={!isAuthenticated ? "/" : "/home"}>
             <img src={tailwindcsslogo} alt="" className="w-52 hover:scale-105 transition-all" />
           </a>
           <ul className="xl:flex hidden items-center gap-12 font-semibold text-base">
