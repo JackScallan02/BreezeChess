@@ -1,12 +1,21 @@
 import { React, useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const LoginForm = () => {
+
+    const { isAuthenticated, login } = useAuth();
+    const navigate = useNavigate();
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [redBorder, setRedBorder] = useState({username: false, password: false});
+
+    useEffect(() => {
+        console.log("isAuth: ", isAuthenticated);
+    }, [isAuthenticated]);
 
     const validateUsername = () => {
         return username !== '';
@@ -34,7 +43,7 @@ const LoginForm = () => {
     return (
         <div className='bg-white px-10 py-20 rounded-3xl border-2 border-gray-200 relative mt-4'>
             <h1 className='text-5xl font-semibold'>BreezeChess</h1>
-            <p className='font-medium text-lg text-gray-500 mt-4'>Welcome back! Please enter your details.</p>
+            <p className='font-medium text-lg text-gray-500 mt-4'>Welcome back!</p>
             <div className='mt-4'>
                 <div>
                     <label className='text-lg font-medium'>Login</label>
@@ -68,9 +77,9 @@ const LoginForm = () => {
                 <div className='mt-8 flex flex-col gap-y-4'>
                     <button
                         className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                        onClick={(event) => {setRedBorder({username: !validateUsername(), password: !validatePassword()}); validateLogin()}}
+                        onClick={(event) => {setRedBorder({username: !validateUsername(), password: !validatePassword()}); if (validateLogin()) { login(); navigate("/home") }}}
                     >
-                        Sign in
+                        Sign In
                     </button>
                     <button className='flex py-3 rounded-xl border-2 border-gray-100 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -84,7 +93,12 @@ const LoginForm = () => {
                 </div>
                 <div className='mt-8 flex justify-center items-center'>
                     <p className='font-medium text-base'>Don't have an account?</p>
-                    <button className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400'><a href={'/Register'}>Sign up</a></button>
+                    <button
+                        className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400'
+                        onClick={(event) => navigate("/register")}
+                        >
+                            Sign Up
+                    </button>
                 </div>
             </div>
         </div>
