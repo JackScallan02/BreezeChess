@@ -2,25 +2,37 @@ import { React, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { firebase, auth } from '../Firebase.js'
+import LoadingScreen from '../pages/Loading.js';
 import { getRedirectResult, signInWithRedirect } from "firebase/auth"
 
 const LoginForm = () => {
 
-    const { isAuthenticated, login } = useAuth();
+    const {user, loading} = useAuth();
     const navigate = useNavigate();
-
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [redBorder, setRedBorder] = useState({username: false, password: false});
 
-    useEffect(() => {
-        console.log("isAuth: ", isAuthenticated);
-    }, [isAuthenticated]);
 
     const handleRedirectSignIn = async () => {
-        const result = await getRedirectResult(auth);
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                // Successful google login
+
+                // Send this idToken to firebase backend to verify identity.
+                // Store uuid in database.
+            } else {
+                // No user found
+                setErrorMsg('Failed to login. Please try again.')
+            }
+        } catch(err) {
+            console.error(err);
+            setErrorMsg('Failed to login. Please try again.')
+        }
+
     }
 
     useEffect(() => {
@@ -57,7 +69,7 @@ const LoginForm = () => {
         return username !== '' && password !== '';
     }
 
-    return (
+    if (!user && !loading) return (
         <div className='bg-white px-10 py-20 rounded-3xl border-2 border-gray-200 relative mt-4'>
             <h1 className='text-5xl font-semibold'>BreezeChess</h1>
             <p className='font-medium text-lg text-gray-500 mt-4'>Welcome back!</p>
@@ -67,7 +79,7 @@ const LoginForm = () => {
                     <input
                         className={`w-full border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.username && !validateUsername()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Username, Phone, or Email'
-                        onInput={(event) => {setRedBorder({username: false, password: redBorder.password}); setUsername(event.target.value)}}
+                        onInput={(event) => {setRedBorder({username: false, password: redBorder.password}); setUsername(event.target.value);}}
                     />
                 </div>
                 <div>
@@ -94,7 +106,7 @@ const LoginForm = () => {
                 <div className='mt-8 flex flex-col gap-y-4'>
                     <button
                         className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                        onClick={(event) => {setRedBorder({username: !validateUsername(), password: !validatePassword()}); if (validateLogin()) { login(); navigate("/home") }}}
+                        onClick={(event) => {setRedBorder({username: !validateUsername(), password: !validatePassword()}); if (validateLogin()) { navigate("/home") }}}
                     >
                         Sign In
                     </button>

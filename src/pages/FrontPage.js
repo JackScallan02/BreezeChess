@@ -1,9 +1,15 @@
 import { React } from 'react';
 import MainToolBar from '../components/MainToolBar';
+import LoadingScreen from './Loading';
+import { useAuth } from "../contexts/AuthContext";
 import ChessBoard from '../components/ChessBoard';
 
 const FrontPage = () => {
-  return (
+  const {user, loading} = useAuth();
+
+  if (loading) return <LoadingScreen />
+
+  if (!user && !loading) return (
     <div className="flex flex-col min-h-screen">
       <MainToolBar />
       <main>

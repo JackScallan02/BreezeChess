@@ -3,8 +3,11 @@ import {createPortal} from 'react-dom';
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import tailwindcsslogo from '../assets/tailwindcsslogo.png';
+import { firebase, auth } from '../Firebase.js'
 
 const MainToolBar = () => {
+    const { user, loading, handleLogout } = useAuth();
+
     const [menuOpen, setMenuOpen] = useState(false);
     const [menuItems, setMenuItems] = useState({
       'Home': '/',
@@ -17,34 +20,31 @@ const MainToolBar = () => {
       'link' : '/'
     });
 
-    const { isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
 
     const updateToolBar = () => {
-      // Called every time isAuthenticated changes
+      // Called every time user login status changes
 
       setMenuItems({
-        'Home': !isAuthenticated ? '/' : '/home',
+        'Home': !user ? '/' : '/home',
         'Donate': '/donate',
         'About': '/about',
         'Contact': '/contact',
       });
 
       setAuthButton({
-        'label' : !isAuthenticated ? 'Sign in' : 'Logout',
-        'link' : !isAuthenticated ? '/login' : '/'
+        'label' : !user ? 'Sign in' : 'Logout',
+        'link' : !user ? '/login' : '/'
       });
     }
 
     useEffect(() => {
-      console.log("isAUth: ", isAuthenticated);
-
       updateToolBar();
-    }, [isAuthenticated])
+    }, [user])
 
     return (
         <header className="flex justify-between items-center text-black py-6 px-8 md:px-32 bg-white drop-shadow-md">
-          <a href={!isAuthenticated ? "/" : "/home"}>
+          <a href={!user ? "/" : "/home"}>
             <img src={tailwindcsslogo} alt="" className="w-52 hover:scale-105 transition-all" />
           </a>
           <ul className="xl:flex hidden items-center gap-12 font-semibold text-base">
@@ -60,7 +60,7 @@ const MainToolBar = () => {
           )}
           <li
               className="p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer outline outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400"
-              onClick={() => {navigate(authButton['link']); isAuthenticated && logout()}}
+              onClick={() => {navigate(authButton['link']); user && handleLogout()}}
           >
             {authButton['label']}
           </li>
@@ -85,7 +85,7 @@ const MainToolBar = () => {
             ))}
             <li
                 className="list-none w-full text-center p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-                onClick={() => {navigate(authButton['link']); isAuthenticated && logout()}}
+                onClick={() => {navigate(authButton['link']); user && handleLogout()}}
             >
             {authButton['label']}
           </li>

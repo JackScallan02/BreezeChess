@@ -15,9 +15,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "concurrently \"npm start\" \"npm run tailwind\" \"npm run firebase\"",
+    "tailwind": "npx tailwindcss -i ./src/input.css -o ./src/output.css --watch",
+    "firebase": "firebase emulators:start --only auth"
   },
   "eslintConfig": {
     "extends": [

@@ -1,9 +1,18 @@
 import { React } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import LoginForm from '../components/LoginForm';
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { firebase, auth } from '../Firebase.js'
+import LoadingScreen from '../pages/Loading.js';
 
 const Login = () => {
-  return (
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  if (loading) return <LoadingScreen />
+  if (user) navigate('/home')
+  if (!user && !loading) return (
     <>
       <div className="flex flex-col min-h-screen">
         <MainToolBar />
