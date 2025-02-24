@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "bad-words": "^4.0.0",
     "boxicons": "^2.1.4",
     "cra-template": "1.2.0",
     "dotenv": "^16.4.7",
