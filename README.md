@@ -15,13 +15,17 @@ FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
 
 ## Development
 
-In the project directory, you can run:\
+In the project directory, you can run the following command:\
+`npm run dev`\
+Which runs the following three commands:
+
+1. Continuously watch for tailwind changes
 `npx tailwindcss -i ./src/input.css -o ./src/output.css --watch & npm start`
 
-Runs the app in the development mode.\
+2. Run the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-To emulate firebase authentication during development at [http://localhost:9099](http://localhost:9099):\
+3. Emulate the firebase authentication during development at [http://localhost:9099](http://localhost:9099):\
 `firebase emulators:start --only auth`
 
 
