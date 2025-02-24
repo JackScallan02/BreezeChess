@@ -12,6 +12,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) navigate('/home');
+    // TODO: Check if new user. If new user, then navigate to welcome page.
   }, [user]);
 
   if (loading) return <LoadingScreen />;
