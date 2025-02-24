@@ -22,7 +22,7 @@ const Welcome = (props) => {
   const validateDisplayName = () => {
     const restrictedWords = ["admin", "moderator", "support"];
 
-    if (!displayName.match(/^[0-9a-z]+$/)) {
+    if (!displayName.toLowerCase().match(/^[0-9a-z]+$/)) {
         setErrorMsg("Display name must only contain letters or numbers.");
         setRedBorder(true);
         return false;

@@ -1,4 +1,4 @@
-import { React, useState } from 'react';
+import { React, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
@@ -21,7 +21,7 @@ const Register = (props) => {
         const result = await createUserWithEmailAndPassword(auth, email, password);
         setLoginError(false);
         if (result && result.user) {
-          navigate('/welcome')
+          navigate('/welcome');
         }
     } catch (err) {
         setLoginError(true);
@@ -43,26 +43,80 @@ const Register = (props) => {
 }
 
 const validateEmail = () => {
-  return email !== '' && !loginError;
+  if (loginError) {
+    return false;
+  }
+  if (email === '') {
+    setErrorMsg('Please enter an email');
+    setRedBorder({email: true, password: redBorder.password});
+
+    return false;
+  }
+
+  // TODO: Check that email is not already taken
+
+  setRedBorder({email: true, password: redBorder.password});
+  return true;
 }
 
 const validatePassword = () => {
-  return password !== '' && !loginError;
+  const regex = /^(?=(.*\d.*){2})(?=(.*[!@#$%^&*(),.?":{}|<>].*)).+$/; //Checks if at least 2 numbers and at least 1 special character
+
+  if (loginError) {
+    return false;
+  }
+  if (password === '') {
+    setErrorMsg('Please enter a password');
+    setRedBorder({email: redBorder.email, password: true});
+    return false;
+  } else if (password.length > 30) {
+    setErrorMsg('Password must be less than 30 characters long.');
+    setRedBorder({email: redBorder.email, password: true});
+    return false;
+  } else if (password.length < 8) {
+    setErrorMsg('Password must be at least 8 characters long.');
+    setRedBorder({email: redBorder.email, password: true});
+    return false;
+  } else if (!regex.test(password)) {
+    setErrorMsg('Password must contain at least 2 numbers and 1 special character. (Example special characters: #, $, !)');
+    setRedBorder({email: redBorder.email, password: true});
+    return false;
+  }
+  setRedBorder({email: redBorder.email, password: false});
+  return true;
 }
+
+useEffect(() => {
+  // When they change the email/password, reset the login error variable to false
+  // and corresponding red border outline.
+  if (loginError) {
+    setLoginError(false);
+  }
+  setRedBorder({email: redBorder.email, password: false});
+
+}, [password]);
+
+useEffect(() => {
+  // When they change the email/password, reset the login error variable to false
+  // and corresponding red border outline.
+  if (loginError) {
+    setLoginError(false);
+  }
+  setRedBorder({email: false, password: redBorder.password});
+
+}, [email]);
 
 const validateLogin = () => {
   if (email === '' && password === '') {
       setErrorMsg('Please enter an email and password');
+      return false;
   }
-  else if (email === '') {
-      setErrorMsg('Please enter an email');
+
+  if (!validateEmail()) {
+    return false;
   }
-  else if (password === '') {
-      setErrorMsg('Please enter a password')
-  } else {
-      setErrorMsg('');
-  }
-  return email !== '' && password !== '';
+
+  return validatePassword();
 }
 
   return (
@@ -102,25 +156,25 @@ const validateLogin = () => {
                 <div className="flex flex-col">
                     <label className='text-lg font-medium'>Enter an email</label>
                     <input
-                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-black' }`}
+                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email) ? 'border-red-400' :  'border-black' }`}
                         placeholder='Email'
-                        onInput={(event) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
+                        onInput={(event) => { setEmail(event.target.value);}}
                     />
                 </div>
                 <div className="flex flex-col">
                 <label className='text-lg font-medium'>Choose a Password</label>
                 <input
-                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-black' }`}
+                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password) ? 'border-red-400' :  'border-black' }`}
                         placeholder='Password'
                         type='password'
-                        onInput={(event) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
+                        onInput={(event) => { setPassword(event.target.value)}}
                     />
                 </div>
                 <p className='mt-4 text-red-400'>{errorMsg}</p>
                 <div className="flex flex-row justify-center">
                   <button
                     className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                    onClick={(event) => {setRedBorder({email: !validateEmail(), password: !validatePassword()}); if (validateLogin()) { createUser(email, password); }}}
+                    onClick={(event) => { if (validateLogin()) { createUser(email, password); }}}
                   >
                     Sign up
                   </button>
