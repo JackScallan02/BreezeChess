@@ -1,4 +1,4 @@
-import { React } from 'react';
+import { React, useEffect } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import LoginForm from '../components/LoginForm';
 import { useNavigate } from "react-router-dom";
@@ -10,8 +10,12 @@ const Login = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  if (loading) return <LoadingScreen />
-  if (user) navigate('/home')
+  useEffect(() => {
+    if (user) navigate('/home');
+  }, [user]);
+
+  if (loading) return <LoadingScreen />;
+
   if (!user && !loading) return (
     <>
       <div className="flex flex-col min-h-screen">
@@ -30,6 +34,9 @@ const Login = () => {
       </div>
     </>
   );
+
+  return (<></>);
+
 };
 
 export default Login;

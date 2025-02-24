@@ -3,36 +3,73 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { firebase, auth } from '../Firebase.js'
 import LoadingScreen from '../pages/Loading.js';
-import { getRedirectResult, signInWithRedirect } from "firebase/auth"
+import { getRedirectResult, signInWithRedirect, signInWithEmailAndPassword } from "firebase/auth"
 
 const LoginForm = () => {
 
     const {user, loading} = useAuth();
     const navigate = useNavigate();
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
     const [remember, setRemember] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
-    const [redBorder, setRedBorder] = useState({username: false, password: false});
+    const [redBorder, setRedBorder] = useState({email: false, password: false});
 
 
     const handleRedirectSignIn = async () => {
         try {
             const result = await getRedirectResult(auth);
             if (result && result.user) {
+                console.log("result: ", result);
+                // Check if new user by querying database
                 // Successful google login
-
                 // Send this idToken to firebase backend to verify identity.
                 // Store uuid in database.
             } else {
                 // No user found
-                setErrorMsg('Failed to login. Please try again.')
             }
         } catch(err) {
             console.error(err);
-            setErrorMsg('Failed to login. Please try again.')
+            setErrorMsg('Failed to login. Please try again.');
+            setRedBorder({email: false, password: false})
         }
 
+    }
+
+    const signInUser = async (email, password) => {
+        try {
+            await signInWithEmailAndPassword(auth, email, password)
+        } catch (err) {
+            setLoginError(true);
+            if (err.code === 'auth/invalid-email') {
+                setErrorMsg('The email address is badly formatted.');
+                setRedBorder({email: true, password: false});
+
+              } else if (err.code === 'auth/user-not-found') {
+                setRedBorder({email: true, password: false});
+                setErrorMsg(
+                <>
+                    <div className="flex justify-center flex-col">
+                        <p>No user exists with the provided email. </p>
+                        <button
+                            className='text-sky-500 text-base text-center font-medium hover:text-sky-400'
+                            onClick={(event) => navigate("/register")}
+                        >
+                            Sign up here
+                        </button>
+                    </div>
+                </>
+                );
+              } else if (err.code === 'auth/wrong-password') {
+                setErrorMsg('Invalid password. Please try again.');
+                setRedBorder({email: false, password: true});                
+              } else {
+                setErrorMsg('Failed to login. Please try again.');
+                setRedBorder({email: false, password: false});
+            }
+            console.error(err);
+        }
     }
 
     useEffect(() => {
@@ -46,27 +83,27 @@ const LoginForm = () => {
 
     }
 
-    const validateUsername = () => {
-        return username !== '';
+    const validateEmail = () => {
+        return email !== '' && !loginError;
     }
 
     const validatePassword = () => {
-        return password !== '';
+        return password !== '' && !loginError;
     }
 
     const validateLogin = () => {
-        if (username === '' && password === '') {
-            setErrorMsg('Please enter a username and password');
+        if (email === '' && password === '') {
+            setErrorMsg('Please enter an email and password');
         }
-        else if (username === '') {
-            setErrorMsg('Please enter a username');
+        else if (email === '') {
+            setErrorMsg('Please enter an email');
         }
         else if (password === '') {
             setErrorMsg('Please enter a password')
         } else {
             setErrorMsg('');
         }
-        return username !== '' && password !== '';
+        return email !== '' && password !== '';
     }
 
     if (!user && !loading) return (
@@ -77,9 +114,9 @@ const LoginForm = () => {
                 <div>
                     <label className='text-lg font-medium'>Login</label>
                     <input
-                        className={`w-full border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.username && !validateUsername()) ? 'border-red-400' :  'border-gray-100' }`}
-                        placeholder='Username, Phone, or Email'
-                        onInput={(event) => {setRedBorder({username: false, password: redBorder.password}); setUsername(event.target.value);}}
+                        className={`w-full border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
+                        placeholder='Email, Phone, or Email'
+                        onInput={(event) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
                     />
                 </div>
                 <div>
@@ -88,7 +125,7 @@ const LoginForm = () => {
                         className={`w-full border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Password'
                         type='password'
-                        onInput={(event) => {setRedBorder({username: redBorder.username, password: false}); setPassword(event.target.value)}}
+                        onInput={(event) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
                     />
                 </div>
                 <div className='mt-8 flex justify-between items-center'>
@@ -106,7 +143,7 @@ const LoginForm = () => {
                 <div className='mt-8 flex flex-col gap-y-4'>
                     <button
                         className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                        onClick={(event) => {setRedBorder({username: !validateUsername(), password: !validatePassword()}); if (validateLogin()) { navigate("/home") }}}
+                        onClick={(event) => {setRedBorder({email: !validateEmail(), password: !validatePassword()}); if (validateLogin()) { signInUser(email, password); }}}
                     >
                         Sign In
                     </button>

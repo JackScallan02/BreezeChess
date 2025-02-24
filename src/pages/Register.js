@@ -1,35 +1,69 @@
 import { React, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import MainToolBar from '../components/MainToolBar';
+import { useAuth } from "../contexts/AuthContext";
+import { firebase, auth } from '../Firebase.js'
+import LoadingScreen from '../pages/Loading.js';
+import { getRedirectResult, signInWithRedirect, createUserWithEmailAndPassword } from "firebase/auth"
 
 const Register = (props) => {
-
-  const [username, setUsername] = useState('');
+  const {user, loading} = useAuth();
+  const navigate = useNavigate();
+  const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [redBorder, setRedBorder] = useState({ username: false, password: false });
+  const [redBorder, setRedBorder] = useState({ email: false, password: false });
+  const [signUpClicked, setSignUpClicked] = useState(false);
 
-  const validateUsername = () => {
-    return username !== '';
-  }
-
-  const validatePassword = () => {
-    return password !== '';
-  }
-
-  const validateLogin = () => {
-    if (username === '' && password === '') {
-      setErrorMsg('Please enter a username and password');
+  const createUser = async (email, password) => {
+    try {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        setLoginError(false);
+        if (result && result.user) {
+          navigate('/welcome')
+        }
+    } catch (err) {
+        setLoginError(true);
+        if (err.code === 'auth/invalid-email') {
+            setErrorMsg('The email address is badly formatted.');
+            setRedBorder({email: true, password: false});
+          } else if (err.code === 'auth/email-already-in-use') {
+            setErrorMsg('The email address is already in use.');
+            setRedBorder({email: true, password: false});
+          } else if (err.code === 'auth/weak-password') {
+            setErrorMsg(err.message.replace(/^Firebase: /, '').split(' (auth/')[0]);
+            setRedBorder({email: false, password: true});
+          } else {
+            setErrorMsg('Failed to login. Please try again.');
+            setRedBorder({email: false, password: false})
+        }
+        console.error(err);
     }
-    else if (username === '') {
-      setErrorMsg('Please enter a username');
-    }
-    else if (password === '') {
+}
+
+const validateEmail = () => {
+  return email !== '' && !loginError;
+}
+
+const validatePassword = () => {
+  return password !== '' && !loginError;
+}
+
+const validateLogin = () => {
+  if (email === '' && password === '') {
+      setErrorMsg('Please enter an email and password');
+  }
+  else if (email === '') {
+      setErrorMsg('Please enter an email');
+  }
+  else if (password === '') {
       setErrorMsg('Please enter a password')
-    } else {
+  } else {
       setErrorMsg('');
-    }
-    return username !== '' && password !== '';
   }
+  return email !== '' && password !== '';
+}
 
   return (
     <>
@@ -40,17 +74,18 @@ const Register = (props) => {
             Register for BreezeChess
           </p>
           </div>
+        {!signUpClicked ? (
         <div className='mt-8 flex flex-col gap-y-4'>
           <div className="flex flex-row justify-center">
             <button
               className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-              onClick={(event) => { setRedBorder({ username: !validateUsername(), password: !validatePassword() }); validateLogin() }}
+              onClick={(event) => { setSignUpClicked(true); }}
             >
               Sign up
             </button>
           </div>
           <div className="flex flex-row justify-center">
-            <button className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 border-sky-400 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'>
+            <button className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.26644 9.76453C6.19903 6.93863 8.85469 4.90909 12.0002 4.90909C13.6912 4.90909 15.2184 5.50909 16.4184 6.49091L19.9093 3C17.7821 1.14545 15.0548 0 12.0002 0C7.27031 0 3.19799 2.6983 1.24023 6.65002L5.26644 9.76453Z" fill="#EA4335" />
                 <path d="M16.0406 18.0142C14.9508 18.718 13.5659 19.0926 11.9998 19.0926C8.86633 19.0926 6.21896 17.0785 5.27682 14.2695L1.2373 17.3366C3.19263 21.2953 7.26484 24.0017 11.9998 24.0017C14.9327 24.0017 17.7352 22.959 19.834 21.0012L16.0406 18.0142Z" fill="#34A853" />
@@ -61,6 +96,39 @@ const Register = (props) => {
             </button>
           </div>
         </div>
+        ) : (
+          <div>
+            <div className='mt-4 w-screen flex flex-col items-center gap-y-4'>
+                <div className="flex flex-col">
+                    <label className='text-lg font-medium'>Enter an email</label>
+                    <input
+                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-black' }`}
+                        placeholder='Email'
+                        onInput={(event) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
+                    />
+                </div>
+                <div className="flex flex-col">
+                <label className='text-lg font-medium'>Choose a Password</label>
+                <input
+                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-black' }`}
+                        placeholder='Password'
+                        type='password'
+                        onInput={(event) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
+                    />
+                </div>
+                <p className='mt-4 text-red-400'>{errorMsg}</p>
+                <div className="flex flex-row justify-center">
+                  <button
+                    className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
+                    onClick={(event) => {setRedBorder({email: !validateEmail(), password: !validatePassword()}); if (validateLogin()) { createUser(email, password); }}}
+                  >
+                    Sign up
+                  </button>
+                </div>
+              </div>
+              
+          </div>
+        )}
       </div>
     </>
   );

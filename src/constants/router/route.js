@@ -3,6 +3,7 @@ import Login from "../../pages/Login";
 import About from "../../pages/About";
 import Register from "../../pages/Register";
 import Home from "../../pages/Home";
+import Welcome from "../../pages/Welcome";
 
 export const ROUTES = [
   {
@@ -24,5 +25,9 @@ export const ROUTES = [
   {
     path: "/home",
     element: <Home />,
+  },
+  {
+    path: "/welcome",
+    element: <Welcome />,
   },
 ];
