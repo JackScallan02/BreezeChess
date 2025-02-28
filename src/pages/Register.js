@@ -74,7 +74,7 @@ const validatePassword = () => {
     setRedBorder({email: redBorder.email, password: true});
     return false;
   } else if (password.length < 8) {
-    setErrorMsg('Password must be at least 8 characters long.');
+    setErrorMsg('Password must be at least 8 characters long and contain at least 2 numbers and 1 special character. (Example special characters: #, $, !).');
     setRedBorder({email: redBorder.email, password: true});
     return false;
   } else if (!regex.test(password)) {
