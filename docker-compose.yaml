@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  client:
+    build: .
+    ports:
+      - "9000:9000"    # React app (frontend)
+      - "9099:9099"    # Firebase Auth emulator
+      - "4000:4000"    # Firebase Emulator UI
+      - "4500:4500"    # Firebase Logging emulator
+      - "4400:4400"    # Firebase hub
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # Enable file watching inside Docker
+    volumes:
+      - .:/app   # Mount the local directory to Docker container
+      - ~/.config/configstore:/root/.config/configstore  # Mount the Firebase credentials
+    command: ["npm", "run", "dev"]   # Run your dev script

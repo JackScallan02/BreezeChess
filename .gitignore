@@ -26,3 +26,4 @@ yarn-error.log*
 src/output.css
 
 firebase-debug.log
+ui-debug.log
