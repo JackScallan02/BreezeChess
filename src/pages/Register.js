@@ -88,20 +88,20 @@ useEffect(() => {
   // and corresponding red border outline.
   if (loginError) {
     setLoginError(false);
+    setRedBorder({email: redBorder.email, password: false});
   }
-  setRedBorder({email: redBorder.email, password: false});
 
-}, [password]);
+}, [password, loginError, redBorder.email]);
 
 useEffect(() => {
   // When they change the email/password, reset the login error variable to false
   // and corresponding red border outline.
   if (loginError) {
     setLoginError(false);
+    setRedBorder({email: false, password: redBorder.password});
   }
-  setRedBorder({email: false, password: redBorder.password});
 
-}, [email]);
+}, [email, loginError, redBorder.password]);
 
 const validateLogin = () => {
   if (email === '' && password === '') {

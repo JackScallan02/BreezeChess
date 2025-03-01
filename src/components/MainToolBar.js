@@ -21,23 +21,24 @@ const MainToolBar = () => {
 
     const navigate = useNavigate();
 
-    const updateToolBar = () => {
-      // Called every time user login status changes
 
-      setMenuItems({
-        'Home': !user ? '/' : '/home',
-        'Donate': '/donate',
-        'About': '/about',
-        'Contact': '/contact',
-      });
-
-      setAuthButton({
-        'label' : !user ? 'Sign in' : 'Logout',
-        'link' : !user ? '/login' : '/'
-      });
-    }
 
     useEffect(() => {
+      const updateToolBar = () => {
+        // Called every time user login status changes
+  
+        setMenuItems({
+          'Home': !user ? '/' : '/home',
+          'Donate': '/donate',
+          'About': '/about',
+          'Contact': '/contact',
+        });
+  
+        setAuthButton({
+          'label' : !user ? 'Sign in' : 'Logout',
+          'link' : !user ? '/login' : '/'
+        });
+      }
       updateToolBar();
     }, [user])
 
