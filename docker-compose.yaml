@@ -22,12 +22,18 @@ services:
       context: ./server  # Assuming you have a 'server' folder for your backend code
     ports:
       - "9001:9001"    # Exposing server port
+    depends_on:
+      postgres:
+        condition: service_healthy  # Ensures server waits until postgres is healthy
     networks:
      - breezechess-network
     volumes:
       - ./server:/app  # Mount the server code to the container
     environment:
-      - NODE_ENV=development
+      NODE_ENV: development
+      POSTGRES_USER: ${POSTGRES_USER}      # Username for the database
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Password for the database
+      POSTGRES_DB: ${POSTGRES_DB}          # Database name to create
     command: ["npm", "run", "start"]  # Command to run your server
 
   postgres:
@@ -38,9 +44,16 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}          # Database name to create
     ports:
       - "5432:5432"  # Expose the PostgreSQL port to the host
+    networks:
+     - breezechess-network
     volumes:
       - postgres_data:/var/lib/postgresql/data  # Persistent storage for the database
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount the SQL file for initialization
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
 
 networks:
   breezechess-network:
