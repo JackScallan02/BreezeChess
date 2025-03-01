@@ -16,7 +16,7 @@
     "web-vitals": "^4.2.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "PORT=9000 react-scripts start",
     "dev": "concurrently \"npm start\" \"npm run tailwind\" \"npm run firebase\" --host 0.0.0.0",
     "tailwind": "npx tailwindcss -i ./src/input.css -o ./src/output.css --watch",
     "firebase": "firebase emulators:start --only auth"

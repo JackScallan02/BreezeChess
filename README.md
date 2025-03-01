@@ -11,11 +11,16 @@ REACT_APP_FB_APP_ID=<App ID goes here>
 REACT_APP_FB_MESSAGING_SENDER_ID=<Messaging Sender ID goes here>
 REACT_APP_FB_MEASUREMENT_ID=<Measurement ID goes here>
 FIREBASE_AUTH_EMULATOR_HOST=localhost:9099
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+POSTGRES_DB=db_dev
 ```
 
 ## Development
 
 In the project directory, you can run the following command:\
+`docker-compose up`\
+which will then run:\
 `npm run dev`\
 Which runs the following three commands:
 
@@ -23,10 +28,11 @@ Which runs the following three commands:
 `npx tailwindcss -i ./src/input.css -o ./src/output.css --watch & npm start`
 
 2. Run the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Open [http://localhost:9000](http://localhost:9000) to view it in your browser.
 
 3. Emulate the firebase authentication during development at [http://localhost:9099](http://localhost:9099):\
 `firebase emulators:start --only auth`
 
-
+If you want to exec into the postgres container:\
+`docker exec -it breezechess-postgres-1 psql -U user -d db_dev`
 

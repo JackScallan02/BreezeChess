@@ -32,7 +32,6 @@ services:
 
   postgres:
     image: postgres:15  # You can use the latest version or specific version
-    container_name: postgres-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}      # Username for the database
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Password for the database
