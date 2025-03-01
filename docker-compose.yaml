@@ -41,7 +41,7 @@ services:
       - "5432:5432"  # Expose the PostgreSQL port to the host
     volumes:
       - postgres_data:/var/lib/postgresql/data  # Persistent storage for the database
-      - ./init.sql:/database/init.sql  # Mount the SQL file for initialization
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql  # Mount the SQL file for initialization
 
 networks:
   breezechess-network:
