@@ -8,9 +8,28 @@ services:
       - "4000:4000"    # Firebase Emulator UI
       - "4500:4500"    # Firebase Logging emulator
       - "4400:4400"    # Firebase hub
+    networks:
+     - breezechess-network
     environment:
       - CHOKIDAR_USEPOLLING=true  # Enable file watching inside Docker
     volumes:
       - .:/app   # Mount the local directory to Docker container
       - ~/.config/configstore:/root/.config/configstore  # Mount the Firebase credentials
     command: ["npm", "run", "dev"]   # Run your dev script
+
+  server:
+    build:
+      context: ./server  # Assuming you have a 'server' folder for your backend code
+    ports:
+      - "9001:9001"    # Exposing server port
+    networks:
+     - breezechess-network
+    volumes:
+      - ./server:/app  # Mount the server code to the container
+    environment:
+      - NODE_ENV=development
+    command: ["npm", "run", "start"]  # Command to run your server
+
+networks:
+  breezechess-network:
+    driver: bridge
