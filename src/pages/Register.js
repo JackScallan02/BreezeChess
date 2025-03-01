@@ -1,13 +1,10 @@
 import { React, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import MainToolBar from '../components/MainToolBar';
-import { useAuth } from "../contexts/AuthContext";
-import { firebase, auth } from '../Firebase.js'
-import LoadingScreen from '../pages/Loading.js';
-import { getRedirectResult, signInWithRedirect, createUserWithEmailAndPassword } from "firebase/auth"
+import { auth } from '../Firebase.js'
+import { createUserWithEmailAndPassword } from "firebase/auth"
 
-const Register = (props) => {
-  const {user, loading} = useAuth();
+const Register = () => {
   const navigate = useNavigate();
   const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
   const [email, setEmail] = useState('');

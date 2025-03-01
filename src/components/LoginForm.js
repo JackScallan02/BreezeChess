@@ -2,7 +2,6 @@ import { React, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { firebase, auth } from '../Firebase.js'
-import LoadingScreen from '../pages/Loading.js';
 import { getRedirectResult, signInWithRedirect, signInWithEmailAndPassword } from "firebase/auth"
 
 const LoginForm = () => {

@@ -3,10 +3,9 @@ import {createPortal} from 'react-dom';
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import tailwindcsslogo from '../assets/tailwindcsslogo.png';
-import { firebase, auth } from '../Firebase.js'
 
 const MainToolBar = () => {
-    const { user, loading, handleLogout } = useAuth();
+    const { user, handleLogout } = useAuth();
 
     const [menuOpen, setMenuOpen] = useState(false);
     const [menuItems, setMenuItems] = useState({

@@ -2,10 +2,9 @@ import { React, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
-import { firebase, auth } from '../Firebase.js'
 import LoadingScreen from '../pages/Loading.js';
 
-const Welcome = (props) => {
+const Welcome = () => {
   const {user, loading} = useAuth();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState('');
@@ -20,7 +19,6 @@ const Welcome = (props) => {
   }
 
   const validateDisplayName = () => {
-    const restrictedWords = ["admin", "moderator", "support"];
 
     if (!displayName.toLowerCase().match(/^[0-9a-z]+$/)) {
         setErrorMsg("Display name must only contain letters or numbers.");

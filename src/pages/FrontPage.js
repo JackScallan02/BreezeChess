@@ -3,7 +3,6 @@ import MainToolBar from '../components/MainToolBar';
 import LoadingScreen from './Loading';
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import ChessBoard from '../components/ChessBoard';
 
 const FrontPage = () => {
   const {user, loading} = useAuth();

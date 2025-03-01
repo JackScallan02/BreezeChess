@@ -3,7 +3,6 @@ import MainToolBar from '../components/MainToolBar';
 import LoginForm from '../components/LoginForm';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { firebase, auth } from '../Firebase.js'
 import LoadingScreen from '../pages/Loading.js';
 
 const Login = () => {
