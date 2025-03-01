@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "axios": "^1.8.1",
     "bad-words": "^4.0.0",
     "boxicons": "^2.1.4",
     "concurrently": "^9.1.2",
@@ -40,7 +41,7 @@
     ]
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.17",
-    "firebase-tools": "^11.3.1"
+    "firebase-tools": "^11.3.1",
+    "tailwindcss": "^3.4.17"
   }
 }

@@ -1,0 +1,13 @@
+[debug] [2025-03-01T20:03:32.702Z] ----------------------------------------------------------------------
+[debug] [2025-03-01T20:03:32.705Z] Command:       /usr/local/bin/node /app/node_modules/.bin/firebase emulators:start --only auth
+[debug] [2025-03-01T20:03:32.707Z] CLI Version:   11.30.0
+[debug] [2025-03-01T20:03:32.707Z] Platform:      linux
+[debug] [2025-03-01T20:03:32.708Z] Node Version:  v18.20.7
+[debug] [2025-03-01T20:03:32.708Z] Time:          Sat Mar 01 2025 20:03:32 GMT+0000 (Coordinated Universal Time)
+[debug] [2025-03-01T20:03:32.708Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-03-01T20:03:32.844Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-03-01T20:03:32.845Z] > authorizing via signed-in user (breezechess99@gmail.com)
+[info] i  emulators: Starting emulators: auth {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth"}}
+[debug] [2025-03-01T20:03:32.851Z] assigned listening specs for emulators {"user":{"hub":[{"address":"0.0.0.0","family":"IPv4","port":4400}],"ui":[{"address":"0.0.0.0","family":"IPv4","port":4000}],"logging":[{"address":"0.0.0.0","family":"IPv4","port":4500}],"auth":[{"address":"0.0.0.0","family":"IPv4","port":9099}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-03-01T20:03:32.866Z] [hub] writing locator at /tmp/hub-breezechess-619d4.json
