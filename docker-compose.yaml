@@ -30,6 +30,23 @@ services:
       - NODE_ENV=development
     command: ["npm", "run", "start"]  # Command to run your server
 
+  postgres:
+    image: postgres:15  # You can use the latest version or specific version
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}      # Username for the database
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Password for the database
+      POSTGRES_DB: ${POSTGRES_DB}          # Database name to create
+    ports:
+      - "5432:5432"  # Expose the PostgreSQL port to the host
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persistent storage for the database
+      - ./init.sql:/database/init.sql  # Mount the SQL file for initialization
+
 networks:
   breezechess-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local  # This ensures the volume is properly defined for persistent storage
