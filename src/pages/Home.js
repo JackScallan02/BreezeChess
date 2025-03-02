@@ -22,7 +22,7 @@ const Home = () => {
         <MainToolBar />
         <main>
           <div className="flex flex-col">
-            <p>Welcome, {user.displayName}</p>
+            <p>Welcome, {user.username}</p>
           </div>
         </main>
       </div>

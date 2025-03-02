@@ -1,50 +1,68 @@
 import { React, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import MainToolBar from '../components/MainToolBar';
-import { auth } from '../Firebase.js'
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import LoadingScreen from '../pages/Loading.js';
+import { firebase, auth } from '../Firebase.js'
+import { signInWithRedirect, createUserWithEmailAndPassword } from "firebase/auth"
+import { useAuth } from "../contexts/AuthContext";
+import { getUsers } from "../api/users.js";
 
 const Register = () => {
   const navigate = useNavigate();
+  const {user, loading, password, setPassword} = useAuth();
   const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [redBorder, setRedBorder] = useState({ email: false, password: false });
   const [signUpClicked, setSignUpClicked] = useState(false);
 
-  const createUser = async (email, password) => {
+  useEffect(() => {
+    if (user) navigate('/welcome');
+  }, [user])
+
+  const handleCreateUser = async (email, password) => {
     try {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
-        setLoginError(false);
-        if (result && result.user) {
-          navigate('/welcome');
-        }
+      const result = await getUsers({ email });
+      if (result && result.provider === 'google.com') {
+          // Google account already exists with email
+          setErrorMsg(errorText('A google account already exists with this email. Please sign in with Google.'))
+      } else if (result && result.error === 'User not found') {
+          // User with email not found
+          await createUserWithEmailAndPassword(auth, email, password);
+          setLoginError(false);
+      } else {
+        setErrorMsg(errorText('A user with this email already exists. Forgot password?')) //TODO: forgot password
+      }
+
     } catch (err) {
         setLoginError(true);
         if (err.code === 'auth/invalid-email') {
-            setErrorMsg('The email address is badly formatted.');
+            setErrorMsg(errorText('The email address is badly formatted.'));
             setRedBorder({email: true, password: false});
           } else if (err.code === 'auth/email-already-in-use') {
-            setErrorMsg('The email address is already in use.');
+            setErrorMsg(errorText('The email address is already in use.'));
             setRedBorder({email: true, password: false});
           } else if (err.code === 'auth/weak-password') {
-            setErrorMsg(err.message.replace(/^Firebase: /, '').split(' (auth/')[0]);
+            setErrorMsg(errorText(err.message.replace(/^Firebase: /, '').split(' (auth/')[0]));
             setRedBorder({email: false, password: true});
           } else {
-            setErrorMsg('Failed to login. Please try again.');
+            setErrorMsg(errorText('Failed to login. Please try again.'));
             setRedBorder({email: false, password: false})
         }
         console.error(err);
     }
 }
 
+const errorText = (msg) => (
+  <p className='mt-4 text-red-400 break-words max-w-sm whitespace-normal'>{msg}</p>
+);
+
 const validateEmail = () => {
   if (loginError) {
     return false;
   }
   if (email === '') {
-    setErrorMsg('Please enter an email');
+    setErrorMsg(errorText('Please enter an email'));
     setRedBorder({email: true, password: redBorder.password});
 
     return false;
@@ -63,19 +81,19 @@ const validatePassword = () => {
     return false;
   }
   if (password === '') {
-    setErrorMsg('Please enter a password');
+    setErrorMsg(errorText('Please enter a password'));
     setRedBorder({email: redBorder.email, password: true});
     return false;
   } else if (password.length > 30) {
-    setErrorMsg('Password must be less than 30 characters long.');
+    setErrorMsg(errorText('Password must be less than 30 characters long.'));
     setRedBorder({email: redBorder.email, password: true});
     return false;
   } else if (password.length < 8) {
-    setErrorMsg('Password must be at least 8 characters long and contain at least 2 numbers and 1 special character. (Example special characters: #, $, !).');
+    setErrorMsg(errorText('Password must be at least 8 characters long and contain at least 2 numbers and 1 special character. (Example special characters: #, $, !).'));
     setRedBorder({email: redBorder.email, password: true});
     return false;
   } else if (!regex.test(password)) {
-    setErrorMsg('Password must contain at least 2 numbers and 1 special character. (Example special characters: #, $, !)');
+    setErrorMsg(errorText('Password must contain at least 2 numbers and 1 special character. (Example special characters: #, $, !)'));
     setRedBorder({email: redBorder.email, password: true});
     return false;
   }
@@ -105,7 +123,7 @@ useEffect(() => {
 
 const validateLogin = () => {
   if (email === '' && password === '') {
-      setErrorMsg('Please enter an email and password');
+      setErrorMsg(errorText('Please enter an email and password'));
       return false;
   }
 
@@ -116,7 +134,15 @@ const validateLogin = () => {
   return validatePassword();
 }
 
-  return (
+const googleSignIn = () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.useDeviceLanguage();
+  signInWithRedirect(auth, provider);
+}
+
+if (loading) return <LoadingScreen />;
+
+if (!user && !loading) return (
     <>
       <div className="flex flex-col min-h-screen">
         <MainToolBar />
@@ -136,7 +162,10 @@ const validateLogin = () => {
             </button>
           </div>
           <div className="flex flex-row justify-center">
-            <button className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'>
+            <button
+              className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'
+              onClick={() => {googleSignIn();}}
+              >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5.26644 9.76453C6.19903 6.93863 8.85469 4.90909 12.0002 4.90909C13.6912 4.90909 15.2184 5.50909 16.4184 6.49091L19.9093 3C17.7821 1.14545 15.0548 0 12.0002 0C7.27031 0 3.19799 2.6983 1.24023 6.65002L5.26644 9.76453Z" fill="#EA4335" />
                 <path d="M16.0406 18.0142C14.9508 18.718 13.5659 19.0926 11.9998 19.0926C8.86633 19.0926 6.21896 17.0785 5.27682 14.2695L1.2373 17.3366C3.19263 21.2953 7.26484 24.0017 11.9998 24.0017C14.9327 24.0017 17.7352 22.959 19.834 21.0012L16.0406 18.0142Z" fill="#34A853" />
@@ -167,11 +196,11 @@ const validateLogin = () => {
                         onInput={(event) => { setPassword(event.target.value)}}
                     />
                 </div>
-                <p className='mt-4 text-red-400'>{errorMsg}</p>
+                {errorMsg}
                 <div className="flex flex-row justify-center">
                   <button
                     className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                    onClick={(event) => { if (validateLogin()) { createUser(email, password); }}}
+                    onClick={(event) => { if (validateLogin()) { handleCreateUser(email, password); }}}
                   >
                     Sign up
                   </button>

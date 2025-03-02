@@ -1,4 +1,4 @@
-import { React } from 'react';
+import { React, useEffect } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import LoadingScreen from './Loading';
 import { useAuth } from "../contexts/AuthContext";
@@ -8,9 +8,11 @@ const FrontPage = () => {
   const {user, loading} = useAuth();
   const navigate = useNavigate();
 
-  if (loading) return <LoadingScreen />
+  useEffect(() => {
+    if (user) navigate('/home');
+  }, [navigate, user]);
 
-  if (user) navigate('/home');
+  if (loading) return <LoadingScreen />
 
   if (!user && !loading) return (
     <div className="flex flex-col min-h-screen">

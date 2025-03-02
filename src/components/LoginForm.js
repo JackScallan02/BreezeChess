@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { firebase, auth } from '../Firebase.js'
 import { signInWithRedirect, signInWithEmailAndPassword } from "firebase/auth"
+import { getUsers } from "../api/users.js"
 
 const LoginForm = () => {
 
@@ -17,44 +18,54 @@ const LoginForm = () => {
 
     const signInUser = async (email, password) => {
         try {
-            await signInWithEmailAndPassword(auth, email, password)
-        } catch (err) {
-            setLoginError(true);
-            if (err.code === 'auth/invalid-email') {
-                setErrorMsg('The email address is badly formatted.');
-                setRedBorder({email: true, password: false});
-
-              } else if (err.code === 'auth/user-not-found') {
+            const result = await getUsers({ email });
+            if (result && result.provider === 'google.com') {
+                // Google account already exists with email
+                setErrorMsg(errorText('A google account already exists with this email. Please sign in with Google.'))
+            } else if (result && result.error === 'User not found') {
+                // User with email not found
                 setRedBorder({email: true, password: false});
                 setErrorMsg(
                 <>
                     <div className="flex justify-center flex-col">
-                        <p>No user exists with the provided email. </p>
+                        {errorText('No user exists with the provided email.')}
                         <button
                             className='text-sky-500 text-base text-center font-medium hover:text-sky-400'
-                            onClick={(event) => navigate("/register")}
+                            onClick={() => navigate("/register")}
                         >
                             Sign up here
                         </button>
                     </div>
                 </>
                 );
-              } else if (err.code === 'auth/wrong-password') {
-                setErrorMsg('Invalid password. Please try again.');
-                setRedBorder({email: false, password: true});                
-              } else {
-                setErrorMsg('Failed to login. Please try again.');
+            } else if (result.password !== password) {
+                // Invalid password. TODO: encryption
+                setErrorMsg(errorText('Invalid password. Please try again.'));
+                setRedBorder({email: false, password: true});   
+            } else {
+                await signInWithEmailAndPassword(auth, email, password)
+            }
+        } catch (err) {
+            setLoginError(true);
+            if (err.code === 'auth/invalid-email') {
+                setErrorMsg(errorText('The email address is badly formatted.'));
+                setRedBorder({email: true, password: false});
+            } else {
+                setErrorMsg(errorText('Failed to login. Please try again.'));
                 setRedBorder({email: false, password: false});
             }
             console.error(err);
         }
     }
 
+    const errorText = (msg) => (
+        <p className='mt-4 text-red-400 break-words max-w-sm whitespace-normal'>{msg}</p>
+    );
+
     const googleSignIn = () => {
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.useDeviceLanguage();
         signInWithRedirect(auth, provider);
-
     }
 
     const validateEmail = () => {
@@ -67,15 +78,15 @@ const LoginForm = () => {
 
     const validateLogin = () => {
         if (email === '' && password === '') {
-            setErrorMsg('Please enter an email and password');
+            setErrorMsg(errorText('Please enter an email and password'));
         }
         else if (email === '') {
-            setErrorMsg('Please enter an email');
+            setErrorMsg(errorText('Please enter an email'));
         }
         else if (password === '') {
-            setErrorMsg('Please enter a password')
+            setErrorMsg(errorText('Please enter a password'))
         } else {
-            setErrorMsg('');
+            setErrorMsg(errorText(''));
         }
         return email !== '' && password !== '';
     }
@@ -113,7 +124,7 @@ const LoginForm = () => {
                     </div>
                     <button className='font-medium text-base text-sky-500 hover:text-sky-400'>Forgot password</button>
                 </div>
-                <p className='mt-4 text-red-400'>{errorMsg}</p>
+                {errorMsg}
                 <div className='mt-8 flex flex-col gap-y-4'>
                     <button
                         className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'

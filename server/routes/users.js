@@ -4,23 +4,41 @@ const router = express.Router();
 
 
 router.get('/', async (req, res) => {
+    // Return based on the query parameters, otherwise return all users
     try {
-        const users = await db('users');
-        res.status(200).json(users); // Send all users as JSON response
+        let users;
+        if (req.query.uid) {
+            const user = await db('users').where('uid', req.query.uid).first();
+            if (user) {
+                return res.status(200).json(user);
+            } else {
+                return res.status(200).json({ error: 'User not found' });
+            }
+        } else if (req.query.email) {
+            const user = await db('users').where('email', req.query.email).first();
+            if (user) {
+                return res.status(200).json(user);
+            } else {
+                return res.status(200).json({ error: 'User not found' });
+            }
+        } else {
+            users = await db('users');
+        }
+        res.status(200).json(users);
     } catch (error) {
         console.error('Error getting users:', error.message);
         res.status(500).json({ error: `Failed to get users : ${error.message}` });
     }
 });
 
-router.get('/:uid', async (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
-        const { uid } = req.params;
-        const user = await db('users').where({ uid }).first();
+        const { id } = req.params;
+        const user = await db('users').where({ id }).first();
         if (!user) {
             return res.status(200).json({ error: 'User not found' });
         }
-        res.status(200).json(user); // Send all users as JSON response
+        res.status(200).json(user);
     } catch (error) {
         console.error('Error getting user:', error.message);
         res.status(500).json({ error: `Failed to get user : ${error.message}` });
@@ -28,10 +46,10 @@ router.get('/:uid', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    let { uid, username, email, password } = req.body;
+    let { uid, username, email, password, provider } = req.body;
 
     // Validate request data
-    if (!uid || !email) {
+    if (!uid || !email || !provider) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -43,12 +61,12 @@ router.post('/', async (req, res) => {
         const [newUser] = await db('users').insert({
             uid,
             email,
+            provider,
             username: username,
             password: password,
             is_new_user: true,
-        }).returning('*');  // Return the newly inserted user
+        }).returning('*');
 
-        // Respond with the newly inserted user
         res.status(201).json(newUser);
     } catch (error) {
         console.error('Error inserting user:', error.message);
@@ -61,7 +79,11 @@ router.put('/', async (req, res) => {
     try {
         const { id, ...updates } = req.body;
         if (!id) {
-            return res.status(400).json({ error: 'User ID is required' });
+            return res.status(400).json({ error: 'User id is required' });
+        }
+        
+        if (!updates || (typeof updates !== 'object') || (Object.keys(updates).length === 0)) {
+            return res.status(400).json({ error: 'Update params object is required' });
         }
         const result = await db('users').where({ id }).update(updates);
         if (!result) {

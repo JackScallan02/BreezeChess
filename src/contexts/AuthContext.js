@@ -1,39 +1,53 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { firebase, auth } from '../Firebase.js'
-import { getUserById, createUser } from '../api/users.js';
+import { getUsers, getUserById, createUser } from '../api/users.js';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(null);
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+    const unsubscribe = firebase.auth().onAuthStateChanged(async (fbUser) => {
       // Check if user has made account before. If not, create user in the database. Navigate to welcome.
       // If the user has made an account, but is still a "new" account, navigate to welcome.
       // Else, navigate to home.
-      if (user) {
-        const getResult = await getUserById(user.uid);
+      if (fbUser) {
+        const getResult = await getUsers({uid: fbUser.uid});
         if (getResult.error === 'User not found') {
           // Create user
-          const createResult = await createUser({
-            uid: user.uid,
-            email: user.email
-          });
+          let createResult;
+          if (fbUser.providerData[0].providerId === 'password') {
+            createResult = await createUser({
+              uid: fbUser.uid,
+              email: fbUser.email,
+              password,
+              provider: fbUser.providerData[0].providerId,
+            });
+          } else {
+            createResult = await createUser({
+              uid: fbUser.uid,
+              email: fbUser.email,
+              provider: fbUser.providerData[0].providerId,
+            });
+          }
 
           if (createResult) {
             setUser({
-              uid: createResult.uid,
+              id: createResult.id,
               email: createResult.email,
-              is_new_user: true,
+              username: null,
+              is_new_user: createResult.is_new_user,
             });
           }
         } else if (getResult) {
           setUser({
-            uid: getResult.uid,
+            id: getResult.id,
             email: getResult.email,
+            username: getResult.username,
             is_new_user: getResult.is_new_user,
           });
         } else {
@@ -46,7 +60,18 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     });
     return () => unsubscribe(); // Cleanup on unmount
-  }, []);
+  }, [password]);
+
+  const handleUserUpdate = async () => {
+    const getResult = await getUserById(user.id);
+
+    setUser({
+      id: getResult.id,
+      email: getResult.email,
+      username: getResult.username,
+      is_new_user: getResult.is_new_user,
+    });
+  }
 
   // Handle sign-out
   const handleLogout = () => {
@@ -60,7 +85,7 @@ export const AuthProvider = ({ children }) => {
     };
 
   return (
-    <AuthContext.Provider value={{ user, loading, handleLogout }}>
+    <AuthContext.Provider value={{ user, loading, password, setPassword, setLoading, handleLogout, handleUserUpdate }}>
       {children}
     </AuthContext.Provider>
   );
