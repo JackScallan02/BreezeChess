@@ -2,7 +2,7 @@ import { React, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { firebase, auth } from '../Firebase.js'
-import { getRedirectResult, signInWithRedirect, signInWithEmailAndPassword } from "firebase/auth"
+import { signInWithRedirect, signInWithEmailAndPassword } from "firebase/auth"
 
 const LoginForm = () => {
 
@@ -14,27 +14,6 @@ const LoginForm = () => {
     const [remember, setRemember] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [redBorder, setRedBorder] = useState({email: false, password: false});
-
-
-    const handleRedirectSignIn = async () => {
-        try {
-            const result = await getRedirectResult(auth);
-            if (result && result.user) {
-                console.log("result: ", result);
-                // Check if new user by querying database
-                // Successful google login
-                // Send this idToken to firebase backend to verify identity.
-                // Store uuid in database.
-            } else {
-                // No user found
-            }
-        } catch(err) {
-            console.error(err);
-            setErrorMsg('Failed to login. Please try again.');
-            setRedBorder({email: false, password: false})
-        }
-
-    }
 
     const signInUser = async (email, password) => {
         try {
@@ -70,10 +49,6 @@ const LoginForm = () => {
             console.error(err);
         }
     }
-
-    useEffect(() => {
-        handleRedirectSignIn();
-      }, []);
 
     const googleSignIn = () => {
         const provider = new firebase.auth.GoogleAuthProvider();

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { firebase, auth } from '../Firebase.js'
+import { getUserById, createUser } from '../api/users.js';
 
 const AuthContext = createContext();
 
@@ -10,15 +11,34 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const unsubscribe = firebase.auth().onAuthStateChanged(async (user) => {
+      // Check if user has made account before. If not, create user in the database. Navigate to welcome.
+      // If the user has made an account, but is still a "new" account, navigate to welcome.
+      // Else, navigate to home.
       if (user) {
-        const token = await user.getIdToken();
-        setUser({
-          uid: user.uid,
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
-          idToken: token, // Fetch latest ID token
-        });
+        const getResult = await getUserById(user.uid);
+        if (getResult.error === 'User not found') {
+          // Create user
+          const createResult = await createUser({
+            uid: user.uid,
+            email: user.email
+          });
+
+          if (createResult) {
+            setUser({
+              uid: createResult.uid,
+              email: createResult.email,
+              is_new_user: true,
+            });
+          }
+        } else if (getResult) {
+          setUser({
+            uid: getResult.uid,
+            email: getResult.email,
+            is_new_user: getResult.is_new_user,
+          });
+        } else {
+          setUser(null);
+        }
 
       } else {
         setUser(null);

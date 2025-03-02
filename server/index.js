@@ -11,6 +11,9 @@ async function setupDatabase() {
     console.log('Waiting for database to be ready...');
     await new Promise(resolve => setTimeout(resolve, 5000));  // Delay of 5 seconds
 
+    console.log('Rolling back migrations...');
+    await db.migrate.rollback();
+
     console.log('Running migrations...');
     await db.migrate.latest();
 
@@ -45,15 +48,15 @@ setupDatabase().then(() => {
 
   app.use(cors());
 
+  app.use(express.json()); // To parse JSON request bodies
+
   app.get('/', (req, res) => {
     res.send('Hello from the backend server!');
   });
 
-
   readRoutes();
 
 
-  app.use(express.json()); // To parse JSON request bodies
 
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);

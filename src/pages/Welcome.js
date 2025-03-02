@@ -1,4 +1,4 @@
-import { React, useState } from 'react';
+import { React, useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
@@ -10,6 +10,10 @@ const Welcome = () => {
   const [displayName, setDisplayName] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [redBorder, setRedBorder] = useState(false);
+
+  useEffect(() => {
+    if (!loading && !user) navigate('/')
+  }, [navigate, loading, user]);
 
   const handleSignIn = () => {
     setErrorMsg('');

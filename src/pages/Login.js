@@ -9,9 +9,24 @@ const Login = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
+  const handleUserLogin = async (user) => {
+    try {
+    if (user.is_new_user) {
+      navigate('/welcome');
+    } else {
+      navigate('/');
+    }
+      
+    } catch (error) {
+      console.error(error);
+    }
+
+  }
+
   useEffect(() => {
-    if (user) navigate('/home');
+    //if (user) navigate('/home');
     // TODO: Check if new user. If new user, then navigate to welcome page.
+    if (user) handleUserLogin(user);
   }, [user, navigate]);
 
   if (loading) return <LoadingScreen />;
