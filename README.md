@@ -19,10 +19,12 @@ POSTGRES_DB=db_dev
 ## Development
 
 In the project directory, you can run the following command:\
-`docker-compose up`\
-which will then run:\
-`npm run dev`\
-Which runs the following three commands:
+`npm run dc:dev`\
+which will then start up the following containers.
+
+### Client
+
+The client container runs the following commands:
 
 1. Continuously watch for tailwind changes
 `npx tailwindcss -i ./src/input.css -o ./src/output.css --watch & npm start`
@@ -36,3 +38,11 @@ Open [http://localhost:9000](http://localhost:9000) to view it in your browser.
 If you want to exec into the postgres container:\
 `docker exec -it breezechess-postgres-1 psql -U user -d db_dev`
 
+### Postgres
+
+Contains the database for the application.
+
+
+### Server
+
+The backend server, which contains the express routes and database migrations/seeds.
