@@ -72,15 +72,15 @@ const Welcome = () => {
       <div className="flex flex-col min-h-screen">
         <MainToolBar />
         <div className="flex flex-row justify-center mt-12">
-          <p className="text-[2.5rem] text-slate-900 font-extrabold tracking-tight">
+          <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
             Welcome to BreezeChess!
           </p>
         </div>
         <div className="flex flex-col items-center mt-12">
             <div className="flex flex-col">
-                <label className='text-lg font-medium'>Choose a Username</label>
+                <label className='text-lg font-medium dark:text-white'>Choose a Username</label>
                 <input
-                    className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black'}`}
+                    className={`w-[30%] min-w-[400px] border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black'}`}
                     placeholder='Username'
                     onInput={(event) => { setUsername(event.target.value); setRedBorder(false); }}
                 />

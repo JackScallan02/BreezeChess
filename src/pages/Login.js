@@ -33,13 +33,13 @@ const Login = () => {
 
   if (!user && !loading) return (
     <>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen ">
         <MainToolBar />
         <div className="flex flex-grow">
-          <div className="w-full lg:w-1/2 flex items-center justify-center bg-gray-200">
+          <div className="w-full lg:w-1/2 flex items-center justify-center from-gray-200:to-gray-200 dark:from-gray-800 dark:to-gray-900">
             <LoginForm />
           </div>
-          <div className="hidden lg:flex w-1/2 bg-gray-200">
+          <div className="hidden lg:flex w-1/2 from-gray-200:to-gray-200 dark:from-gray-800 dark:to-gray-900">
             <div className="relative w-full h-full flex items-center justify-center">
               <div className="w-60 h-60 bg-gradient-to-tr from-sky-500 to-white-500 rounded-full"></div>
               <div className="w-full h-1/2 absolute"></div>

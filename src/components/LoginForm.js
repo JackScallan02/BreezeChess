@@ -92,14 +92,14 @@ const LoginForm = () => {
     }
 
     if (!user && !loading) return (
-        <div className='bg-white px-10 py-20 rounded-3xl border-2 border-gray-200 relative mt-4'>
+        <div className='bg-white dark:bg-slate-800 px-10 py-20 rounded-3xl border-2 border-gray-200 dark:border-slate-600 relative mt-4'>
             <h1 className='text-5xl font-semibold'>BreezeChess</h1>
-            <p className='font-medium text-lg text-gray-500 mt-4'>Welcome back!</p>
+            <p className='font-medium text-lg text-gray-500 dark:text-white mt-4'>Welcome back!</p>
             <div className='mt-4'>
                 <div>
                     <label className='text-lg font-medium'>Login</label>
                     <input
-                        className={`w-full border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
+                        className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Email, Phone, or Email'
                         onInput={(event) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
                     />
@@ -107,7 +107,7 @@ const LoginForm = () => {
                 <div>
                 <label className='text-lg font-medium'>Password</label>
                 <input
-                        className={`w-full border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100' }`}
+                        className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Password'
                         type='password'
                         onInput={(event) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
@@ -133,7 +133,7 @@ const LoginForm = () => {
                         Sign In
                     </button>
                     <button
-                        className='flex py-3 rounded-xl border-2 border-gray-100 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'
+                        className='flex py-3 rounded-xl border-2 border-gray-100 dark:border-slate-600 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'
                         onClick={(event) => {googleSignIn();}}
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

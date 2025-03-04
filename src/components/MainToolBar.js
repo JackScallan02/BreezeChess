@@ -43,7 +43,7 @@ const MainToolBar = () => {
     }, [user])
 
     return (
-        <header className="flex justify-between items-center text-black py-6 px-8 md:px-32 bg-white drop-shadow-md">
+        <header className="flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white dark:bg-slate-800 bg-drop-shadow-md">
           <a href={!user ? "/" : "/home"}>
             <img src={tailwindcsslogo} alt="" className="w-52 hover:scale-105 transition-all" />
           </a>
