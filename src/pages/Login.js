@@ -4,6 +4,7 @@ import LoginForm from '../components/LoginForm';
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from '../pages/Loading.js';
+import breezechesslogo from '../assets/BreezeChessLogo.png';
 
 const Login = () => {
   const { user, loading } = useAuth();
@@ -33,6 +34,21 @@ const Login = () => {
 
   if (!user && !loading) return (
     <>
+      <style jsx>{`
+        @keyframes rotate {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+
+        .animate-rotate {
+          animation: rotate 20s linear infinite;
+          hover:scale-105;
+        }
+      `}</style>
       <div className="flex flex-col min-h-screen ">
         <MainToolBar />
         <div className="flex flex-grow">
@@ -41,8 +57,9 @@ const Login = () => {
           </div>
           <div className="hidden lg:flex w-1/2 from-gray-200:to-gray-200 dark:from-gray-800 dark:to-gray-900">
             <div className="relative w-full h-full flex items-center justify-center">
-              <div className="w-60 h-60 bg-gradient-to-tr from-sky-500 to-white-500 rounded-full"></div>
-              <div className="w-full h-1/2 absolute"></div>
+              <a href={!user ? "/" : "/home"}>
+                <img src={breezechesslogo} alt="" className="w-60 animate-rotate" />
+              </a>
             </div>
           </div>
         </div>
