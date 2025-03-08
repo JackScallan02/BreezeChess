@@ -38,6 +38,7 @@ const Welcome = () => {
   useEffect(() => {
     if (firstTimeSignIn) {
       handleSignIn();
+      setFirstTimeSignIn(false);
     }
   }, [firstTimeSignIn]);
 
