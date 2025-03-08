@@ -4,6 +4,7 @@ import About from "../../pages/About";
 import Register from "../../pages/Register";
 import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
+import { React } from 'react';
 
 export const ROUTES = [
   {

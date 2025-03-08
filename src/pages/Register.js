@@ -156,7 +156,7 @@ if (!user && !loading) return (
           <div className="flex flex-row justify-center">
             <button
               className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-              onClick={(event) => { setSignUpClicked(true); }}
+              onClick={() => { setSignUpClicked(true); }}
             >
               Sign up
             </button>
@@ -200,7 +200,7 @@ if (!user && !loading) return (
                 <div className="flex flex-row justify-center">
                   <button
                     className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                    onClick={(event) => { if (validateLogin()) { handleCreateUser(email, password); }}}
+                    onClick={() => { if (validateLogin()) { handleCreateUser(email, password); }}}
                   >
                     Sign up
                   </button>

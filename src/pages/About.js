@@ -22,7 +22,7 @@ const About = () => {
               Unleash Your Inner Strategist
             </p>
             <p className="mt-8 max-w-[500px] text-[1.25rem]">
-              Chess is more than just a game— it's a journey of learning and growth. That's why our app is thoughtfully crafted to elevate your skills like no other. BreezeChess includes a range of tools that will transcend your abilities - from opening theory, checkmate practicing, tactic building, all the way to endgame perfection.
+              Chess is more than just a game— it&apos;s a journey of learning and growth. That&apos;s why our app is thoughtfully crafted to elevate your skills like no other. BreezeChess includes a range of tools that will transcend your abilities - from opening theory, checkmate practicing, tactic building, all the way to endgame perfection.
             </p>
           </div>
           {/* Left-aligned section */}

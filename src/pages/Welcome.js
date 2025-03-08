@@ -20,7 +20,6 @@ const Welcome = () => {
   const [userExp, setUserExp] = useState(null);
   const [userGoals, setUserGoals] = useState(null);
   const { handleNavigation, key } = useNavigation();
-  console.log(userGoals);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const step = searchParams.get("step") || "displayName";
@@ -162,7 +161,7 @@ const Welcome = () => {
           <div className="flex flex-row justify-center mt-2">
               <button
                   className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                  onClick={(event) => {if (validateUsername()) { handleSignIn(); }}}
+                  onClick={() => {if (validateUsername()) { handleSignIn(); }}}
               >
                   Sign up
               </button>

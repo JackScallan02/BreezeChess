@@ -1,9 +1,10 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { React, createContext, useContext, useState, useEffect } from "react";
 import { firebase, auth } from '../Firebase.js'
 import { getUsers, getUserById, createUser } from '../api/users.js';
 
 const AuthContext = createContext();
 
+// eslint-disable-next-line react/prop-types
 export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(null);

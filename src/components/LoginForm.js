@@ -122,7 +122,7 @@ const LoginForm = () => {
                         <input
                             type='checkbox'
                             id='remember'
-                            onClick={(event) => setRemember(!remember)}
+                            onClick={() => setRemember(!remember)}
                         />
                         <label className='ml-2 font-medium text-base' htmlFor='remember'>Remember me</label>
                     </div>
@@ -132,13 +132,13 @@ const LoginForm = () => {
                 <div className='mt-8 flex flex-col gap-y-4'>
                     <button
                         className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                        onClick={(event) => {setRedBorder({email: !validateEmail(), password: !validatePassword()}); if (validateLogin()) { signInUser(email, password); }}}
+                        onClick={() => {setRedBorder({email: !validateEmail(), password: !validatePassword()}); if (validateLogin()) { signInUser(email, password); }}}
                     >
                         Sign In
                     </button>
                     <button
                         className='flex py-3 rounded-xl border-2 border-gray-100 dark:border-slate-600 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'
-                        onClick={(event) => {googleSignIn();}}
+                        onClick={() => {googleSignIn();}}
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M5.26644 9.76453C6.19903 6.93863 8.85469 4.90909 12.0002 4.90909C13.6912 4.90909 15.2184 5.50909 16.4184 6.49091L19.9093 3C17.7821 1.14545 15.0548 0 12.0002 0C7.27031 0 3.19799 2.6983 1.24023 6.65002L5.26644 9.76453Z" fill="#EA4335"/>
@@ -150,10 +150,10 @@ const LoginForm = () => {
                     </button>
                 </div>
                 <div className='mt-8 flex justify-center items-center'>
-                    <p className='font-medium text-base'>Don't have an account?</p>
+                    <p className='font-medium text-base'>Don&apos;t have an account?</p>
                     <button
                         className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400'
-                        onClick={(event) => handleNavigation("/register")}
+                        onClick={() => handleNavigation("/register")}
                         >
                             Sign Up
                     </button>

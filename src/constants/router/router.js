@@ -4,6 +4,7 @@ import {
     Route,
   } from "react-router-dom";
   import { ROUTES } from "./route";
+  import { React } from 'react';
   
   export const router = createBrowserRouter(
     createRoutesFromElements(
