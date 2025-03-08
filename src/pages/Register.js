@@ -14,7 +14,7 @@ const Register = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [redBorder, setRedBorder] = useState({ email: false, password: false });
   const [signUpClicked, setSignUpClicked] = useState(false);
-  const handleNavigation = useNavigation();
+  const { handleNavigation, key } = useNavigation();
 
   useEffect(() => {
     if (user) handleNavigation('/welcome');
@@ -144,7 +144,7 @@ if (loading) return <LoadingScreen />;
 
 if (!user && !loading) return (
     <>
-      <div className="flex flex-col min-h-screen">
+      <div key={key} className="flex flex-col min-h-screen">
         <MainToolBar />
         <div className="flex flex-row justify-center mt-12">
           <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">

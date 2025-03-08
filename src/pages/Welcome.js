@@ -10,7 +10,7 @@ const Welcome = () => {
   const [username, setUsername] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [redBorder, setRedBorder] = useState(false);
-  const handleNavigation = useNavigation();
+  const { handleNavigation, key } = useNavigation();
 
   useEffect(() => {
     if (!loading && !user) handleNavigation('/');
@@ -69,7 +69,7 @@ const Welcome = () => {
 
   if (user && !loading && user.is_new_user) return (
     <>
-      <div className="flex flex-col min-h-screen">
+      <div key={key} className="flex flex-col min-h-screen">
         <MainToolBar />
         <div className="flex flex-row justify-center mt-12">
           <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">

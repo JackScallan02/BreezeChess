@@ -11,7 +11,7 @@ import breezechesslogowhite from '../assets/breezechess-full-logo-white.png'
 const LoginForm = () => {
 
     const {user, loading} = useAuth();
-    const handleNavigation = useNavigation();
+    const { handleNavigation, key } = useNavigation();
     const { isDarkMode } = useDarkMode();
 
     const [email, setEmail] = useState('');
@@ -97,7 +97,7 @@ const LoginForm = () => {
     }
 
     if (!user && !loading) return (
-        <div className='bg-white dark:bg-slate-800 px-10 py-20 rounded-3xl border-2 border-gray-200 dark:border-slate-600 relative mt-4'>
+        <div key={key} className='bg-white dark:bg-slate-800 px-10 py-20 rounded-3xl border-2 border-gray-200 dark:border-slate-600 relative mt-4'>
             <img src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52" />
             <div className='mt-12'>
                 <div>

@@ -6,7 +6,7 @@ import { useNavigation } from '../navigator/navigate';
 
 const FrontPage = () => {
   const {user, loading} = useAuth();
-  const handleNavigation = useNavigation();
+  const { handleNavigation, key } = useNavigation();
 
   useEffect(() => {
     if (user) handleNavigation('/home');
@@ -15,7 +15,7 @@ const FrontPage = () => {
   if (loading) return <LoadingScreen />
 
   if (!user && !loading) return (
-    <div className="flex flex-col min-h-screen">
+    <div key={key} className="flex flex-col min-h-screen">
       <MainToolBar />
       <main>
         <div className="flex flex-col">

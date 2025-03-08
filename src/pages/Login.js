@@ -8,7 +8,7 @@ import { useNavigation } from '../navigator/navigate';
 
 const Login = () => {
   const { user, loading } = useAuth();
-  const handleNavigation = useNavigation();
+  const { handleNavigation, key } = useNavigation();
 
   const handleUserLogin = async (user) => {
     try {
@@ -32,7 +32,7 @@ const Login = () => {
 
   if (!user && !loading) return (
     <>
-      <div className="flex flex-col min-h-screen ">
+      <div key={key} className="flex flex-col min-h-screen ">
         <MainToolBar />
         <div className="flex flex-grow">
           <div className="w-full lg:w-1/2 flex items-center justify-center from-gray-200:to-gray-200 dark:from-gray-800 dark:to-gray-900">

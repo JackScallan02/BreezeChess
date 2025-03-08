@@ -9,7 +9,7 @@ import { useNavigation } from '../navigator/navigate';
 const MainToolBar = () => {
     const { user, handleLogout } = useAuth();
 
-    const handleNavigation = useNavigation();
+    const { handleNavigation, key } = useNavigation();
 
     const { isDarkMode } = useDarkMode();
 
@@ -47,7 +47,7 @@ const MainToolBar = () => {
     }, [user])
 
     return (
-        <header className="h-16 flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white dark:bg-slate-800 bg-drop-shadow-md">
+        <header key={key} className="h-16 flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white dark:bg-slate-800 bg-drop-shadow-md">
           <a href={!user ? "/" : "/home"}>
             <img src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52 hover:scale-105 transition-all" />
           </a>
@@ -70,25 +70,25 @@ const MainToolBar = () => {
           </li>
           </ul>
           <button className='space-y-1 group xl:hidden' onClick={() => setMenuOpen(!menuOpen)}>
-            <div className='w-6 h-1 bg-black'></div>
-            <div className='w-6 h-1 bg-black'></div>
-            <div className='w-6 h-1 bg-black'></div>
+            <div className='w-6 h-1 bg-black dark:bg-white'></div>
+            <div className='w-6 h-1 bg-black dark:bg-white'></div>
+            <div className='w-6 h-1 bg-black dark:bg-white'></div>
           </button>
           {createPortal(
-          <div className={`absolute xl:hidden top-20 left-0 w-full bg-white flex flex-col items-center gap-6 font-semibold text-lg transform
+          <div className={`absolute xl:hidden top-16 left-0 w-full bg-white dark:bg-slate-800 flex flex-col items-center gap-6 font-semibold text-lg transform
           ${menuOpen ? 'opacity-100 z-50' : 'opacity-0 pointer-events-none'} transition-opacity transition-transform duration-300 ease-in-out`}
           >
             {Object.keys(menuItems).map((menuItem, i) => (
               <li
                 key={i}
-                className="list-none w-full text-center p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+                className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white dark:hover:text-black transition-all cursor-pointer"
                 onClick={() => handleNavigation(menuItems[menuItem])}
               >
                 {menuItem}
               </li>
             ))}
             <li
-                className="list-none w-full text-center p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+                className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white dark:hover:text-black transition-all cursor-pointer"
                 onClick={() => {handleNavigation(authButton['link']); user && handleLogout()}}
             >
             {authButton['label']}

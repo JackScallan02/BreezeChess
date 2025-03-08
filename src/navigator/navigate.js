@@ -1,20 +1,23 @@
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom'
 
 export const useNavigation = () => {
+    const [key, setKey] = useState(0);
     const location = useLocation();
     const navigate = useNavigate();
 
     const handleNavigation = (page) => {
 
         if (location.pathname === page) {
-            window.location.reload();
+            // window.location.reload();
+            setKey(prev => prev + 1);
         } else {
             navigate(page);
         }
     }
 
-    return handleNavigation;
+    return { handleNavigation, key };
 }
 
 export default useNavigation;
