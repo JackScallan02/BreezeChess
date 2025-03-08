@@ -4,19 +4,42 @@ import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from '../pages/Loading.js';
 import { updateUser } from '../api/users.js';
 import { useNavigation } from '../navigator/navigate';
+import { useSearchParams } from 'react-router-dom';
 
 const Welcome = () => {
   const {user, loading, setLoading, handleUserUpdate} = useAuth();
+
   const [username, setUsername] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [firstTimeSignIn, setFirstTimeSignIn] = useState(false);
   const [redBorder, setRedBorder] = useState(false);
   const { handleNavigation, key } = useNavigation();
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const step = searchParams.get("step") || "displayName";
+
+  const nextStep = () => {
+    if (step === "displayName") {
+      setSearchParams({ step: "experience" });
+    } else if (step === "experience") {
+      setSearchParams({ step: "goals" });
+    } else {
+      handleNavigation("/home");
+    }
+  };
+
+
   useEffect(() => {
     if (!loading && !user) handleNavigation('/');
-    if (user && !loading && !user.is_new_user) handleNavigation('/home');
+    if (user && !loading && !user.is_new_user && !firstTimeSignIn) handleNavigation('/home');
 
   }, [handleNavigation, loading, user]);
+
+  useEffect(() => {
+    if (firstTimeSignIn) {
+      handleSignIn();
+    }
+  }, [firstTimeSignIn]);
 
   const handleSignIn = async () => {
     setErrorMsg('');
@@ -31,11 +54,11 @@ const Welcome = () => {
       if (afterTime - curTime < 1000) {
         setTimeout(() => {
           setLoading(false);
-          handleNavigation('/home');
+          nextStep();
         }, [1000 - (afterTime - curTime)])
       } else {
         setLoading(false);
-        handleNavigation('/home');
+        nextStep();
       }
     } catch (error) {
       console.error(error);
@@ -64,38 +87,52 @@ const Welcome = () => {
     // TODO: Want to check that the name isn't taken already (case-insensitive), via the database
     return true;
   }
-
+  console.log("step: ", step);
   if (loading) return <LoadingScreen />;
 
   if (user && !loading && user.is_new_user) return (
     <>
+    {step === "displayName" && (
       <div key={key} className="flex flex-col min-h-screen">
-        <MainToolBar />
-        <div className="flex flex-row justify-center mt-12">
-          <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
-            Welcome to BreezeChess!
-          </p>
-        </div>
-        <div className="flex flex-col items-center mt-12">
-            <div className="flex flex-col">
-                <label className='text-lg font-medium dark:text-white'>Choose a Username</label>
-                <input
-                    className={`w-[30%] min-w-[400px] border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black'}`}
-                    placeholder='Username'
-                    onInput={(event) => { setUsername(event.target.value); setRedBorder(false); }}
-                />
-            </div>
-            <p className='mt-4 text-red-400'>{errorMsg}</p>
-            <div className="flex flex-row justify-center mt-2">
-                <button
-                    className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                    onClick={(event) => {if (validateUsername()) { handleSignIn(); }}}
-                >
-                    Sign up
-                </button>
-            </div>
-        </div>
-        </div>
+      <MainToolBar />
+      <div className="flex flex-row justify-center mt-12">
+        <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+          Welcome to BreezeChess!
+        </p>
+      </div>
+      <div className="flex flex-col items-center mt-12">
+          <div className="flex flex-col">
+              <label className='text-lg font-medium dark:text-white'>Choose a Username</label>
+              <input
+                  className={`w-[30%] min-w-[400px] border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black'}`}
+                  placeholder='Username'
+                  onInput={(event) => { setUsername(event.target.value); setRedBorder(false); }}
+              />
+          </div>
+          <p className='mt-4 text-red-400'>{errorMsg}</p>
+          <div className="flex flex-row justify-center mt-2">
+              <button
+                  className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
+                  onClick={(event) => {if (validateUsername()) { setFirstTimeSignIn(true); }}}
+              >
+                  Sign up
+              </button>
+          </div>
+      </div>
+      </div>
+    )}
+    {step === "experience" && (
+      <div key={key} className="flex flex-col min-h-screen">
+      <MainToolBar />
+      <div className="flex flex-row justify-center mt-12">
+        <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+          Welcome to BreezeChess!
+        </p>
+      </div>
+      </div>
+    )}
+    {step === "goals" && <p>Choose your goals</p>}
+
     </>
   );
 
