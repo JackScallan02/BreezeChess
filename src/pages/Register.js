@@ -18,7 +18,7 @@ const Register = () => {
 
   useEffect(() => {
     if (user) handleNavigation('/welcome');
-  }, [user])
+  }, [user, handleNavigation])
 
   const handleCreateUser = async (email, password) => {
     try {

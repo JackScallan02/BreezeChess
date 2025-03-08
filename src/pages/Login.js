@@ -1,4 +1,4 @@
-import { React, useEffect } from 'react';
+import { React, useEffect, useCallback } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import LoginForm from '../components/LoginForm';
 import { useAuth } from "../contexts/AuthContext";
@@ -10,23 +10,21 @@ const Login = () => {
   const { user, loading } = useAuth();
   const { handleNavigation, key } = useNavigation();
 
-  const handleUserLogin = async (user) => {
+  const handleUserLogin = useCallback((user) => {
     try {
-    if (user.is_new_user) {
-      handleNavigation('/welcome');
-    } else {
-      handleNavigation('/');
+      if (user.is_new_user) {
+        handleNavigation('/welcome');
+      } else {
+        handleNavigation('/');
+      }
+      } catch (error) {
+        console.error(error);
     }
-      
-    } catch (error) {
-      console.error(error);
-    }
-
-  }
+  }, [handleNavigation]);
 
   useEffect(() => {
     if (user) handleUserLogin(user);
-  }, [user, handleNavigation]);
+  }, [user, handleUserLogin]);
 
   if (loading) return <LoadingScreen />;
 

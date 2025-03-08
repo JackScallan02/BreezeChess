@@ -1,12 +1,8 @@
 import { RouterProvider } from "react-router-dom";
 import { router } from "./constants/router/router";
 import { AuthProvider } from "./contexts/AuthContext";
-import useDarkMode from "./darkmode/useDarkMode";
-
-
 
 export default function App() {
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   return (
     <AuthProvider>
