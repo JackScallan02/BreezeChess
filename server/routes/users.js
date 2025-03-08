@@ -24,10 +24,10 @@ router.get('/', async (req, res) => {
         } else {
             users = await db('users');
         }
-        res.status(200).json(users);
+        return res.status(200).json(users);
     } catch (error) {
         console.error('Error getting users:', error.message);
-        res.status(500).json({ error: `Failed to get users : ${error.message}` });
+        return res.status(500).json({ error: `Failed to get users : ${error.message}` });
     }
 });
 
@@ -38,10 +38,10 @@ router.get('/:id', async (req, res) => {
         if (!user) {
             return res.status(200).json({ error: 'User not found' });
         }
-        res.status(200).json(user);
+        return res.status(200).json(user);
     } catch (error) {
         console.error('Error getting user:', error.message);
-        res.status(500).json({ error: `Failed to get user : ${error.message}` });
+        return res.status(500).json({ error: `Failed to get user : ${error.message}` });
     }
 });
 
@@ -67,10 +67,10 @@ router.post('/', async (req, res) => {
             is_new_user: true,
         }).returning('*');
 
-        res.status(201).json(newUser);
+        return res.status(201).json(newUser);
     } catch (error) {
         console.error('Error inserting user:', error.message);
-        res.status(500).json({ error: `Failed to insert user : ${error.message}` });
+        return res.status(500).json({ error: `Failed to insert user : ${error.message}` });
     }
 });
 
@@ -89,11 +89,11 @@ router.put('/', async (req, res) => {
         if (!result) {
             return res.status(404).json({ error: 'User not found' });
         }
-        res.status(200).json({ message: 'User updated successfully'});
+        return res.status(200).json({ message: 'User updated successfully'});
 
     } catch (error) {
         console.error('Error updating user:', error.message);
-        res.status(500).json({ error: `Failed to update user : ${error.message}` });
+        return res.status(500).json({ error: `Failed to update user : ${error.message}` });
     }
 });
 

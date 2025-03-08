@@ -3,17 +3,24 @@ import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from '../pages/Loading.js';
 import { updateUser } from '../api/users.js';
+import { getGoals } from '../api/goals.js';
+import { createUserGoals } from '../api/user_goals.js';
 import { useNavigation } from '../navigator/navigate';
 import { useSearchParams } from 'react-router-dom';
 
 const Welcome = () => {
   const {user, loading, setLoading, handleUserUpdate} = useAuth();
 
+  const experience_levels = ['New to Chess', 'Beginner', 'Intermediate', 'Advanced'];
+
   const [username, setUsername] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [firstTimeSignIn, setFirstTimeSignIn] = useState(false);
   const [redBorder, setRedBorder] = useState(false);
+  const [goals, setGoals] = useState(null);
+  const [userExp, setUserExp] = useState(null);
+  const [userGoals, setUserGoals] = useState(null);
   const { handleNavigation, key } = useNavigation();
+  console.log(userGoals);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const step = searchParams.get("step") || "displayName";
@@ -28,19 +35,22 @@ const Welcome = () => {
     }
   };
 
+  const fetchGoals = async () => {
+    const result = await getGoals();
+    setGoals(result);
+  }
+
+  useEffect(() => {
+    fetchGoals();
+  }, []);
+
 
   useEffect(() => {
     if (!loading && !user) handleNavigation('/');
-    if (user && !loading && !user.is_new_user && !firstTimeSignIn) handleNavigation('/home');
+    if (user && !loading && !user.is_new_user) handleNavigation('/home');
 
   }, [handleNavigation, loading, user]);
 
-  useEffect(() => {
-    if (firstTimeSignIn) {
-      handleSignIn();
-      setFirstTimeSignIn(false);
-    }
-  }, [firstTimeSignIn]);
 
   const handleSignIn = async () => {
     setErrorMsg('');
@@ -48,7 +58,7 @@ const Welcome = () => {
     try {
       setLoading(true);
       const curTime = Date.now();
-      await updateUser(user.id, { username: username, is_new_user: false });
+      await updateUser(user.id, { username: username });
       await handleUserUpdate(); // Since we updated the display name, we need to refresh the user object
       const afterTime = Date.now();
       // We want to show the loading screen for at least 1 second (so it doesn't flicker).
@@ -88,7 +98,45 @@ const Welcome = () => {
     // TODO: Want to check that the name isn't taken already (case-insensitive), via the database
     return true;
   }
-  console.log("step: ", step);
+
+  const handleGoalSelection = (goal) => {
+    if (!userGoals) {
+      // Initialize array with goal
+      setUserGoals([goal.id])
+    } else {
+      if (userGoals.includes(goal.id)) {
+        // Remove goal
+        setUserGoals(userGoals.filter((val) => val !== goal.id));
+      } else {
+        // Add goal
+        setUserGoals([...userGoals, goal.id]);
+      }
+    }
+  }
+
+  const handleExpSelection = (level) => {
+      setUserExp(level);
+  }
+
+  const handleGoalSubmission = async () => {
+    if (userGoals && userGoals.length > 0) {
+      setLoading(true);
+      await createUserGoals({
+        user_id: user.id,
+        goal_ids: userGoals
+      });
+      await updateUser(user.id, { is_new_user: false, experience_level: userExp })
+      nextStep();
+      setLoading(false);
+    }
+  }
+
+  const handleExpSubmission = () => {
+    // TODO update user exp
+    if (userExp) nextStep();
+  }
+
+
   if (loading) return <LoadingScreen />;
 
   if (user && !loading && user.is_new_user) return (
@@ -114,7 +162,7 @@ const Welcome = () => {
           <div className="flex flex-row justify-center mt-2">
               <button
                   className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                  onClick={(event) => {if (validateUsername()) { setFirstTimeSignIn(true); }}}
+                  onClick={(event) => {if (validateUsername()) { handleSignIn(); }}}
               >
                   Sign up
               </button>
@@ -124,15 +172,80 @@ const Welcome = () => {
     )}
     {step === "experience" && (
       <div key={key} className="flex flex-col min-h-screen">
-      <MainToolBar />
-      <div className="flex flex-row justify-center mt-12">
-        <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
-          Welcome to BreezeChess!
-        </p>
-      </div>
+        <MainToolBar />
+        <div className="flex flex-row justify-center mt-12">
+          <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+            Welcome to BreezeChess!
+          </p>
+        </div>
+        <div className="flex flex-row justify-center mt-12">
+          <p className="text-[1.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+            What is your chess experience level?
+          </p>
+        </div>
+        <div className="flex flex-col items-center mt-8 gap-y-8">
+          {experience_levels.map((level) => (
+            <div key={level}>
+              <button
+                className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all
+                  py-4 rounded-xl text-white text-lg font-bold ${userExp && userExp === level ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}                onClick={() => { handleExpSelection(level); }}
+              >
+                {level}
+              </button>
+            </div>
+          ))}
+        <div className="mt-4">
+            <button
+              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-sky-400 disabled:opacity-50 disabled:hover:scale-100 disabled:bg-sky-300'}
+              onClick={() => handleExpSubmission()}
+              disabled={!userExp}
+            >
+              <p>
+                Submit
+              </p>
+            </button>
+          </div>
+        </div>
       </div>
     )}
-    {step === "goals" && <p>Choose your goals</p>}
+    {step === "goals" && (
+      <div key={key} className="flex flex-col min-h-screen">
+        <MainToolBar />
+        <div className="flex flex-row justify-center mt-12">
+          <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+            Welcome to BreezeChess!
+          </p>
+        </div>
+        <div className="flex flex-row justify-center mt-8">
+          <p className="text-[1.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+            Select your goals
+          </p>
+        </div>
+        <div className="flex flex-col items-center mt-8">
+          {goals && goals.map((goal) => (
+            <div key={goal.id} className="mb-8">
+              <button
+                className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all
+                  py-4 rounded-xl text-white text-lg font-bold ${userGoals && userGoals.includes(goal.id) ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}
+                onClick={() => handleGoalSelection(goal)}
+              >
+                {goal.description}
+              </button>
+            </div>
+          ))}
+          <div className="mt-4">
+            <button
+              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-sky-400'}
+              onClick={() => handleGoalSubmission()}
+            >
+              <p>
+                Submit
+              </p>
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     </>
   );
