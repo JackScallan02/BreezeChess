@@ -1,22 +1,22 @@
 import { React, useState, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from '../pages/Loading.js';
 import { updateUser } from '../api/users.js';
+import { useNavigation } from '../navigator/navigate';
 
 const Welcome = () => {
   const {user, loading, setLoading, handleUserUpdate} = useAuth();
-  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [redBorder, setRedBorder] = useState(false);
+  const handleNavigation = useNavigation();
 
   useEffect(() => {
-    if (!loading && !user) navigate('/');
-    if (user && !loading && !user.is_new_user) navigate('/home');
+    if (!loading && !user) handleNavigation('/');
+    if (user && !loading && !user.is_new_user) handleNavigation('/home');
 
-  }, [navigate, loading, user]);
+  }, [handleNavigation, loading, user]);
 
   const handleSignIn = async () => {
     setErrorMsg('');
@@ -31,11 +31,11 @@ const Welcome = () => {
       if (afterTime - curTime < 1000) {
         setTimeout(() => {
           setLoading(false);
-          navigate('/home');
+          handleNavigation('/home');
         }, [1000 - (afterTime - curTime)])
       } else {
         setLoading(false);
-        navigate('/home');
+        handleNavigation('/home');
       }
     } catch (error) {
       console.error(error);

@@ -1,14 +1,19 @@
 import { React, useState, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigation } from '../navigator/navigate';
 import { useAuth } from "../contexts/AuthContext";
 import { firebase, auth } from '../Firebase.js'
 import { signInWithRedirect, signInWithEmailAndPassword } from "firebase/auth"
 import { getUsers } from "../api/users.js"
+import useDarkMode from '../darkmode/useDarkMode.js';
+import breezechesslogoblack from '../assets/breezechess-full-logo-black.png'
+import breezechesslogowhite from '../assets/breezechess-full-logo-white.png'
 
 const LoginForm = () => {
 
     const {user, loading} = useAuth();
-    const navigate = useNavigate();
+    const handleNavigation = useNavigation();
+    const { isDarkMode } = useDarkMode();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
@@ -31,7 +36,7 @@ const LoginForm = () => {
                         {errorText('No user exists with the provided email.')}
                         <button
                             className='text-sky-500 text-base text-center font-medium hover:text-sky-400'
-                            onClick={() => navigate("/register")}
+                            onClick={() => handleNavigation("/register")}
                         >
                             Sign up here
                         </button>
@@ -93,21 +98,20 @@ const LoginForm = () => {
 
     if (!user && !loading) return (
         <div className='bg-white dark:bg-slate-800 px-10 py-20 rounded-3xl border-2 border-gray-200 dark:border-slate-600 relative mt-4'>
-            <h1 className='text-5xl font-semibold'>BreezeChess</h1>
-            <p className='font-medium text-lg text-gray-500 dark:text-white mt-4'>Welcome back!</p>
-            <div className='mt-4'>
+            <img src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52" />
+            <div className='mt-12'>
                 <div>
                     <label className='text-lg font-medium'>Login</label>
                     <input
-                        className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
+                        className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Email, Phone, or Email'
                         onInput={(event) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
                     />
                 </div>
                 <div>
-                <label className='text-lg font-medium'>Password</label>
+                <label className='text-lg font-medium mt-4 block'>Password</label>
                 <input
-                        className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100' }`}
+                        className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Password'
                         type='password'
                         onInput={(event) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
@@ -149,7 +153,7 @@ const LoginForm = () => {
                     <p className='font-medium text-base'>Don't have an account?</p>
                     <button
                         className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400'
-                        onClick={(event) => navigate("/register")}
+                        onClick={(event) => handleNavigation("/register")}
                         >
                             Sign Up
                     </button>

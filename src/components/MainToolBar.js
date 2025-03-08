@@ -1,12 +1,17 @@
 import { React, useState, useEffect } from 'react';
 import {createPortal} from 'react-dom';
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import tailwindcsslogo from '../assets/tailwindcsslogo.png';
-import breezechesslogo from '../assets/BreezeChessLogo.png';
+import breezechesslogoblack from '../assets/breezechess-full-logo-black.png';
+import breezechesslogowhite from '../assets/breezechess-full-logo-white.png';
+import useDarkMode from '../darkmode/useDarkMode';
+import { useNavigation } from '../navigator/navigate';
 
 const MainToolBar = () => {
     const { user, handleLogout } = useAuth();
+
+    const handleNavigation = useNavigation();
+
+    const { isDarkMode } = useDarkMode();
 
     const [menuOpen, setMenuOpen] = useState(false);
     const [menuItems, setMenuItems] = useState({
@@ -19,8 +24,6 @@ const MainToolBar = () => {
       'label' : 'Sign in',
       'link' : '/'
     });
-
-    const navigate = useNavigate();
 
 
 
@@ -44,16 +47,16 @@ const MainToolBar = () => {
     }, [user])
 
     return (
-        <header className="flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white dark:bg-slate-800 bg-drop-shadow-md">
+        <header className="h-16 flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white dark:bg-slate-800 bg-drop-shadow-md">
           <a href={!user ? "/" : "/home"}>
-            <img src={breezechesslogo} alt="" className="w-32 hover:scale-105 transition-all" />
+            <img src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52 hover:scale-105 transition-all" />
           </a>
           <ul className="xl:flex hidden items-center gap-12 font-semibold text-base">
           {Object.keys(menuItems).map((menuItem, i) => (
               <li
                 key={i}
                 className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${['Sign in', 'Logout'].includes(menuItem) && 'outline outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}
-                onClick={() => navigate(menuItems[menuItem])}
+                onClick={() => handleNavigation(menuItems[menuItem])}
               >
                 {menuItem}
               </li>
@@ -61,7 +64,7 @@ const MainToolBar = () => {
           )}
           <li
               className="p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer outline outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400"
-              onClick={() => {navigate(authButton['link']); user && handleLogout()}}
+              onClick={() => {handleNavigation(authButton['link']); user && handleLogout()}}
           >
             {authButton['label']}
           </li>
@@ -79,14 +82,14 @@ const MainToolBar = () => {
               <li
                 key={i}
                 className="list-none w-full text-center p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-                onClick={() => navigate(menuItems[menuItem])}
+                onClick={() => handleNavigation(menuItems[menuItem])}
               >
                 {menuItem}
               </li>
             ))}
             <li
                 className="list-none w-full text-center p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-                onClick={() => {navigate(authButton['link']); user && handleLogout()}}
+                onClick={() => {handleNavigation(authButton['link']); user && handleLogout()}}
             >
             {authButton['label']}
           </li>

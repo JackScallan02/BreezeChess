@@ -2,15 +2,15 @@ import { React, useEffect } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from './Loading';
-import { useNavigate } from "react-router-dom";
+import { useNavigation } from '../navigator/navigate';
 
 const Home = () => {
   const { user, loading } = useAuth();
-  const navigate = useNavigate();
+  const handleNavigation = useNavigation();
 
   useEffect(() => {
-    if (!loading && !user) navigate('/')
-  }, [navigate, loading, user]);
+    if (!loading && !user) handleNavigation('/')
+  }, [handleNavigation, loading, user]);
 
   if (loading) {
     return <LoadingScreen />

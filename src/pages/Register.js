@@ -1,23 +1,23 @@
 import { React, useState, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
 import MainToolBar from '../components/MainToolBar';
 import LoadingScreen from '../pages/Loading.js';
 import { firebase, auth } from '../Firebase.js'
 import { signInWithRedirect, createUserWithEmailAndPassword } from "firebase/auth"
 import { useAuth } from "../contexts/AuthContext";
 import { getUsers } from "../api/users.js";
+import { useNavigation } from '../navigator/navigate';
 
 const Register = () => {
-  const navigate = useNavigate();
   const {user, loading, password, setPassword} = useAuth();
   const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
   const [email, setEmail] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [redBorder, setRedBorder] = useState({ email: false, password: false });
   const [signUpClicked, setSignUpClicked] = useState(false);
+  const handleNavigation = useNavigation();
 
   useEffect(() => {
-    if (user) navigate('/welcome');
+    if (user) handleNavigation('/welcome');
   }, [user])
 
   const handleCreateUser = async (email, password) => {
@@ -54,7 +54,7 @@ const Register = () => {
 }
 
 const errorText = (msg) => (
-  <p className='mt-4 text-red-400 break-words max-w-sm whitespace-normal'>{msg}</p>
+  <p className='mt-2 text-red-400 break-words max-w-sm whitespace-normal'>{msg}</p>
 );
 
 const validateEmail = () => {
@@ -147,7 +147,7 @@ if (!user && !loading) return (
       <div className="flex flex-col min-h-screen">
         <MainToolBar />
         <div className="flex flex-row justify-center mt-12">
-          <p className="text-[2.5rem] text-slate-900 font-extrabold tracking-tight">
+          <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
             Register for BreezeChess
           </p>
           </div>
@@ -163,7 +163,7 @@ if (!user && !loading) return (
           </div>
           <div className="flex flex-row justify-center">
             <button
-              className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'
+              className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 dark:border-slate-600 border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'
               onClick={() => {googleSignIn();}}
               >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -182,7 +182,7 @@ if (!user && !loading) return (
                 <div className="flex flex-col">
                     <label className='text-lg font-medium'>Enter an email</label>
                     <input
-                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email) ? 'border-red-400' :  'border-black' }`}
+                        className={`w-[30%] min-w-[400px] dark:border-slate-600 border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email) ? 'border-red-400' :  'border-black' }`}
                         placeholder='Email'
                         onInput={(event) => { setEmail(event.target.value);}}
                     />
@@ -190,7 +190,7 @@ if (!user && !loading) return (
                 <div className="flex flex-col">
                 <label className='text-lg font-medium'>Choose a Password</label>
                 <input
-                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password) ? 'border-red-400' :  'border-black' }`}
+                        className={`w-[30%] min-w-[400px] dark:border-slate-600 border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password) ? 'border-red-400' :  'border-black' }`}
                         placeholder='Password'
                         type='password'
                         onInput={(event) => { setPassword(event.target.value)}}
