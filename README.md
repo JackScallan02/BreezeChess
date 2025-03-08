@@ -22,7 +22,7 @@ In the project directory, you can run the following command:\
 `npm run dc:dev`\
 which will then start up the following containers.
 
-### Client
+#### Client
 
 The client container runs the following commands:
 
@@ -38,11 +38,15 @@ Open [http://localhost:9000](http://localhost:9000) to view it in your browser.
 If you want to exec into the postgres container:\
 `docker exec -it breezechess-postgres-1 psql -U user -d db_dev`
 
-### Postgres
+#### Postgres
 
 Contains the database for the application.
 
 
-### Server
+#### Server
 
 The backend server, which contains the express routes and database migrations/seeds.
+
+
+### Run ESLint
+`npx eslint <directory>`
