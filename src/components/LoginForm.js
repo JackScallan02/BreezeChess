@@ -17,7 +17,6 @@ const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
-    const [remember, setRemember] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [redBorder, setRedBorder] = useState({email: false, password: false});
 
@@ -118,14 +117,6 @@ const LoginForm = () => {
                     />
                 </div>
                 <div className='mt-8 flex justify-between items-center'>
-                    <div>
-                        <input
-                            type='checkbox'
-                            id='remember'
-                            onClick={() => setRemember(!remember)}
-                        />
-                        <label className='ml-2 font-medium text-base' htmlFor='remember'>Remember me</label>
-                    </div>
                     <button className='font-medium text-base text-sky-500 hover:text-sky-400'>Forgot password</button>
                 </div>
                 {errorMsg}

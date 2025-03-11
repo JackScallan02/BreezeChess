@@ -7,6 +7,7 @@ import { getGoals } from '../api/goals.js';
 import { createUserGoals } from '../api/user_goals.js';
 import { useNavigation } from '../navigator/navigate';
 import { useSearchParams } from 'react-router-dom';
+import { Check } from "lucide-react";
 
 const Welcome = () => {
   const {user, loading, setLoading, handleUserUpdate} = useAuth();
@@ -224,11 +225,12 @@ const Welcome = () => {
           {goals && goals.map((goal) => (
             <div key={goal.id} className="mb-8">
               <button
-                className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all
+                className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all flex items-center justify-center
                   py-4 rounded-xl text-white text-lg font-bold ${userGoals && userGoals.includes(goal.id) ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}
                 onClick={() => handleGoalSelection(goal)}
               >
-                {goal.description}
+                {userGoals && userGoals.includes(goal.id) && <Check className="w-6 h-6 text-white-500 ml-4" />}
+                <span className={`flex-1 text-center ${userGoals && userGoals.includes(goal.id) && 'mr-5'}`}>{goal.description}</span>
               </button>
             </div>
           ))}
