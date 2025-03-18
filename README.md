@@ -51,7 +51,7 @@ The backend server, which contains the express routes and database migrations/se
 
 #### Localstack
 
-The mock AWS container. Connect to the S3 bucket: `aws --endpoint-url=http://localhost:4566 s3 ls --region us-east-2`
+The mock AWS container. Connect to the S3 bucket: `aws --endpoint-url=http://localhost:4566 s3 ls`
 
 
 ### Run ESLint
