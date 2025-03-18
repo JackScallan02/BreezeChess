@@ -34,6 +34,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}      # Username for the database
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Password for the database
       POSTGRES_DB: ${POSTGRES_DB}          # Database name to create
+      AWS_ENDPOINT: http://localstack:4566
+
     command: ["npm", "run", "start"]  # Command to run your server
     restart: always  # This ensures the container restarts automatically
 
@@ -55,6 +57,16 @@ services:
       retries: 5
       start_period: 30s
       timeout: 10s
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      - SERVICES=s3,sqs,sns,sts,iam
+      - DEFAULT_REGION=us-east-2
+      - DEBUG=1
+    ports:
+      - "4566:4566"
+    networks:
+     - breezechess-network
 
 networks:
   breezechess-network:
