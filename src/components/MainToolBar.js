@@ -64,10 +64,10 @@ const MainToolBar = () => {
            )
           )}
           <li
-              className="p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer"
+              className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${!user && 'outline outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}
               onClick={() => {handleNavigation(authButton['link']); user && handleLogout()}}
           >
-            <UserRoundCog className="w-7 h-7 text-white-500 ml-4" />
+            {!user ? 'Login' : (<UserRoundCog className="w-7 h-7 text-white-500 ml-4" />)}
           </li>
           </ul>
           <button className='space-y-1 group xl:hidden' onClick={() => setMenuOpen(!menuOpen)}>
@@ -92,7 +92,7 @@ const MainToolBar = () => {
                 className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white dark:hover:text-black transition-all cursor-pointer"
                 onClick={() => {handleNavigation(authButton['link']); user && handleLogout()}}
             >
-            Profile
+            {!user ? 'Login' : 'Profile'}
           </li>
           </div>,
           document.body
