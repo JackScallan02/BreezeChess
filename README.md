@@ -21,7 +21,7 @@ POSTGRES_DB=db_dev
 ### Running the app
 In the project directory, you can run the following command:\
 `npm run dc:dev`\
-which will then start up the following containers.
+which will then start up the following containers, assuming a docker daemon is running.
 
 #### Client
 
