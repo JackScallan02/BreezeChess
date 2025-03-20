@@ -92,7 +92,7 @@ const MainToolBar = () => {
                 className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white dark:hover:text-black transition-all cursor-pointer"
                 onClick={() => {handleNavigation(authButton['link']); user && handleLogout()}}
             >
-            {authButton['label']}
+            Profile
           </li>
           </div>,
           document.body
