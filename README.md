@@ -5,7 +5,7 @@ Step into a world where chess meets creativity. BreezeChess redefines training w
 ## Setting up
 
 0. Ensure the following are installed:
-  - node.js: v18.16.0
+  - node.js: v20.19.0
   - docker: v24.0.6
 
 1. Add a `.env` file in the root directory of your repo. Add the following, in which the values can be obtained by setting up a `Firebase` account:
@@ -25,7 +25,7 @@ POSTGRES_DB=db_dev
 
 ### Running the app
 In the project directory, you can run the following command:\
-`npm run dc:dev`\
+`yarn dc:dev`\
 which will then start up the following containers, assuming a docker daemon is running.
 
 #### Client
