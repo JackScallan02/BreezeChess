@@ -6,7 +6,7 @@
 }
 
 .p-menu.dark-menu .p-menuitem-link {
-  background-color: #334155;
+  background-color: #334155 !important;
   transition: background-color 0.15s ease-in-out;
 }
 

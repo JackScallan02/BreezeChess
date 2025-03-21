@@ -72,7 +72,7 @@ const MainToolBar = () => {
                 popup
                 ref={menuRight}
                 id="popup_menu_right"
-                className="ml-[78px] dark:bg-slate-700 dark:dark-menu light-menu outline-1 outline-slate-200"
+                className={`ml-[78px] dark:bg-slate-700 ${isDarkMode ? 'dark-menu' : 'light-menu'} outline-1 outline-slate-200`}
 
               />
               <button
