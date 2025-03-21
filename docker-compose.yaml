@@ -15,11 +15,11 @@ services:
     volumes:
       - .:/app   # Mount the local directory to Docker container
       - ~/.config/configstore:/root/.config/configstore  # Mount the Firebase credentials
-    command: ["npm", "run", "dev"]   # Run your dev script
+    command: ["npm", "run", "dev"]
 
   server:
     build:
-      context: ./server  # Assuming you have a 'server' folder for your backend code
+      context: ./server
     ports:
       - "9001:9001"    # Exposing server port
     depends_on:
@@ -28,7 +28,7 @@ services:
     networks:
      - breezechess-network
     volumes:
-      - ./server:/app  # Mount the server code to the container
+      - ./server:/app
     environment:
       NODE_ENV: development
       POSTGRES_USER: ${POSTGRES_USER}      # Username for the database
@@ -40,7 +40,7 @@ services:
     restart: always  # This ensures the container restarts automatically
 
   postgres:
-    image: postgres:15  # You can use the latest version or specific version
+    image: postgres:15
     environment:
       POSTGRES_USER: ${POSTGRES_USER}      # Username for the database
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Password for the database
