@@ -85,7 +85,7 @@ const MainToolBar = () => {
                 aria-haspopup="true"
                 className="p-2 rounded-full  focus:outline-hidden ml-4"
               >
-                <UserRoundCog className="w-7 h-7 dark:text-white" />
+                <UserRoundCog className="w-7 h-7 text-sky-400" />
               </button>
             </div>
 
