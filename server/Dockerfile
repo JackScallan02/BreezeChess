@@ -9,6 +9,7 @@ COPY package*.json ./
 
 # Install dependencies
 RUN yarn install
+COPY yarn.lock ./
 
 # Copy the server code into the container
 COPY . .
