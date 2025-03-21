@@ -20,7 +20,7 @@ const FrontPage = () => {
       <main>
         <div className="flex flex-col">
           <div className="">
-            <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto flex-grow flex flex-col items-center pt-20">
+            <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto grow flex flex-col items-center pt-20">
               <p className="text-slate-900 dark:text-white font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight text-center">
                 Redefining the World of Chess
               </p>
@@ -33,7 +33,7 @@ const FrontPage = () => {
           </div>
           <div className="flex justify-center h-full mt-10 border border-gray-300 dark:border-gray-800">
             <div className="bg-sky-200 dark:bg-slate-800 w-full">
-              <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto flex-grow flex flex-col items-center pt-8">
+              <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto grow flex flex-col items-center pt-8">
                 <p className="text-slate-900 dark:text-white font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-center">
                   Participate in a thoughtfully crafted chess world
                 </p>
@@ -47,7 +47,7 @@ const FrontPage = () => {
           </div>
           <div className="flex justify-center h-full border border-gray-300 dark:border-gray-800">
             <div className="w-full">
-              <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto flex-grow flex flex-col items-center pt-8">
+              <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto grow flex flex-col items-center pt-8">
                 <p className="text-slate-900 dark:text-white font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-center">
                   Elevate your skills
                 </p>
