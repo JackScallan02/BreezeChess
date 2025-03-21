@@ -22,7 +22,7 @@
   "scripts": {
     "start": "PORT=9000 react-scripts start",
     "dc:dev": "docker-compose down && docker-compose up",
-    "dev": "concurrently \"npm start\" \"npm run tailwind\" \"npm run firebase\" --host 0.0.0.0",
+    "dev": "concurrently \"yarn start\" \"yarn tailwind\" \"yarn firebase\" --host 0.0.0.0",
     "tailwind": "npx tailwindcss -i ./src/input.css -o ./src/output.css --watch",
     "firebase": "firebase emulators:start --only auth"
   },

@@ -26,7 +26,7 @@ const MainToolBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuItems, setMenuItems] = useState({
     'Home': '/',
-    'Donate': '/donate',
+    'Store': '/store',
     'About': '/about',
     'Contact': '/contact',
   })
@@ -37,7 +37,7 @@ const MainToolBar = () => {
       // Called every time user login status changes
       setMenuItems({
         'Home': !user ? '/' : '/home',
-        'Donate': '/donate',
+        'Store': '/store',
         'About': '/about',
         'Contact': '/contact',
       });
