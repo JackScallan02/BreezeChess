@@ -1,0 +1,23 @@
+.p-menu.dark-menu .p-menuitem-text,
+.p-menu.dark-menu .p-menuitem .pi-user,
+.p-menu.dark-menu .p-menuitem .pi-sign-out,
+.p-menu.dark-menu .p-menuitem .pi-cog {
+  color: white !important;
+}
+
+.p-menu.dark-menu .p-menuitem-link {
+  background-color: #334155;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.p-menu.dark-menu .p-menuitem-link:hover {
+  background-color: #94a3b8 !important;
+}
+
+.p-menu.light-menu .p-menuitem-link:hover {
+  background-color: #e2e8f0 !important;
+}
+.p-menu.light-menu .p-menuitem-link {
+  background-color: white;
+  transition: background-color 0.15s ease-in-out;
+}
