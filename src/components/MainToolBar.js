@@ -54,7 +54,7 @@ const MainToolBar = () => {
         {Object.keys(menuItems).map((menuItem, i) => (
           <li
             key={i}
-            className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${['Sign in', 'Logout'].includes(menuItem) && 'outline outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}
+            className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${['Sign in', 'Logout'].includes(menuItem) && 'outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}
             onClick={() => handleNavigation(menuItems[menuItem])}
           >
             {menuItem}
@@ -62,7 +62,7 @@ const MainToolBar = () => {
         )
         )}
         <li
-          className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${!user && 'outline outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}
+          className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${!user && 'outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}
           onClick={() => !user && handleNavigation('/login')}
         >
           {!user ? 'Login' : (
@@ -72,7 +72,7 @@ const MainToolBar = () => {
                 popup
                 ref={menuRight}
                 id="popup_menu_right"
-                className="ml-[78px] dark:bg-slate-700 dark:dark-menu light-menu outline outline-1 outline-slate-200"
+                className="ml-[78px] dark:bg-slate-700 dark:dark-menu light-menu outline-1 outline-slate-200"
 
               />
               <button
@@ -83,7 +83,7 @@ const MainToolBar = () => {
                 }}
                 aria-controls="popup_menu_right"
                 aria-haspopup="true"
-                className="p-2 rounded-full  focus:outline-none ml-4"
+                className="p-2 rounded-full  focus:outline-hidden ml-4"
               >
                 <UserRoundCog className="w-7 h-7 dark:text-white" />
               </button>
@@ -92,7 +92,7 @@ const MainToolBar = () => {
           )}
         </li>
       </ul>
-      <button className='space-y-1 group xl:hidden' onClick={() => setMenuOpen(!menuOpen)}>
+      <button className='flex flex-col gap-4 group xl:hidden' onClick={() => setMenuOpen(!menuOpen)}>
         <div className='w-6 h-1 bg-black dark:bg-white'></div>
         <div className='w-6 h-1 bg-black dark:bg-white'></div>
         <div className='w-6 h-1 bg-black dark:bg-white'></div>
