@@ -1,10 +1,13 @@
-FROM node:18-alpine
+FROM node:20-alpine
+
+RUN apk add --no-cache git
 
 WORKDIR /app
 
 COPY package*.json .
+COPY yarn.lock ./
 
-RUN npm install
+RUN yarn install
 
 COPY . .
 
@@ -13,4 +16,4 @@ EXPOSE 9099
 EXPOSE 4000
 EXPOSE 4500
 
-CMD ["npm", "run", "dev"]
+CMD ["yarn", "dev"]
