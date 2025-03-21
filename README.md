@@ -3,6 +3,11 @@
 Step into a world where chess meets creativity. BreezeChess redefines training with advanced, result-driven tools that outshines other typical apps, and combines it with captivating visuals that make every move more engaging and meaningful. BreezeChess is the ultimate destination to sharpen your skills and achieve real results— all within an immersive chess environment.
 
 ## Setting up
+
+0. Ensure the following are installed:
+  - node.js: v18.16.0
+  - docker: v24.0.6
+
 1. Add a `.env` file in the root directory of your repo. Add the following, in which the values can be obtained by setting up a `Firebase` account:
 ```
 REACT_APP_FB_KEY=<Key goes here>
@@ -21,7 +26,7 @@ POSTGRES_DB=db_dev
 ### Running the app
 In the project directory, you can run the following command:\
 `npm run dc:dev`\
-which will then start up the following containers.
+which will then start up the following containers, assuming a docker daemon is running.
 
 #### Client
 
