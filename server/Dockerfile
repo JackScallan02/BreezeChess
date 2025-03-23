@@ -1,15 +1,14 @@
 # Use a Node.js image
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if exists)
-COPY package*.json ./
+# Copy package.json
+COPY package.json yarn.lock ./
 
 # Install dependencies
-RUN yarn install
-COPY yarn.lock ./
+RUN yarn install  --frozen-lockfile
 
 # Copy the server code into the container
 COPY . .

@@ -1,4 +1,4 @@
-import { React, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import LoadingScreen from './Loading';
 import { useAuth } from "../contexts/AuthContext";
@@ -64,8 +64,5 @@ const FrontPage = () => {
     </div>
   );
 };
-
-
-
 
 export default FrontPage;

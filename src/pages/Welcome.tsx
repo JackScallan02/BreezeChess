@@ -1,25 +1,30 @@
-import { React, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
-import LoadingScreen from '../pages/Loading.js';
-import { updateUser } from '../api/users.js';
-import { getGoals } from '../api/goals.js';
-import { createUserGoals } from '../api/user_goals.js';
+import LoadingScreen from './Loading';
+import { updateUser } from '../api/users';
+import { getGoals } from '../api/goals';
+import { createUserGoals } from '../api/user_goals';
 import { useNavigation } from '../navigator/navigate';
 import { useSearchParams } from 'react-router-dom';
 import { Check } from "lucide-react";
 
+interface Goal {
+  id: number;
+  description: string;
+}
+
 const Welcome = () => {
   const {user, loading, setLoading, handleUserUpdate} = useAuth();
 
-  const experience_levels = ['New to Chess', 'Beginner', 'Intermediate', 'Advanced'];
+  const experience_levels: string[] = ['New to Chess', 'Beginner', 'Intermediate', 'Advanced'];
 
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [redBorder, setRedBorder] = useState(false);
-  const [goals, setGoals] = useState(null);
-  const [userExp, setUserExp] = useState(null);
-  const [userGoals, setUserGoals] = useState(null);
+  const [redBorder, setRedBorder] = useState<boolean>(false);
+  const [goals, setGoals] = useState<Goal[] | null>(null);
+  const [userExp, setUserExp] = useState<string | null>(null);
+  const [userGoals, setUserGoals] = useState<number[] | null>(null);
   const { handleNavigation, key } = useNavigation();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,20 +61,22 @@ const Welcome = () => {
     setErrorMsg('');
     setRedBorder(false);
     try {
-      setLoading(true);
-      const curTime = Date.now();
-      await updateUser(user.id, { username: username });
-      await handleUserUpdate(); // Since we updated the display name, we need to refresh the user object
-      const afterTime = Date.now();
-      // We want to show the loading screen for at least 1 second (so it doesn't flicker).
-      if (afterTime - curTime < 1000) {
-        setTimeout(() => {
+      if (user) {
+        setLoading(true);
+        const curTime = Date.now();
+        await updateUser(user.id, { username: username });
+        await handleUserUpdate(); // Since we updated the display name, we need to refresh the user object
+        const afterTime = Date.now();
+        // We want to show the loading screen for at least 1 second (so it doesn't flicker).
+        if (afterTime - curTime < 1000) {
+          setTimeout(() => {
+            setLoading(false);
+            nextStep();
+          }, 1000 - (afterTime - curTime))
+        } else {
           setLoading(false);
           nextStep();
-        }, [1000 - (afterTime - curTime)])
-      } else {
-        setLoading(false);
-        nextStep();
+        }
       }
     } catch (error) {
       console.error(error);
@@ -99,7 +106,7 @@ const Welcome = () => {
     return true;
   }
 
-  const handleGoalSelection = (goal) => {
+  const handleGoalSelection = (goal: Goal) => {
     if (!userGoals) {
       // Initialize array with goal
       setUserGoals([goal.id])
@@ -114,12 +121,12 @@ const Welcome = () => {
     }
   }
 
-  const handleExpSelection = (level) => {
+  const handleExpSelection = (level: string) => {
       setUserExp(level);
   }
 
   const handleGoalSubmission = async () => {
-    if (userGoals && userGoals.length > 0) {
+    if (user && userGoals && userGoals.length > 0) {
       setLoading(true);
       await createUserGoals({
         user_id: user.id,
@@ -155,7 +162,7 @@ const Welcome = () => {
               <input
                   className={`w-[30%] min-w-[400px] border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black'}`}
                   placeholder='Username'
-                  onInput={(event) => { setUsername(event.target.value); setRedBorder(false); }}
+                  onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setUsername(event.target.value); setRedBorder(false); }}
               />
           </div>
           <p className='mt-4 text-red-400'>{errorMsg}</p>
@@ -188,7 +195,9 @@ const Welcome = () => {
             <div key={level}>
               <button
                 className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all
-                  py-4 rounded-xl text-white text-lg font-bold ${userExp && userExp === level ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}                onClick={() => { handleExpSelection(level); }}
+                  py-4 rounded-xl text-white text-lg font-bold ${userExp && userExp === level ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}
+                  onClick={() => { handleExpSelection(level);
+                }}
               >
                 {level}
               </button>
@@ -222,7 +231,7 @@ const Welcome = () => {
           </p>
         </div>
         <div className="flex flex-col items-center mt-8">
-          {goals && goals.map((goal) => (
+          {goals && goals.map((goal: Goal) => (
             <div key={goal.id} className="mb-8">
               <button
                 className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all flex items-center justify-center

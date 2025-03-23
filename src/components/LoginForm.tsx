@@ -1,28 +1,38 @@
-import { React, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigation } from '../navigator/navigate';
 import { useAuth } from "../contexts/AuthContext";
-import { firebase, auth } from '../Firebase.js'
+import { firebase, auth } from '../Firebase'
 import { signInWithRedirect, signInWithEmailAndPassword } from "firebase/auth"
-import { getUsers } from "../api/users.js"
-import useDarkMode from '../darkmode/useDarkMode.js';
+import { getUsers } from "../api/users"
+import useDarkMode from '../darkmode/useDarkMode';
 import breezechesslogoblack from '../assets/breezechess-full-logo-black.png'
 import breezechesslogowhite from '../assets/breezechess-full-logo-white.png'
+import { UserParams } from '../types/user';
 
 const LoginForm = () => {
+
+    interface BorderError {
+        email: boolean;
+        password: boolean;
+    }
 
     const {user, loading} = useAuth();
     const { handleNavigation, key } = useNavigation();
     const { isDarkMode } = useDarkMode();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
-    const [errorMsg, setErrorMsg] = useState('');
-    const [redBorder, setRedBorder] = useState({email: false, password: false});
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [loginError, setLoginError] = useState<boolean>(false); // Used to check if error thrown from firebase
+    const [errorMsg, setErrorMsg] = useState<string | React.JSX.Element>('');
+    const [redBorder, setRedBorder] = useState<BorderError>({email: false, password: false});
 
-    const signInUser = async (email, password) => {
+    const signInUser = async (email: string, password: string) => {
         try {
-            const result = await getUsers({ email });
+            const params: UserParams = {
+                uid: null,
+                email: email
+            }
+            const result = await getUsers(params);
             if (result && result.provider === 'google.com') {
                 // Google account already exists with email
                 setErrorMsg(errorText('A google account already exists with this email. Please sign in with Google.'))
@@ -49,7 +59,7 @@ const LoginForm = () => {
             } else {
                 await signInWithEmailAndPassword(auth, email, password)
             }
-        } catch (err) {
+        } catch (err: any) {
             setLoginError(true);
             if (err.code === 'auth/invalid-email') {
                 setErrorMsg(errorText('The email address is badly formatted.'));
@@ -62,8 +72,10 @@ const LoginForm = () => {
         }
     }
 
-    const errorText = (msg) => (
-        <p className='mt-4 text-red-400 break-words max-w-sm whitespace-normal'>{msg}</p>
+    const errorText = (msg: string) => (
+        <>
+            <p className='mt-4 text-red-400 break-words max-w-sm whitespace-normal'>{msg}</p>
+        </>
     );
 
     const googleSignIn = () => {
@@ -104,7 +116,7 @@ const LoginForm = () => {
                     <input
                         className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Email, Phone, or Email'
-                        onInput={(event) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
+                        onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
                     />
                 </div>
                 <div>
@@ -113,7 +125,7 @@ const LoginForm = () => {
                         className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Password'
                         type='password'
-                        onInput={(event) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
+                        onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
                     />
                 </div>
                 <div className='mt-8 flex justify-between items-center'>

@@ -1,4 +1,4 @@
-import { React, useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from "../contexts/AuthContext";
 import breezechesslogoblack from '../assets/breezechess-full-logo-black.png';
@@ -14,8 +14,9 @@ const MainToolBar = () => {
 
   const { handleNavigation, key } = useNavigation();
 
-  const menuRight = useRef(null);
-  const items = [
+  const menuRight = useRef<Menu | null>(null);
+
+  const items: Array<Object> = [
     { label: 'Profile', icon: 'pi pi-user', command: () => handleNavigation('/profile') },
     { label: 'Settings', icon: 'pi pi-cog', command: () => handleNavigation('/settings') },
     { label: 'Logout', icon: 'pi pi-sign-out', command: () => user && handleLogout() }
@@ -24,7 +25,11 @@ const MainToolBar = () => {
   const { isDarkMode } = useDarkMode();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [menuItems, setMenuItems] = useState({
+
+  interface MenuItems {
+    [key: string]: string;
+  }
+  const [menuItems, setMenuItems] = useState<MenuItems>({
     'Home': '/',
     'Store': '/store',
     'About': '/about',
@@ -78,8 +83,9 @@ const MainToolBar = () => {
               <button
                 type="button"
                 onClick={(event) => {
-                  menuRight.current.toggle(event);
-
+                  if (menuRight.current) {
+                    menuRight.current.toggle(event);
+                  }
                 }}
                 aria-controls="popup_menu_right"
                 aria-haspopup="true"

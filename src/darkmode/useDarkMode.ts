@@ -10,7 +10,7 @@ export default function useDarkMode() {
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   };
 
-  const [isDarkMode, setIsDarkMode] = useState(getPreferredTheme);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(getPreferredTheme);
 
   // Apply theme to <html>
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function useDarkMode() {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
-    const handleChange = (e) => {
+    const handleChange = (e: MediaQueryListEvent) => {
       const storedTheme = localStorage.getItem("theme");
 
       // If user hasn't manually selected a theme, follow the system change
@@ -39,7 +39,7 @@ export default function useDarkMode() {
   }, []);
 
   const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
+    const newMode: boolean = !isDarkMode;
     setIsDarkMode(newMode);
 
     // Store user preference only if they explicitly toggle

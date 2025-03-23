@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-export const createUserGoals = async (user_goals) => {
+interface UserGoals {
+  user_id: number;
+  goal_ids: number[];
+}
+
+export const createUserGoals = async (user_goals: UserGoals) => {
     try {
       if (user_goals === undefined) {
         throw Error('Need to provide user data')

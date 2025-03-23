@@ -1,16 +1,17 @@
-import { React, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import LoginForm from '../components/LoginForm';
 import { useAuth } from "../contexts/AuthContext";
-import LoadingScreen from '../pages/Loading.js';
+import LoadingScreen from './Loading';
 import breezechesslogo from '../assets/breezechess-logo.png';
 import { useNavigation } from '../navigator/navigate';
+import { User } from '../types/user';
 
 const Login = () => {
   const { user, loading } = useAuth();
   const { handleNavigation, key } = useNavigation();
 
-  const handleUserLogin = useCallback((user) => {
+  const handleUserLogin = useCallback((user: User) => {
     try {
       if (user.is_new_user) {
         handleNavigation('/welcome');

@@ -1,28 +1,39 @@
-import { React, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainToolBar from '../components/MainToolBar';
-import LoadingScreen from '../pages/Loading.js';
-import { firebase, auth } from '../Firebase.js'
+import LoadingScreen from './Loading';
+import { firebase, auth } from '../Firebase'
 import { signInWithRedirect, createUserWithEmailAndPassword } from "firebase/auth"
 import { useAuth } from "../contexts/AuthContext";
-import { getUsers } from "../api/users.js";
+import { getUsers } from "../api/users";
 import { useNavigation } from '../navigator/navigate';
+import { UserParams } from '../types/user';
+
+interface BorderError {
+  email: boolean;
+  password: boolean;
+}
 
 const Register = () => {
   const {user, loading, password, setPassword} = useAuth();
-  const [loginError, setLoginError] = useState(false); // Used to check if error thrown from firebase
-  const [email, setEmail] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [redBorder, setRedBorder] = useState({ email: false, password: false });
-  const [signUpClicked, setSignUpClicked] = useState(false);
+  const [loginError, setLoginError] = useState<boolean>(false); // Used to check if error thrown from firebase
+  const [email, setEmail] = useState<string>('');
+  const [errorMsg, setErrorMsg] = useState<string | React.JSX.Element>('');
+  const [redBorder, setRedBorder] = useState<BorderError>({ email: false, password: false });
+  const [signUpClicked, setSignUpClicked] = useState<boolean>(false);
   const { handleNavigation, key } = useNavigation();
 
   useEffect(() => {
     if (user) handleNavigation('/welcome');
   }, [user, handleNavigation])
 
-  const handleCreateUser = async (email, password) => {
+  const handleCreateUser = async (email: string, password: string) => {
     try {
-      const result = await getUsers({ email });
+      const params: UserParams = {
+          uid: null,
+          email: email
+      }
+      const result = await getUsers(params);
+
       if (result && result.provider === 'google.com') {
           // Google account already exists with email
           setErrorMsg(errorText('A google account already exists with this email. Please sign in with Google.'))
@@ -34,7 +45,7 @@ const Register = () => {
         setErrorMsg(errorText('A user with this email already exists. Forgot password?')) //TODO: forgot password
       }
 
-    } catch (err) {
+    } catch (err: any) {
         setLoginError(true);
         if (err.code === 'auth/invalid-email') {
             setErrorMsg(errorText('The email address is badly formatted.'));
@@ -53,7 +64,7 @@ const Register = () => {
     }
 }
 
-const errorText = (msg) => (
+const errorText = (msg: string | React.JSX.Element) => (
   <p className='mt-2 text-red-400 break-words max-w-sm whitespace-normal'>{msg}</p>
 );
 
@@ -184,7 +195,7 @@ if (!user && !loading) return (
                     <input
                         className={`w-[30%] min-w-[400px] dark:border-slate-600 border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email) ? 'border-red-400' :  'border-black' }`}
                         placeholder='Email'
-                        onInput={(event) => { setEmail(event.target.value);}}
+                        onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setEmail(event.target.value);}}
                     />
                 </div>
                 <div className="flex flex-col">
@@ -193,7 +204,7 @@ if (!user && !loading) return (
                         className={`w-[30%] min-w-[400px] dark:border-slate-600 border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password) ? 'border-red-400' :  'border-black' }`}
                         placeholder='Password'
                         type='password'
-                        onInput={(event) => { setPassword(event.target.value)}}
+                        onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setPassword(event.target.value)}}
                     />
                 </div>
                 {errorMsg}

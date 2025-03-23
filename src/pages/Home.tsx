@@ -1,4 +1,4 @@
-import { React, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from './Loading';
@@ -31,6 +31,5 @@ const Home = () => {
 
   return null;
 };
-
 
 export default Home;

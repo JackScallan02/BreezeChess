@@ -4,9 +4,14 @@ import About from "../../pages/About";
 import Register from "../../pages/Register";
 import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
-import { React } from 'react';
+import React from 'react';
 
-export const ROUTES = [
+interface Route {
+  path: string;
+  element: React.JSX.Element
+}
+
+export const ROUTES: Array<Route> = [
   {
     path: "/",
     element: <FrontPage />,

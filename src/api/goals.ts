@@ -1,10 +1,9 @@
 import axios from 'axios';
 
-export const getGoals = async (params) => {
+export const getGoals = async () => {
+  // Currently gets all goals. Might want to provide params in future
   try {
-    params = params || {};
     const response = await axios.get(`http://localhost:9001/goals/`, {
-      params,
       headers: {
         'Content-Type': 'application/json',
       },

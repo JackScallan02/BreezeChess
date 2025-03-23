@@ -1,1 +1,10 @@
 node_modules
+yarn.lock
+.gitignore
+firebase-debug*.log
+eslint.config.mjs
+README.md
+ui-debug*.log
+.env
+Dockerfile
+.dockerignore

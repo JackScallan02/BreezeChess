@@ -1,4 +1,4 @@
-import { React } from 'react';
+import React from 'react';
 import MainToolBar from '../components/MainToolBar';
 
 const About = () => {
@@ -48,8 +48,5 @@ const About = () => {
     </div>
   );
 };
-
-
-
 
 export default About;

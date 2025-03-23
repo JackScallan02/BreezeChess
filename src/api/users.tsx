@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { UserParams, CreateUserData } from '../types/user';
 
-export const getUsers = async (params) => {
+export const getUsers = async (params: UserParams) => {
   try {
     params = params || {};
     const response = await axios.get(`http://localhost:9001/users/`, {
@@ -16,7 +17,7 @@ export const getUsers = async (params) => {
   }
 }
 
-export const getUserById = async (id) => {
+export const getUserById = async (id: number) => {
   try {
     if (id === undefined) {
       throw new Error("Need to provide an id")
@@ -33,7 +34,7 @@ export const getUserById = async (id) => {
   }
 }
 
-export const createUser = async (userData) => {
+export const createUser = async (userData: CreateUserData) => {
   try {
     if (userData === undefined) {
       throw Error('Need to provide user data')
@@ -50,7 +51,7 @@ export const createUser = async (userData) => {
   }
 }
 
-export const updateUser = async (id, params) => {
+export const updateUser = async (id: number, params: Object) => {
   try {
     if (id === undefined || !params || Object.keys(params).length === 0) {
       throw Error('Need to provide an id and params');
