@@ -16,8 +16,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
 
     let { user_id, goal_ids } = req.body;
-    console.log("USER ID: ", user_id);
-    console.log("goal_ids: ", goal_ids);
+
     // Validate request data
     if (!user_id || !goal_ids) {
         return res.status(400).json({ error: 'Missing required fields' });
