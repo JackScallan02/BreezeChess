@@ -1,7 +1,7 @@
 const express = require('express');
 const db = require('./db'); // Knex instance
 const app = express();
-const AWS = require("aws-sdk");
+const { S3 } = require('@aws-sdk/client-s3');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
@@ -41,18 +41,24 @@ function readRoutes() {
 }
 
 async function createS3Bucket() {
-  const s3 = new AWS.S3({
+  const s3 = new S3({
     endpoint: process.env.AWS_ENDPOINT || "http://localhost:4566",
-    s3ForcePathStyle: true,
+
+    // The key s3ForcePathStyle is renamed to forcePathStyle.
+    forcePathStyle: true,
+
     region: "us-east-2",
-    accessKeyId: "test",
-    secretAccessKey: "test",
+
+    credentials: {
+      accessKeyId: "test",
+      secretAccessKey: "test",
+    },
   });
 
-  await s3.createBucket({ Bucket: "breezechess-bucket" }).promise();
+  await s3.createBucket({ Bucket: "breezechess-bucket" });
   console.log("S3 Bucket created");
   try {
-    const response = await s3.listBuckets().promise();
+    const response = await s3.listBuckets();
     console.log("Buckets:", response.Buckets);
   } catch (error) {
     console.error("Error:", error);

@@ -5,10 +5,10 @@ FROM node:22-alpine
 WORKDIR /app
 
 # Copy package.json
-COPY package.json yarn.lock ./
+COPY package.json ./
 
 # Install dependencies
-RUN yarn install  --frozen-lockfile
+RUN yarn install
 
 # Copy the server code into the container
 COPY . .
