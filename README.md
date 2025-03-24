@@ -5,7 +5,7 @@ Step into a world where chess meets creativity. BreezeChess redefines training w
 ## Setting up
 
 0. Ensure the following are installed:
-  - node.js: v20.19.0
+  - node.js: v22.14.0
   - docker: v24.0.6
 
 1. Add a `.env` file in the root directory of your repo. Add the following, in which the values can be obtained by setting up a `Firebase` account:
