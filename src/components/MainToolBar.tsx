@@ -9,26 +9,15 @@ import { UserRoundCog } from 'lucide-react';
 import { Menu } from 'primereact/menu';
 import '../css/maintoolbar.css';
 
+interface MenuItems {
+  [key: string]: string;
+}
+
 const MainToolBar = () => {
   const { user, handleLogout } = useAuth();
-
   const { handleNavigation, key } = useNavigation();
 
-  const menuRight = useRef<Menu | null>(null);
-
-  const items: Array<Object> = [
-    { label: 'Profile', icon: 'pi pi-user', command: () => handleNavigation('/profile') },
-    { label: 'Settings', icon: 'pi pi-cog', command: () => handleNavigation('/settings') },
-    { label: 'Logout', icon: 'pi pi-sign-out', command: () => user && handleLogout() }
-  ];
-
-  const { isDarkMode } = useDarkMode();
-
   const [menuOpen, setMenuOpen] = useState(false);
-
-  interface MenuItems {
-    [key: string]: string;
-  }
   const [menuItems, setMenuItems] = useState<MenuItems>({
     'Home': '/',
     'Store': '/store',
@@ -36,6 +25,15 @@ const MainToolBar = () => {
     'Contact': '/contact',
   })
 
+  const menuRight = useRef<Menu | null>(null);
+
+  const { isDarkMode } = useDarkMode();
+
+  const dropdownItems: Array<Object> = [
+    { label: 'Profile', icon: 'pi pi-user', command: () => handleNavigation('/profile') },
+    { label: 'Settings', icon: 'pi pi-cog', command: () => handleNavigation('/settings') },
+    { label: 'Logout', icon: 'pi pi-sign-out', command: () => user && handleLogout() }
+  ];
 
   useEffect(() => {
     const updateToolBar = () => {
@@ -73,7 +71,7 @@ const MainToolBar = () => {
           {!user ? 'Login' : (
             <div className="relative">
               <Menu
-                model={items}
+                model={dropdownItems}
                 popup
                 ref={menuRight}
                 id="popup_menu_right"

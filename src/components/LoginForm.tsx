@@ -8,13 +8,9 @@ import useDarkMode from '../darkmode/useDarkMode';
 import breezechesslogoblack from '../assets/breezechess-full-logo-black.png'
 import breezechesslogowhite from '../assets/breezechess-full-logo-white.png'
 import { UserParams } from '../types/user';
+import { BorderError } from '../types/bordererror';
 
 const LoginForm = () => {
-
-    interface BorderError {
-        email: boolean;
-        password: boolean;
-    }
 
     const {user, loading} = useAuth();
     const { handleNavigation, key } = useNavigation();

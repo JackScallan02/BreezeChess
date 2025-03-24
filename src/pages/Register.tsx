@@ -7,11 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { getUsers } from "../api/users";
 import { useNavigation } from '../navigator/navigate';
 import { UserParams } from '../types/user';
-
-interface BorderError {
-  email: boolean;
-  password: boolean;
-}
+import { BorderError } from '../types/bordererror';
 
 const Register = () => {
   const {user, loading, password, setPassword} = useAuth();

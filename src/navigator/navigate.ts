@@ -10,7 +10,6 @@ export const useNavigation = () => {
     const handleNavigation = (page: string) => {
 
         if (location.pathname === page) {
-            // window.location.reload();
             setKey(prev => prev + 1);
         } else {
             navigate(page);
