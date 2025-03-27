@@ -1,42 +1,59 @@
 const express = require('express');
 const db = require('../db'); // Your Knex instance
 const router = express.Router();
+const Joi = require('joi');
 
+// Middleware to validate user data
+const validateUser = (req, res, next) => {
+    const schema = Joi.object({
+        uid: Joi.string().required(),
+        username: Joi.string().optional().allow(null),
+        email: Joi.string().email().required(),
+        password: Joi.string().optional().allow(null),
+        provider: Joi.string().required(),
+    });
 
+    const { error } = schema.validate(req.body);
+    if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+    }
+    next();
+};
+
+// GET route to fetch users with optional filtering, pagination, and sorting
 router.get('/', async (req, res) => {
-    // Return based on the query parameters, otherwise return all users
     try {
-        let users;
-        if (req.query.uid) {
-            const user = await db('users').where('uid', req.query.uid).first();
-            if (user) {
-                return res.status(200).json(user);
-            } else {
+        const { uid, email, limit = 10, offset = 0, sort_by = 'id', order = 'asc' } = req.query;
+
+        if (uid || email) {
+            const user = await db('users').where(uid ? { uid } : { email }).first();
+            if (!user) {
+                // Don't want to return a 404 and crash the app
                 return res.status(200).json({ error: 'User not found' });
             }
-        } else if (req.query.email) {
-            const user = await db('users').where('email', req.query.email).first();
-            if (user) {
-                return res.status(200).json(user);
-            } else {
-                return res.status(200).json({ error: 'User not found' });
-            }
-        } else {
-            users = await db('users');
+            return res.status(200).json(user);
         }
+
+        const users = await db('users')
+            .select('id', 'uid', 'username', 'email', 'provider', 'is_new_user')
+            .limit(limit)
+            .offset(offset)
+            .orderBy(sort_by, order);
+
         return res.status(200).json(users);
     } catch (error) {
         console.error('Error getting users:', error.message);
-        return res.status(500).json({ error: `Failed to get users : ${error.message}` });
+        return res.status(500).json({ error: `Failed to get users: ${error.message}` });
     }
 });
 
+// GET route to fetch a user by ID
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const user = await db('users').where({ id }).first();
         if (!user) {
-            return res.status(200).json({ error: 'User not found' });
+            return res.status(404).json({ error: 'User not found' });
         }
         return res.status(200).json(user);
     } catch (error) {
@@ -45,55 +62,45 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
-    let { uid, username, email, password, provider } = req.body;
-
-    // Validate request data
-    if (!uid || !email || !provider) {
-        return res.status(400).json({ error: 'Missing required fields' });
-    }
+// POST route to create a new user
+router.post('/', validateUser, async (req, res) => {
+    const { uid, username, email, password, provider } = req.body;
 
     try {
-        // Insert data into 'users' table
-        if (!username) username = null;
-        if (!password) password = null;
-
         const [newUser] = await db('users').insert({
             uid,
             email,
             provider,
-            username: username,
-            password: password,
+            username: username || null,
+            password: password || null,
             is_new_user: true,
         }).returning('*');
 
         return res.status(201).json(newUser);
     } catch (error) {
         console.error('Error inserting user:', error.message);
-        return res.status(500).json({ error: `Failed to insert user : ${error.message}` });
+        return res.status(500).json({ error: `Failed to insert user: ${error.message}` });
     }
 });
 
-
-router.put('/', async (req, res) => {
+// PATCH route to update a user
+router.patch('/:id', async (req, res) => {
     try {
-        const { id, ...updates } = req.body;
-        if (!id) {
-            return res.status(400).json({ error: 'User id is required' });
-        }
-        
-        if (!updates || (typeof updates !== 'object') || (Object.keys(updates).length === 0)) {
+        const { id } = req.params;
+        const updates = req.body;
+
+        if (!updates || Object.keys(updates).length === 0) {
             return res.status(400).json({ error: 'Update params object is required' });
         }
+
         const result = await db('users').where({ id }).update(updates);
         if (!result) {
             return res.status(404).json({ error: 'User not found' });
         }
-        return res.status(200).json({ message: 'User updated successfully'});
-
+        return res.status(200).json({ message: 'User updated successfully' });
     } catch (error) {
         console.error('Error updating user:', error.message);
-        return res.status(500).json({ error: `Failed to update user : ${error.message}` });
+        return res.status(500).json({ error: `Failed to update user: ${error.message}` });
     }
 });
 

@@ -23,7 +23,7 @@ const MainToolBar = () => {
     'Store': '/store',
     'About': '/about',
     'Contact': '/contact',
-  })
+  });
 
   const menuRight = useRef<Menu | null>(null);
 
@@ -65,18 +65,17 @@ const MainToolBar = () => {
         )
         )}
         <li
-          className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${!user && 'outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}
+          className={`p-3 rounded-md ${!user && 'outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400 hover:cursor-pointer'}`}
           onClick={() => !user && handleNavigation('/login')}
         >
-          {!user ? 'Login' : (
+          {!user ? (<p>Login</p>) : (
             <div className="relative">
               <Menu
                 model={dropdownItems}
                 popup
                 ref={menuRight}
                 id="popup_menu_right"
-                className={`ml-[78px] dark:bg-slate-700 ${isDarkMode ? 'dark-menu' : 'light-menu'} outline-1 outline-slate-200`}
-
+                className={`ml-[78px] dark:bg-slate-700 ${isDarkMode ? 'dark-menu' : 'light-menu'} outline-1 outline-slate-200 dark:outline-slate-600`}
               />
               <button
                 type="button"
@@ -87,19 +86,23 @@ const MainToolBar = () => {
                 }}
                 aria-controls="popup_menu_right"
                 aria-haspopup="true"
-                className="p-2 rounded-full  focus:outline-hidden ml-4"
+                className="p-2 rounded-full focus:outline-hidden ml-4"
               >
-                <UserRoundCog className="w-7 h-7 text-sky-400" />
+                <UserRoundCog
+                  className="w-7 h-7 hover:cursor-pointer hover:text-sky-400"
+                />
               </button>
             </div>
 
           )}
         </li>
       </ul>
-      <button className='flex flex-col gap-4 group xl:hidden' onClick={() => setMenuOpen(!menuOpen)}>
-        <div className='w-6 h-1 bg-black dark:bg-white'></div>
-        <div className='w-6 h-1 bg-black dark:bg-white'></div>
-        <div className='w-6 h-1 bg-black dark:bg-white'></div>
+      <button className='xl:hidden' onClick={() => setMenuOpen(!menuOpen)}>
+        <div className='hover:cursor-pointer flex flex-col gap-2 group '>
+          <div className='w-6 h-1 bg-black dark:bg-white'></div>
+          <div className='w-6 h-1 bg-black dark:bg-white'></div>
+          <div className='w-6 h-1 bg-black dark:bg-white'></div>
+        </div>
       </button>
       {createPortal(
         <div className={`absolute xl:hidden top-16 left-0 w-full bg-white dark:bg-slate-800 flex flex-col items-center gap-6 font-semibold text-lg transform
@@ -108,14 +111,14 @@ const MainToolBar = () => {
           {Object.keys(menuItems).map((menuItem, i) => (
             <li
               key={i}
-              className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white dark:hover:text-black transition-all cursor-pointer"
+              className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
               onClick={() => handleNavigation(menuItems[menuItem])}
             >
               {menuItem}
             </li>
           ))}
           <li
-            className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white dark:hover:text-black transition-all cursor-pointer"
+            className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
             onClick={() => !user ? handleNavigation('/login') : handleNavigation('/profile')}
             >
             {!user ? 'Login' : 'Profile'}

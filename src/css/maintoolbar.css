@@ -5,9 +5,13 @@
   color: white !important;
 }
 
-.p-menu.dark-menu .p-menuitem-link {
+.p-menu.dark-menu .p-menuitem-link{
   background-color: #334155 !important;
   transition: background-color 0.15s ease-in-out;
+}
+
+.p-menu.dark-menu {
+  background-color: #334155 !important;
 }
 
 .p-menu.dark-menu .p-menuitem-link:hover {

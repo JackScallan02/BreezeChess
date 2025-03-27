@@ -30,60 +30,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Check if user has made account before. If not, create user in the database. Navigate to welcome.
       // If the user has made an account, but is still a "new" account, navigate to welcome.
       // Else, navigate to home.
-      if (fbUser) {
-        const params: UserParams = {
-          uid: fbUser.uid,
-          email: null
-        }
-        const getResult = await getUsers(params);
-        if (getResult.error === 'User not found') {
-          // Create user
-          let createResult;
-          if (fbUser.providerData && fbUser.providerData[0]) {
-            if (fbUser.providerData[0].providerId === 'password') {
-              const newUser: CreateUserData = {
-                uid: fbUser.uid,
-                username: null,
-                email: fbUser.email,
-                password,
-                provider: fbUser.providerData[0].providerId,
-              }
-              createResult = await createUser(newUser);
-
-            } else {
-              const newUser: CreateUserData = {
-                uid: fbUser.uid,
-                username: null,
-                email: fbUser.email,
-                password: null,
-                provider: fbUser.providerData[0].providerId,
-              }
-              createResult = await createUser(newUser);
-            }
-            if (createResult) {
-              setUser({
-                id: createResult.id,
-                email: createResult.email,
-                username: null,
-                is_new_user: createResult.is_new_user,
-              });
-            }
+      try {
+        if (fbUser) {
+          const params: UserParams = {
+            uid: fbUser.uid,
+            email: null
           }
-
-        } else if (getResult) {
-          setUser({
-            id: getResult.id,
-            email: getResult.email,
-            username: getResult.username,
-            is_new_user: getResult.is_new_user,
-          });
+          const getResult = await getUsers(params);
+          if (getResult.error === 'User not found') {
+            // Create user
+            let createResult;
+            if (fbUser.providerData && fbUser.providerData[0]) {
+              if (fbUser.providerData[0].providerId === 'password') {
+                const newUser: CreateUserData = {
+                  uid: fbUser.uid,
+                  username: null,
+                  email: fbUser.email,
+                  password,
+                  provider: fbUser.providerData[0].providerId,
+                }
+                createResult = await createUser(newUser);
+  
+              } else {
+                const newUser: CreateUserData = {
+                  uid: fbUser.uid,
+                  username: null,
+                  email: fbUser.email,
+                  password: null,
+                  provider: fbUser.providerData[0].providerId,
+                }
+                createResult = await createUser(newUser);
+              }
+              if (createResult) {
+                setUser({
+                  id: createResult.id,
+                  email: createResult.email,
+                  username: null,
+                  is_new_user: createResult.is_new_user,
+                });
+              }
+            }
+  
+          } else if (getResult) {
+            setUser({
+              id: getResult.id,
+              email: getResult.email,
+              username: getResult.username,
+              is_new_user: getResult.is_new_user,
+            });
+          } else {
+            setUser(null);
+          }
+  
         } else {
           setUser(null);
         }
-
-      } else {
+      } catch (error) {
         setUser(null);
       }
+      
       setLoading(false);
     });
     return () => unsubscribe(); // Cleanup on unmount

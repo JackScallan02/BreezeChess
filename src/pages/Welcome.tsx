@@ -8,12 +8,7 @@ import { createUserGoals } from '../api/user_goals';
 import { useNavigation } from '../navigator/navigate';
 import { useSearchParams } from 'react-router-dom';
 import { Check } from "lucide-react";
-
-interface Goal {
-  id: number;
-  description: string;
-}
-
+import { Goal } from '../types/goal';
 const Welcome = () => {
   const {user, loading, setLoading, handleUserUpdate} = useAuth();
 
@@ -42,7 +37,11 @@ const Welcome = () => {
 
   const fetchGoals = async () => {
     const result = await getGoals();
-    setGoals(result);
+    let goalsArray: Goal[] = [];
+    result.forEach((res) => {
+      goalsArray.push({id: res.id, description: res.description});
+    })
+    setGoals(goalsArray);
   }
 
   useEffect(() => {
