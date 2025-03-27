@@ -5,7 +5,7 @@ Step into a world where chess meets creativity. BreezeChess redefines training w
 ## Setting up
 
 0. Ensure the following are installed:
-  - node.js: v20.19.0
+  - node.js: v22.14.0
   - docker: v24.0.6
 
 1. Add a `.env` file in the root directory of your repo. Add the following, in which the values can be obtained by setting up a `Firebase` account:
@@ -32,22 +32,18 @@ which will then start up the following containers, assuming a docker daemon is r
 
 The client container runs the following commands:
 
-1. Continuously watch for tailwind changes
-`npx tailwindcss -i ./src/input.css -o ./src/output.css --watch & npm start`
-
-2. Run the app in the development mode.\
+1. Run the app in the development mode.\
 Open [http://localhost:9000](http://localhost:9000) to view it in your browser.
 
-3. Emulate the firebase authentication during development at [http://localhost:9099](http://localhost:9099):\
+2. Emulate the firebase authentication during development at [http://localhost:9099](http://localhost:9099):\
 `firebase emulators:start --only auth`
-
-If you want to exec into the postgres container:\
-`docker exec -it breezechess-postgres-1 psql -U user -d db_dev`
 
 #### Postgres
 
 Contains the database for the application.
 
+If you want to exec into the postgres container:\
+`docker exec -it breezechess-postgres-1 psql -U user -d db_dev`
 
 #### Server
 
