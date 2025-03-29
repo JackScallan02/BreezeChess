@@ -40,7 +40,7 @@ const LoginForm = () => {
                     <div className="flex justify-center flex-col">
                         {errorText('No user exists with the provided email.')}
                         <button
-                            className='text-sky-500 text-base text-center font-medium hover:text-sky-400'
+                            className='text-sky-500 text-base text-center font-medium hover:text-sky-400 hover:cursor-pointer'
                             onClick={() => handleNavigation("/register")}
                         >
                             Sign up here
@@ -111,7 +111,7 @@ const LoginForm = () => {
                     <label className='text-lg font-medium'>Login</label>
                     <input
                         className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
-                        placeholder='Email, Phone, or Email'
+                        placeholder='Email, Phone'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
                     />
                 </div>
@@ -125,18 +125,18 @@ const LoginForm = () => {
                     />
                 </div>
                 <div className='mt-8 flex justify-between items-center'>
-                    <button className='font-medium text-base text-sky-500 hover:text-sky-400'>Forgot password</button>
+                    <button className='font-medium text-base text-sky-500 hover:text-sky-400 hover:cursor-pointer'>Forgot password</button>
                 </div>
                 {errorMsg}
                 <div className='mt-8 flex flex-col gap-y-4'>
                     <button
-                        className='active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'
+                        className='active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'
                         onClick={() => {setRedBorder({email: !validateEmail(), password: !validatePassword()}); if (validateLogin()) { signInUser(email, password); }}}
                     >
                         Sign In
                     </button>
                     <button
-                        className='flex py-3 rounded-xl border-2 border-gray-100 dark:border-slate-600 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'
+                        className='flex py-3 rounded-xl border-2 border-gray-100 dark:border-slate-600 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all'
                         onClick={() => {googleSignIn();}}
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -151,7 +151,7 @@ const LoginForm = () => {
                 <div className='mt-8 flex justify-center items-center'>
                     <p className='font-medium text-base'>Don&apos;t have an account?</p>
                     <button
-                        className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400'
+                        className='text-sky-500 text-base font-medium ml-2 hover:text-sky-400 hover:cursor-pointer'
                         onClick={() => handleNavigation("/register")}
                         >
                             Sign Up

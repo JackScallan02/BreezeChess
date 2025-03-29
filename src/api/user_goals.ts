@@ -1,16 +1,14 @@
 import axios from 'axios';
+import { UserGoals } from '../types/usergoals';
+
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:9001';
 
-interface UserGoals {
-  user_id: number;
-  goal_ids: number[];
-}
-
-
-const handleApiError = (error: unknown) => {
-  console.error('API Error: ', error);
-  throw error;
-};
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 /**
  * Fetch user goals with optional filtering by user_id.
@@ -19,7 +17,7 @@ const handleApiError = (error: unknown) => {
  */
 export const getUserGoals = async (user_id?: number) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/user_goals`, {
+    const response = await apiClient.get(`${API_BASE_URL}/user_goals`, {
       params: user_id ? { user_id } : {},
       headers: {
         'Content-Type': 'application/json',
@@ -48,7 +46,7 @@ export const createUserGoals = async (user_goals: UserGoals) => {
       throw new Error('Invalid user goals data. Ensure user_id and goal_ids are provided.');
     }
 
-    const response = await axios.post(`${API_BASE_URL}/user_goals`, user_goals, {
+    const response = await apiClient.post(`${API_BASE_URL}/user_goals`, user_goals, {
       headers: {
         'Content-Type': 'application/json',
       },

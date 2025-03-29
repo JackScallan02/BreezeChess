@@ -1,13 +1,14 @@
 import axios from 'axios';
+import { Goal } from '../types/goal';
+
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:9001';
 
-type Goal = {
-  id: number;
-  name: string;
-  description?: string;
-  created_at: string;
-  updated_at: string;
-};
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 /**
  * Fetches goals from the API. Might want to provide params in future
@@ -15,7 +16,7 @@ type Goal = {
  */
 export const getGoals = async () => {
   try {
-    const response = await axios.get<Goal[]>(`${API_BASE_URL}/goals/`, {
+    const response = await apiClient.get<Goal[]>(`${API_BASE_URL}/goals/`, {
       headers: {
         'Content-Type': 'application/json',
       },

@@ -23,14 +23,17 @@ router.get('/', async (req, res) => {
     try {
         const { user_id } = req.query;
         const query = db('user_goals');
+        let user_goals;
         if (user_id) {
             query.where({ user_id });
+            user_goals = await query;
+            return res.status(200).json(user_goals[0]);
         }
         const goals = await query;
-        res.status(200).json(goals);
+        return res.status(200).json(goals);
     } catch (error) {
         console.error('Error getting user goals:', error.message);
-        res.status(500).json({ error: `Failed to get user goals: ${error.message}` });
+        return res.status(500).json({ error: `Failed to get user goals: ${error.message}` });
     }
 });
 

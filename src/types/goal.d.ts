@@ -1,4 +1,4 @@
 export interface Goal {
-    id: number;
-    description: string | undefined;
-  }
+  id: number;
+  description?: string;
+};

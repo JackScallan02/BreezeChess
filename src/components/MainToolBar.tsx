@@ -86,7 +86,7 @@ const MainToolBar = () => {
                 }}
                 aria-controls="popup_menu_right"
                 aria-haspopup="true"
-                className="p-2 rounded-full focus:outline-hidden ml-4"
+                className="p-2 rounded-full focus:outline-hidden ml-4 hover:cursor-pointer"
               >
                 <UserRoundCog
                   className="w-7 h-7 hover:cursor-pointer hover:text-sky-400"

@@ -167,7 +167,7 @@ const Welcome = () => {
           <p className='mt-4 text-red-400'>{errorMsg}</p>
           <div className="flex flex-row justify-center mt-2">
               <button
-                  className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
+                  className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
                   onClick={() => {if (validateUsername()) { handleSignIn(); }}}
               >
                   Sign up
@@ -193,7 +193,7 @@ const Welcome = () => {
           {experience_levels.map((level) => (
             <div key={level}>
               <button
-                className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all
+                className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all
                   py-4 rounded-xl text-white text-lg font-bold ${userExp && userExp === level ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}
                   onClick={() => { handleExpSelection(level);
                 }}
@@ -204,7 +204,7 @@ const Welcome = () => {
           ))}
         <div className="mt-4">
             <button
-              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-sky-400 disabled:opacity-50 disabled:hover:scale-100 disabled:bg-sky-300'}
+              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-sky-400 disabled:opacity-50 disabled:hover:scale-100 disabled:bg-sky-300'}
               onClick={() => handleExpSubmission()}
               disabled={!userExp}
             >
@@ -233,7 +233,7 @@ const Welcome = () => {
           {goals && goals.map((goal: Goal) => (
             <div key={goal.id} className="mb-8">
               <button
-                className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all flex items-center justify-center
+                className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all flex items-center justify-center
                   py-4 rounded-xl text-white text-lg font-bold ${userGoals && userGoals.includes(goal.id) ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}
                 onClick={() => handleGoalSelection(goal)}
               >
@@ -244,7 +244,7 @@ const Welcome = () => {
           ))}
           <div className="mt-4">
             <button
-              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-sky-400'}
+              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-sky-400'}
               onClick={() => handleGoalSubmission()}
             >
               <p>

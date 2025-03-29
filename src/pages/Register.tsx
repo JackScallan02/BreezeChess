@@ -162,7 +162,7 @@ if (!user && !loading) return (
         <div className='mt-8 flex flex-col gap-y-4'>
           <div className="flex flex-row justify-center">
             <button
-              className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
+              className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
               onClick={() => { setSignUpClicked(true); }}
             >
               Sign up
@@ -170,7 +170,7 @@ if (!user && !loading) return (
           </div>
           <div className="flex flex-row justify-center">
             <button
-              className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 dark:border-slate-600 border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all'
+              className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 dark:border-slate-600 border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all'
               onClick={() => {googleSignIn();}}
               >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -206,7 +206,7 @@ if (!user && !loading) return (
                 {errorMsg}
                 <div className="flex flex-row justify-center">
                   <button
-                    className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
+                    className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
                     onClick={() => { if (validateLogin()) { handleCreateUser(email, password); }}}
                   >
                     Sign up

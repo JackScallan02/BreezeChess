@@ -3,7 +3,7 @@ import app from './app.js';
 import fs from 'fs';
 import path from 'path';
 
-import { S3Client, CreateBucketCommand, ListBucketsCommand } from '@aws-sdk/client-s3';
+import { S3Client, CreateBucketCommand, ListBucketsCommand, HeadBucketCommand } from '@aws-sdk/client-s3';
 
 const port = 9001;
 
@@ -12,7 +12,6 @@ async function setupDatabase() {
 
     console.log('Rolling back migrations...');
     await db.migrate.rollback();
-
     console.log('Running migrations...');
     await db.migrate.latest();
     console.log('Running seeds...');
@@ -38,8 +37,23 @@ async function createS3Bucket() {
     },
   });
 
-  await s3.send(new CreateBucketCommand({ Bucket: "breezechess-bucket" }));
-  console.log("S3 Bucket created");
+  async function checkBucketExists(bucket) {
+    try {
+      const res = await s3.send(new HeadBucketCommand(bucket));
+      return true;
+    } catch (error) {
+      if (error.name === 'NotFound') {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  const bucket = { Bucket: "breezechess-bucket" }
+  if (!(await checkBucketExists(bucket))) {
+    await s3.send(new CreateBucketCommand(bucket));
+  }
+
   try {
     const response = await s3.send(new ListBucketsCommand({}));
     console.log("Buckets:", response.Buckets);
@@ -58,9 +72,7 @@ async function readRoutes() {
         const route = await import(path.join(routesDirectory, file));
         const router = route.default || route;
         if (router && typeof router === 'function') {
-            console.log("READING ROUTE: ", `/${routeName}`);
             app.use(`/${routeName}`, router);
-            console.log("route loaded");
 
           } else {
             console.error(`Invalid router in ${file}, skipping.`);

@@ -1,28 +1,11 @@
 import chai from 'chai';
 import chaiHttp from 'chai-http';
-import db from '../../db.js';
 
 const { expect } = chai;
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:9001';
 chai.use(chaiHttp);
 
 describe('Users API', function () {
-  
-    before(async () => {
-        console.log("Rolling back database...");
-        await db.migrate.rollback();
-        console.log("Running migrations...");
-        await db.migrate.latest();
-        console.log("Running seeds...");
-        await db.seed.run();
-        console.log("Database setup complete.");
-    });
-    
-    after(async () => {
-        console.log("\nCompleted user tests. Closing database connection...");
-        await db.destroy();
-        console.log("Database connection closed.");
-    });
 
     describe('GET /users', () => {
         it('should fetch all users with pagination and sorting', async () => {

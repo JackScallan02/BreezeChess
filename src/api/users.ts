@@ -16,7 +16,6 @@ const apiClient = axios.create({
  * @returns A list of users or an error message.
  */
 export const getUsers = async (params: UserParams) => {
-  console.log("HERE;  params = ", params);
   try {
     const response = await apiClient.get('/users/', { params });
     return response.data;
@@ -37,8 +36,6 @@ export const getUsers = async (params: UserParams) => {
  * @returns The user data or an error message.
  */
 export const getUserById = async (id: number) => {
-  console.log("id: ", id);
-
   if (!id || typeof id !== 'number') {
     throw new Error('Invalid user ID. Please provide a valid number.');
   }
@@ -63,7 +60,6 @@ export const getUserById = async (id: number) => {
  */
 export const createUser = async (userData: CreateUserData) => {
 
-  console.log("CREATING USER with ", userData);
   if (!userData) {
     throw new Error('User data is required to create a user.');
   }
@@ -74,7 +70,6 @@ export const createUser = async (userData: CreateUserData) => {
 
   try {
     const response = await apiClient.post('/users', userData);
-    console.log("RESPONSE: ", response);
     return response.data;
   } catch (error: any) {
     if (error.response) {
