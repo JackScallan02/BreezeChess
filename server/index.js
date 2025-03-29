@@ -51,6 +51,7 @@ async function createS3Bucket() {
 
   const bucket = { Bucket: "breezechess-bucket" }
   if (!(await checkBucketExists(bucket))) {
+    // Sometimes if the server restarts, we don't want to try to create the same bucket again
     await s3.send(new CreateBucketCommand(bucket));
   }
 
