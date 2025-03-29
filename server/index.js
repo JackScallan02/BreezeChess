@@ -84,7 +84,6 @@ async function readRoutes() {
 export async function startServer() {
   await setupDatabase();
   await createS3Bucket();
-  console.log("Reading routes");
   await readRoutes();
 
   app.get('/', (req, res) => {
