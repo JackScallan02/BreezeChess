@@ -1,7 +1,8 @@
-const express = require('express');
-const db = require('../db');
+import express from 'express';
+import db from '../db.js';
+import Joi from 'joi';
+
 const router = express.Router();
-const Joi = require('joi');
 
 // Validation middleware
 const validateUserGoals = (req, res, next) => {
@@ -66,4 +67,4 @@ router.post('/', validateUserGoals, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

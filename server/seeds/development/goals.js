@@ -2,8 +2,11 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> } 
  */
-exports.seed = async function (knex) {
+export async function seed(knex) {
+    // Deletes all existing entries
     await knex('goals').del();
+
+    //Inserts goals data
     await knex('goals').insert([
       { description: 'Play chess with other players' },
       { description: 'Get better at chess' },

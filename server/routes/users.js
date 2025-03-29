@@ -1,7 +1,8 @@
-const express = require('express');
-const db = require('../db'); // Your Knex instance
+import express from 'express';
+import db from '../db.js';
+import Joi from 'joi';
+
 const router = express.Router();
-const Joi = require('joi');
 
 // Middleware to validate user data
 const validateUser = (req, res, next) => {
@@ -104,4 +105,4 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

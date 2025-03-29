@@ -1,10 +1,10 @@
-const express = require('express');
-const db = require('./db'); // Knex instance
-const app = express();
-const { S3 } = require('@aws-sdk/client-s3');
-const fs = require('fs');
-const path = require('path');
-const cors = require('cors');
+import db from './db.js';
+import app from './app.js';
+import fs from 'fs';
+import path from 'path';
+
+import { S3Client, CreateBucketCommand, ListBucketsCommand } from '@aws-sdk/client-s3';
+
 const port = 9001;
 
 async function setupDatabase() {
@@ -15,9 +15,10 @@ async function setupDatabase() {
 
     console.log('Running migrations...');
     await db.migrate.latest();
-
     console.log('Running seeds...');
     await db.seed.run();
+    
+
 
     console.log('Database setup complete.');
   } catch (error) {
@@ -26,64 +27,62 @@ async function setupDatabase() {
   }
 }
 
-function readRoutes() {
-  const routesDirectory = path.join(__dirname, 'routes'); // Absolute path to 'routes' directory
-  // Read all files in the 'routes' directory
-  fs.readdirSync(routesDirectory).forEach(file => {
-    if (file.endsWith('.js')) { // Only import JavaScript files
-      const routeName = file.replace('.js', ''); // Remove file extension
-      const route = require(path.join(routesDirectory, file)); // Require the route module
-
-      // Use the route under its file name as the path
-      app.use(`/${routeName}`, route); // Route file 'user.js' will be mounted at '/user'
-    }
-  });
-}
-
 async function createS3Bucket() {
-  const s3 = new S3({
+  const s3 = new S3Client({
     endpoint: process.env.AWS_ENDPOINT || "http://localhost:4566",
-
-    // The key s3ForcePathStyle is renamed to forcePathStyle.
     forcePathStyle: true,
-
     region: "us-east-2",
-
     credentials: {
       accessKeyId: "test",
       secretAccessKey: "test",
     },
   });
 
-  await s3.createBucket({ Bucket: "breezechess-bucket" });
+  await s3.send(new CreateBucketCommand({ Bucket: "breezechess-bucket" }));
   console.log("S3 Bucket created");
   try {
-    const response = await s3.listBuckets();
+    const response = await s3.send(new ListBucketsCommand({}));
     console.log("Buckets:", response.Buckets);
   } catch (error) {
     console.error("Error:", error);
   }
 }
 
-// Start the server after setting up the database
-setupDatabase().then(async () => {
+async function readRoutes() {
+  const dirname = path.dirname(new URL(import.meta.url).pathname);
+  const routesDirectory = path.join(dirname, 'routes'); // Absolute path to 'routes' directory
+  // Read all files in the 'routes' directory
+  for (const file of fs.readdirSync(routesDirectory)) {
+    if (file.endsWith('.js')) { // Only import JavaScript files
+        const routeName = file.replace('.js', ''); // Remove file extension
+        const route = await import(path.join(routesDirectory, file));
+        const router = route.default || route;
+        if (router && typeof router === 'function') {
+            console.log("READING ROUTE: ", `/${routeName}`);
+            app.use(`/${routeName}`, router);
+            console.log("route loaded");
 
-  app.options('*', cors()); // Handle preflight requests
+          } else {
+            console.error(`Invalid router in ${file}, skipping.`);
+          }
+      }
+  }
+}
 
-  app.use(cors());
-
-  app.use(express.json()); // To parse JSON request bodies
+export async function startServer() {
+  await setupDatabase();
+  await createS3Bucket();
+  console.log("Reading routes");
+  await readRoutes();
 
   app.get('/', (req, res) => {
     res.send('Hello from the backend server!');
   });
 
-  readRoutes();
-
-  await createS3Bucket();
-
-
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
-});
+
+}
+
+startServer();

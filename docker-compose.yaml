@@ -30,7 +30,7 @@ services:
     volumes:
       - ./server:/app
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV}
       POSTGRES_USER: ${POSTGRES_USER}      # Username for the database
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Password for the database
       POSTGRES_DB: ${POSTGRES_DB}          # Database name to create

@@ -2,14 +2,16 @@
     "name": "backend-server",
     "version": "1.0.0",
     "main": "index.js",
+    "type": "module",
     "scripts": {
-        "start": "node index.js"
+        "start": "node index.js",
+        "test": "npx mocha"
     },
     "dependencies": {
         "@aws-sdk/client-s3": "^3.772.0",
         "aws-sdk": "^2.1692.0",
-        "chai": "^5.2.0",
-        "chai-http": "^5.1.1",
+        "chai": "^4.5.0",
+        "chai-http": "^4.4.0",
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
         "express": "^4.21.2",

@@ -1,5 +1,6 @@
-const express = require('express');
-const db = require('../db'); // Your Knex instance
+import express from 'express';
+import db from '../db.js';
+
 const router = express.Router();
 
 // GET route to fetch all goals
@@ -16,4 +17,4 @@ router.get('/', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

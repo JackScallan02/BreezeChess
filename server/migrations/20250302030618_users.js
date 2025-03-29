@@ -2,7 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function(knex) {
+export function up(knex) {
     return knex.schema.createTable('users', function (table) {
         table.increments('id');
         table.string('uid').unique();
@@ -14,15 +14,15 @@ exports.up = function(knex) {
         table.string('experience_level')
         table.timestamps(true, true);
     });
-};
+}
 
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.down = function(knex) {
-    return knex.schema
-        .dropTableIfExists('user_goals')
-        .then(() => knex.schema.dropTableIfExists('users'));
-};
+export async function down(knex) {
+    await knex.schema
+        .dropTableIfExists('user_goals');
+    return await knex.schema.dropTableIfExists('users');
+}
 
