@@ -54,6 +54,9 @@ The backend server, which contains the express routes and database migrations/se
 
 The mock AWS container. Connect to the S3 bucket: `aws --endpoint-url=http://localhost:4566 s3 ls`
 
+### Testing the app
+Currently, there are only server tests:
+First start up the app with `yarn dc:dev`. Then, run the tests with `yarn test:server`
 
 ### Run ESLint
 `npx eslint <directory>`
