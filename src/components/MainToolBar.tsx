@@ -50,9 +50,14 @@ const MainToolBar = () => {
 
   return (
     <header key={key} className="h-16 flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white dark:bg-slate-800 bg-drop-shadow-md">
-      <a href={!user ? "/" : "/home"}>
-        <img src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52 hover:scale-105 transition-all" />
-      </a>
+      <img
+        src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52 hover:scale-105 hover:cursor-pointer transition-all"
+        onClick={() => {
+          if (!user) handleNavigation('/');
+          else handleNavigation('/home');
+        }
+      }
+      />
       <ul className="xl:flex hidden items-center gap-12 font-semibold text-base">
         {Object.keys(menuItems).map((menuItem, i) => (
           <li

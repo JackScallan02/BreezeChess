@@ -1,17 +1,14 @@
 import React from 'react';
+import useDarkMode from '../darkmode/useDarkMode';
 
 const LoadingScreen = () => {
+  
+  useDarkMode();
     
   return (
-    <>
-      <div className="flex flex-col min-h-screen dark:from-gray-800 dark:to-gray-900">
-        <div className="flex grow">
-          <div className="w-full flex items-center justify-center from-gray-200:to-gray-200 dark:from-gray-800 dark:to-gray-900">
-            <p className="dark:text-white">Loading...</p>
-          </div>
-        </div>
-      </div>
-    </>
+    <div className="min-h-screen min-w-screen flex justify-center">
+      <p className="dark:text-white mt-24">Loading...</p>
+    </div>
   );
 };
 

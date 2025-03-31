@@ -66,16 +66,18 @@ const Welcome = () => {
         await updateUser(user.id, { username: username });
         await handleUserUpdate(); // Since we updated the display name, we need to refresh the user object
         const afterTime = Date.now();
-        // We want to show the loading screen for at least 1 second (so it doesn't flicker).
-        if (afterTime - curTime < 1000) {
+        // We want to show the loading screen for at least 0.75 seconds (so it doesn't flicker).
+        if (afterTime - curTime < 750) {
           setTimeout(() => {
             setLoading(false);
             nextStep();
-          }, 1000 - (afterTime - curTime))
+          }, 750 - (afterTime - curTime));
+         
         } else {
           setLoading(false);
           nextStep();
         }
+        
       }
     } catch (error) {
       console.error(error);
@@ -126,14 +128,25 @@ const Welcome = () => {
 
   const handleGoalSubmission = async () => {
     if (user && userGoals && userGoals.length > 0) {
+      const curTime = Date.now();
       setLoading(true);
       await createUserGoals({
         user_id: user.id,
         goal_ids: userGoals
       });
-      await updateUser(user.id, { is_new_user: false, experience_level: userExp })
-      nextStep();
-      setLoading(false);
+      await updateUser(user.id, { is_new_user: false, experience_level: userExp });
+      await handleUserUpdate(); // Since we updated the display name, we need to refresh the user object
+      const afterTime = Date.now();
+      // We want to show the loading screen for at least 0.75 seconds (so it doesn't flicker).
+      if (afterTime - curTime < 750) {
+        setTimeout(() => {
+          setLoading(false);
+          nextStep();
+        }, 750 - (afterTime - curTime));
+      } else {
+        setLoading(false);
+        nextStep();
+      }
     }
   }
 

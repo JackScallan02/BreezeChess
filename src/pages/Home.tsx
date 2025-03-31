@@ -12,11 +12,10 @@ const Home = () => {
     if (!loading && !user) handleNavigation('/')
   }, [handleNavigation, loading, user]);
 
-  if (loading) {
-    return <LoadingScreen />
-  }
+  if (loading) return <LoadingScreen />
 
-  if (user) {
+
+  if (user && !loading) {
     return (
       <div key={key} className="flex flex-col min-h-screen">
         <MainToolBar />

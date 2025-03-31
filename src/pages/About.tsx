@@ -1,8 +1,14 @@
 import React from 'react';
 import MainToolBar from '../components/MainToolBar';
+import LoadingScreen from './Loading';
+import { useAuth } from "../contexts/AuthContext";
 
 const About = () => {
-  return (
+  const { loading } = useAuth();
+
+  if (loading) return <LoadingScreen />;
+  
+  if (!loading) return (
     <div className="flex flex-col min-h-screen">
       <MainToolBar />
       <main className="w-screen">

@@ -97,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const handleUserUpdate = async () => {
     if (user) {
       const getResult = await getUserById(user.id);
+      console.log("IS NEW USER: ", getResult.is_new_user);
 
       setUser({
         id: getResult.id,

@@ -10,7 +10,7 @@ const FrontPage = () => {
 
   useEffect(() => {
     if (user) handleNavigation('/home');
-  }, [handleNavigation, user]);
+  }, [handleNavigation, user]);  
 
   if (loading) return <LoadingScreen />
 
