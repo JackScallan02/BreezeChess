@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from './Loading';
-import { updateUser } from '../api/users';
+import { updateUser, checkUsernameExists } from '../api/users';
 import { getGoals } from '../api/goals';
 import { createUserGoals } from '../api/user_goals';
 import { useNavigation } from '../navigator/navigate';
@@ -84,7 +84,7 @@ const Welcome = () => {
     }
   }
 
-  const validateUsername = () => {
+  const validateUsername = async () => {
 
     if (!username.toLowerCase().match(/^[0-9a-z]+$/)) {
         setErrorMsg("Username must only contain letters or numbers.");
@@ -101,9 +101,16 @@ const Welcome = () => {
         setRedBorder(true);
         return false;
     }
+
+    const usernameExists = await checkUsernameExists(username);
+    console.log("usernameExists", usernameExists);
+    if (usernameExists) {
+      setErrorMsg("Username already exists. Please choose another username.");
+      setRedBorder(true);
+      return false;
+    }
     // TODO: Want to check for profane words
 
-    // TODO: Want to check that the name isn't taken already (case-insensitive), via the database
     return true;
   }
 
@@ -181,7 +188,7 @@ const Welcome = () => {
           <div className="flex flex-row justify-center mt-2">
               <button
                   className='w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                  onClick={() => {if (validateUsername()) { handleSignIn(); }}}
+                  onClick={async () => {if (await validateUsername()) { handleSignIn(); }}}
               >
                   Sign up
               </button>

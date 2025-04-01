@@ -21,8 +21,28 @@ const validateUser = (req, res, next) => {
     next();
 };
 
+// GET route to check if the username already exists
+router.get('/exists', async (req, res) => {
+    try {
+        const { username } = req.query;
+        if (!username) {
+            return res.status(400).json({ error: 'Username is required' });
+        }
+        const countUsers = await db('users').whereRaw('LOWER(username) = ?', username.toLowerCase());
+        if (countUsers.length === 0) {
+            return res.status(200).json({ exists: false });
+        }
+        return res.status(200).json({ exists: true });
+        
+    } catch (error) {
+        console.error('Error checking username existence:', error.message);
+        return res.status(500).json({ error: `Failed to check username existence: ${error.message}` });
+    }
+});
+
 // GET route to fetch users with optional filtering, pagination, and sorting
 router.get('/', async (req, res) => {
+    console.log("1");
     try {
         const { uid, email, limit = 10, offset = 0, sort_by = 'id', order = 'asc' } = req.query;
 
@@ -50,6 +70,7 @@ router.get('/', async (req, res) => {
 
 // GET route to fetch a user by ID
 router.get('/:id', async (req, res) => {
+    console.log("2");
     try {
         const { id } = req.params;
         const user = await db('users').where({ id }).first();

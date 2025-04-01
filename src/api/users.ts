@@ -104,3 +104,23 @@ export const updateUser = async (id: number, params: Object) => {
       throw new Error('Failed to connect to the server. Please try again later.');
     }  }
 };
+
+
+export const checkUsernameExists = async (username: string) => {
+  if (!username) {
+    throw new Error('Username is required to check existence.');
+  }
+
+  try {
+    const response = await apiClient.get('/users/exists', { params: { username } });
+    return response.data.exists;
+  } catch (error: any) {
+    if (error.response) {
+      console.error(`API Error: ${error.response.status} - ${error.response.data.error}`);
+      throw new Error(error.response.data.error || 'An error occurred when checking username existence.');
+    } else {
+      console.error('Network or server error:', error.message);
+      throw new Error('Failed to connect to the server. Please try again later.');
+    }
+  }
+}
