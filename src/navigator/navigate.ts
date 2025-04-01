@@ -8,6 +8,7 @@ export const useNavigation = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const curPage = location.pathname;
     
     const handleNavigation = (page: string) => {
 
@@ -22,7 +23,7 @@ export const useNavigation = () => {
         }
     }
 
-    return { handleNavigation, key };
+    return { handleNavigation, key, curPage };
 }
 
 export default useNavigation;

@@ -15,7 +15,7 @@ interface MenuItems {
 
 const MainToolBar = () => {
   const { user, handleLogout } = useAuth();
-  const { handleNavigation, key } = useNavigation();
+  const { handleNavigation, key, curPage } = useNavigation();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItems>({
@@ -34,6 +34,7 @@ const MainToolBar = () => {
     { label: 'Settings', icon: 'pi pi-cog', command: () => handleNavigation('/settings') },
     { label: 'Logout', icon: 'pi pi-sign-out', command: () => user && handleLogout() }
   ];
+
 
   useEffect(() => {
     const updateToolBar = () => {
@@ -109,7 +110,7 @@ const MainToolBar = () => {
           <div className='w-6 h-1 bg-black dark:bg-white'></div>
         </div>
       </button>
-      {createPortal(
+      {menuOpen && createPortal(
         <div className={`absolute xl:hidden top-16 left-0 w-full bg-white dark:bg-slate-800 flex flex-col items-center gap-6 font-semibold text-lg transform
           ${menuOpen ? 'opacity-100 z-50' : 'opacity-0 pointer-events-none'} transition-opacity transition-transform duration-300 ease-in-out`}
         >
@@ -117,14 +118,21 @@ const MainToolBar = () => {
             <li
               key={i}
               className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-              onClick={() => handleNavigation(menuItems[menuItem])}
+              onClick={() => { handleNavigation(menuItems[menuItem]); if (curPage === menuItems[menuItem]) setMenuOpen(false); }}
             >
               {menuItem}
             </li>
           ))}
           <li
             className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-            onClick={() => !user ? handleNavigation('/login') : handleNavigation('/profile')}
+            onClick={() => {
+              let nextPage = !user ? '/login' : '/profile';
+              if (curPage === nextPage) {
+                setMenuOpen(false);
+              } else {
+                handleNavigation(nextPage);
+              }
+            }}
             >
             {!user ? 'Login' : 'Profile'}
           </li>
