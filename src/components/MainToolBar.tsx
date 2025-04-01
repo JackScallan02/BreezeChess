@@ -54,8 +54,12 @@ const MainToolBar = () => {
       <img
         src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52 hover:scale-105 hover:cursor-pointer transition-all"
         onClick={() => {
-          if (!user) handleNavigation('/');
-          else handleNavigation('/home');
+          let nextPage = !user ? '/' : '/home';
+          if (curPage === nextPage) {
+            setMenuOpen(false);
+          } else {
+            handleNavigation(nextPage)
+          }
         }
       }
       />

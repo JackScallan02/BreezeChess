@@ -68,6 +68,13 @@ const LoginForm = () => {
         }
     }
 
+    const handleEmailSignIn = async () => {
+        setRedBorder({email: !validateEmail(), password: !validatePassword()});
+        if (validateLogin()) {
+            signInUser(email, password);
+        }
+    }
+
     const errorText = (msg: string) => (
         <>
             <p className='mt-4 text-red-400 break-words max-w-sm whitespace-normal'>{msg}</p>
@@ -113,6 +120,11 @@ const LoginForm = () => {
                         className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
                         placeholder='Email, Phone'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
+                        onKeyDown={(async (event: React.KeyboardEvent<HTMLInputElement>) => {
+                            if (event.key === 'Enter') {
+                                handleEmailSignIn();
+                            }
+                        })}
                     />
                 </div>
                 <div>
@@ -122,6 +134,11 @@ const LoginForm = () => {
                         placeholder='Password'
                         type='password'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
+                        onKeyDown={(async (event: React.KeyboardEvent<HTMLInputElement>) => {
+                            if (event.key === 'Enter') {
+                                handleEmailSignIn();
+                            }
+                        })}
                     />
                 </div>
                 <div className='mt-8 flex justify-between items-center'>
@@ -131,7 +148,7 @@ const LoginForm = () => {
                 <div className='mt-8 flex flex-col gap-y-4'>
                     <button
                         className='active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-3 rounded-xl bg-sky-500 text-white text-lg font-bold'
-                        onClick={() => {setRedBorder({email: !validateEmail(), password: !validatePassword()}); if (validateLogin()) { signInUser(email, password); }}}
+                        onClick={() => handleEmailSignIn()}
                     >
                         Sign In
                     </button>

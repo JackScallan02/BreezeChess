@@ -182,6 +182,13 @@ const Welcome = () => {
                   className={`w-[30%] min-w-[400px] border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black'}`}
                   placeholder='Username'
                   onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setUsername(event.target.value); setRedBorder(false); }}
+                  onKeyDown={(async (event: React.KeyboardEvent<HTMLInputElement>) => {
+                      if (event.key === 'Enter') {
+                        if (await validateUsername()) {
+                          handleSignIn();
+                        }
+                      }
+                  })}
               />
           </div>
           <p className='mt-4 text-red-400'>{errorMsg}</p>
