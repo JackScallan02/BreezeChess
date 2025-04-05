@@ -75,10 +75,10 @@ const MainToolBar = () => {
         )
         )}
         <li
-          className={`p-3 rounded-md ${!user && 'outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400 hover:cursor-pointer'}`}
+          className={`p-3 rounded-md ${!user && 'pt-1 pb-1 hover:text-sky-400 hover:cursor-pointer'}`}
           onClick={() => !user && handleNavigation('/login')}
         >
-          {!user ? (<p>Login</p>) : (
+          {!user ? (<p className="hover:text-sky-400">Login</p>) : (
             <div className="relative">
               <Menu
                 model={dropdownItems}
