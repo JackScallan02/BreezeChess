@@ -42,7 +42,6 @@ router.get('/exists', async (req, res) => {
 
 // GET route to fetch users with optional filtering, pagination, and sorting
 router.get('/', async (req, res) => {
-    console.log("1");
     try {
         const { uid, email, limit = 10, offset = 0, sort_by = 'id', order = 'asc' } = req.query;
 
@@ -70,7 +69,6 @@ router.get('/', async (req, res) => {
 
 // GET route to fetch a user by ID
 router.get('/:id', async (req, res) => {
-    console.log("2");
     try {
         const { id } = req.params;
         const user = await db('users').where({ id }).first();
