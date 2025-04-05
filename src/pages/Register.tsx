@@ -154,7 +154,7 @@ if (!user && !loading) return (
       <div key={key} className="flex flex-col min-h-screen">
         <MainToolBar />
         <div className="flex flex-row justify-center mt-12">
-          <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+          <p className="text-[2.5rem] dark:text-white font-extrabold tracking-tight">
             Register for BreezeChess
           </p>
           </div>
@@ -170,7 +170,7 @@ if (!user && !loading) return (
           </div>
           <div className="flex flex-row justify-center">
             <button
-              className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 dark:border-slate-600 border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all'
+              className='w-[30%] min-w-[400px] flex py-3 rounded-xl border-2 bc-dark-border border-black items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all'
               onClick={() => {googleSignIn();}}
               >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -189,7 +189,7 @@ if (!user && !loading) return (
                 <div className="flex flex-col">
                     <label className='text-lg font-medium'>Enter an email</label>
                     <input
-                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email) ? 'border-red-400' :  'border-black dark:border-slate-600' }`}
+                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email) ? 'border-red-400' :  'border-black bc-dark-border' }`}
                         placeholder='Email'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setEmail(event.target.value);}}
                     />
@@ -197,7 +197,7 @@ if (!user && !loading) return (
                 <div className="flex flex-col">
                 <label className='text-lg font-medium'>Choose a Password</label>
                 <input
-                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password) ? 'border-red-400' :  'border-black dark:border-slate-600' }`}
+                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password) ? 'border-red-400' :  'border-black bc-dark-border' }`}
                         placeholder='Password'
                         type='password'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setPassword(event.target.value)}}

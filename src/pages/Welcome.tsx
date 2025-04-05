@@ -171,7 +171,7 @@ const Welcome = () => {
       <div key={key} className="flex flex-col min-h-screen">
       <MainToolBar />
       <div className="flex flex-row justify-center mt-12">
-        <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+        <p className="text-[2.5rem] dark:text-white font-extrabold tracking-tight">
           Welcome to BreezeChess!
         </p>
       </div>
@@ -179,7 +179,7 @@ const Welcome = () => {
           <div className="flex flex-col">
               <label className='text-lg font-medium dark:text-white'>Choose a Username</label>
               <input
-                  className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black dark:border-slate-600'}`}
+                  className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black bc-dark-border'}`}
                   placeholder='Username'
                   onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setUsername(event.target.value); setRedBorder(false); }}
                   onKeyDown={(async (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -207,12 +207,12 @@ const Welcome = () => {
       <div key={key} className="flex flex-col min-h-screen">
         <MainToolBar />
         <div className="flex flex-row justify-center mt-12">
-          <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+          <p className="text-[2.5rem] dark:text-white font-extrabold tracking-tight">
             Welcome to BreezeChess!
           </p>
         </div>
         <div className="flex flex-row justify-center mt-12">
-          <p className="text-[1.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+          <p className="text-[1.5rem] dark:text-white font-extrabold tracking-tight">
             What is your chess experience level?
           </p>
         </div>
@@ -221,7 +221,7 @@ const Welcome = () => {
             <div key={level}>
               <button
                 className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all
-                  py-4 rounded-xl text-white text-lg font-bold ${userExp && userExp === level ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}
+                  py-4 rounded-xl text-white text-lg font-bold ${userExp && userExp === level ? 'bg-sky-500 border-blue-500 border-2 bc-dark-border' : 'bg-sky-300'}`}
                   onClick={() => { handleExpSelection(level);
                 }}
               >
@@ -247,12 +247,12 @@ const Welcome = () => {
       <div key={key} className="flex flex-col min-h-screen">
         <MainToolBar />
         <div className="flex flex-row justify-center mt-12">
-          <p className="text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+          <p className="text-[2.5rem] dark:text-white font-extrabold tracking-tight">
             Welcome to BreezeChess!
           </p>
         </div>
         <div className="flex flex-row justify-center mt-8">
-          <p className="text-[1.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight">
+          <p className="text-[1.5rem] dark:text-white font-extrabold tracking-tight">
             Select your goals
           </p>
         </div>
@@ -261,7 +261,7 @@ const Welcome = () => {
             <div key={goal.id} className="mb-8">
               <button
                 className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all flex items-center justify-center
-                  py-4 rounded-xl text-white text-lg font-bold ${userGoals && userGoals.includes(goal.id) ? 'bg-sky-500 border-blue-500 border-2 dark:border-slate-600' : 'bg-sky-300'}`}
+                  py-4 rounded-xl text-white text-lg font-bold ${userGoals && userGoals.includes(goal.id) ? 'bg-sky-500 border-blue-500 border-2 bc-dark-border' : 'bg-sky-300'}`}
                 onClick={() => handleGoalSelection(goal)}
               >
                 {userGoals && userGoals.includes(goal.id) && <Check className="w-6 h-6 text-white-500 ml-4" />}

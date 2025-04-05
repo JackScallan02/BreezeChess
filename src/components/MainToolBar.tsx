@@ -50,7 +50,7 @@ const MainToolBar = () => {
   }, [user])
 
   return (
-    <header key={key} className="h-16 flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white dark:bg-slate-800 bg-drop-shadow-md">
+    <header key={key} className="h-16 flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white bc-dark-bg-light bg-drop-shadow-md">
       <img
         src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52 hover:scale-105 hover:cursor-pointer transition-all"
         onClick={() => {
@@ -67,7 +67,7 @@ const MainToolBar = () => {
         {Object.keys(menuItems).map((menuItem, i) => (
           <li
             key={i}
-            className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${['Sign in', 'Logout'].includes(menuItem) && 'outline-2 outline-slate-400 pt-1 pb-1 hover:outline-sky-400'}`}
+            className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${['Sign in', 'Logout'].includes(menuItem) && 'pt-1 pb-1'}`}
             onClick={() => handleNavigation(menuItems[menuItem])}
           >
             {menuItem}
@@ -115,7 +115,7 @@ const MainToolBar = () => {
         </div>
       </button>
       {menuOpen && createPortal(
-        <div className={`absolute xl:hidden top-16 left-0 w-full bg-white dark:bg-slate-800 flex flex-col items-center gap-6 font-semibold text-lg transform
+        <div className={`absolute xl:hidden top-16 left-0 w-full bg-white bc-dark-bg-light flex flex-col items-center gap-6 font-semibold text-lg transform
           ${menuOpen ? 'opacity-100 z-50' : 'opacity-0 pointer-events-none'} transition-opacity transition-transform duration-300 ease-in-out`}
         >
           {Object.keys(menuItems).map((menuItem, i) => (

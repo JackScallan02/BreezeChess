@@ -15,7 +15,7 @@ const About = () => {
         <div className="flex flex-col mt-24">
           {/* Left-aligned section */}
           <div className="mb-12 relative lg:left-[10%] self-center lg:self-start">
-            <p className="text-2xl lg:text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight whitespace-nowrap">
+            <p className="text-2xl lg:text-[2.5rem] dark:text-white font-extrabold tracking-tight whitespace-nowrap">
               Why BreezeChess?
             </p>
             <p className="mt-8 max-w-[500px] text-[1.25rem]">
@@ -24,7 +24,7 @@ const About = () => {
           </div>
           {/* Right-aligned section */}
           <div className="mb-12 relative lg:self-end self-center lg:mr-[10%]">
-            <p className="text-2xl lg:text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight whitespace-nowrap">
+            <p className="text-2xl lg:text-[2.5rem] dark:text-white font-extrabold tracking-tight whitespace-nowrap">
               Unleash Your Inner Strategist
             </p>
             <p className="mt-8 max-w-[500px] text-[1.25rem]">
@@ -33,7 +33,7 @@ const About = () => {
           </div>
           {/* Left-aligned section */}
           <div className="mb-12 relative lg:left-[10%] self-center lg:self-start">
-            <p className="text-2xl lg:text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight whitespace-nowrap">
+            <p className="text-2xl lg:text-[2.5rem] dark:text-white font-extrabold tracking-tight whitespace-nowrap">
               A Visual Stimulation
             </p>
             <p className="mt-8 max-w-[500px] text-[1.25rem]">
@@ -42,7 +42,7 @@ const About = () => {
           </div>
           {/* Right-aligned section */}
           <div className="mb-12 relative lg:self-end self-center lg:mr-[10%]">
-            <p className="text-2xl lg:text-[2.5rem] text-slate-900 dark:text-white font-extrabold tracking-tight whitespace-nowrap">
+            <p className="text-2xl lg:text-[2.5rem] dark:text-white font-extrabold tracking-tight whitespace-nowrap">
               Join the Community
             </p>
             <p className="mt-8 max-w-[500px] text-[1.25rem]">

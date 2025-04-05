@@ -111,13 +111,13 @@ const LoginForm = () => {
     }
 
     if (!user && !loading) return (
-        <div key={key} className='bg-white dark:bg-slate-800 px-10 py-20 rounded-3xl border-2 border-gray-200 dark:border-slate-600 relative mt-4'>
+        <div key={key} className='bg-white bc-dark-bg-light px-10 py-20 rounded-3xl border-2 border-gray-200 bc-dark-border relative mt-4'>
             <img src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52" />
             <div className='mt-12'>
                 <div>
                     <label className='text-lg font-medium'>Login</label>
                     <input
-                        className={`w-full border-2 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100 dark:border-slate-600' }`}
+                        className={`w-full border-2 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100 bc-dark-border' }`}
                         placeholder='Email, Phone'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
                         onKeyDown={(async (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -130,7 +130,7 @@ const LoginForm = () => {
                 <div>
                 <label className='text-lg font-medium mt-4 block'>Password</label>
                 <input
-                        className={`w-full border-2 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100 dark:border-slate-600' }`}
+                        className={`w-full border-2 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100 bc-dark-border' }`}
                         placeholder='Password'
                         type='password'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
@@ -153,7 +153,7 @@ const LoginForm = () => {
                         Sign In
                     </button>
                     <button
-                        className='flex py-3 rounded-xl border-2 border-gray-100 dark:border-slate-600 items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all'
+                        className='flex py-3 rounded-xl border-2 border-gray-100 bc-dark-border items-center justify-center gap-2 active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all'
                         onClick={() => {googleSignIn();}}
                     >
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

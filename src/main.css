@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.bc-dark-border {
+    @apply dark:border-slate-600;
+}
+
+.bc-dark-bg-light {
+    @apply dark:bg-slate-800;
+}
