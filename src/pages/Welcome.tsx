@@ -35,6 +35,10 @@ const Welcome = () => {
     }
   };
 
+  useEffect(() => {
+    setLoading(false);
+  }, [step]);
+
   const fetchGoals = async () => {
     const result = await getGoals();
     let goalsArray: Goal[] = [];
@@ -66,17 +70,12 @@ const Welcome = () => {
         await updateUser(user.id, { username: username });
         await handleUserUpdate(); // Since we updated the display name, we need to refresh the user object
         const afterTime = Date.now();
-        // We want to show the loading screen for at least 0.75 seconds (so it doesn't flicker).
-        if (afterTime - curTime < 750) {
-          setTimeout(() => {
-            setLoading(false);
-            nextStep();
-          }, 750 - (afterTime - curTime));
-         
-        } else {
-          setLoading(false);
+        // Ensure the loading state stays for at least 0.75 seconds
+        const loadingDuration = Math.max(750 - (afterTime - curTime), 0);
+        // Delay nextStep based on loadingDuration to avoid flickering
+        setTimeout(() => {
           nextStep();
-        }
+        }, loadingDuration);
         
       }
     } catch (error) {
@@ -103,7 +102,6 @@ const Welcome = () => {
     }
 
     const usernameExists = await checkUsernameExists(username);
-    console.log("usernameExists", usernameExists);
     if (usernameExists) {
       setErrorMsg("Username already exists. Please choose another username.");
       setRedBorder(true);
