@@ -189,7 +189,7 @@ if (!user && !loading) return (
                 <div className="flex flex-col">
                     <label className='text-lg font-medium'>Enter an email</label>
                     <input
-                        className={`w-[30%] min-w-[400px] dark:border-slate-600 border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email) ? 'border-red-400' :  'border-black' }`}
+                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.email) ? 'border-red-400' :  'border-black dark:border-slate-600' }`}
                         placeholder='Email'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setEmail(event.target.value);}}
                     />
@@ -197,7 +197,7 @@ if (!user && !loading) return (
                 <div className="flex flex-col">
                 <label className='text-lg font-medium'>Choose a Password</label>
                 <input
-                        className={`w-[30%] min-w-[400px] dark:border-slate-600 border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password) ? 'border-red-400' :  'border-black' }`}
+                        className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${(redBorder.password) ? 'border-red-400' :  'border-black dark:border-slate-600' }`}
                         placeholder='Password'
                         type='password'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setPassword(event.target.value)}}

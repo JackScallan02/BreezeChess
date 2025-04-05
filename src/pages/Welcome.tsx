@@ -179,7 +179,7 @@ const Welcome = () => {
           <div className="flex flex-col">
               <label className='text-lg font-medium dark:text-white'>Choose a Username</label>
               <input
-                  className={`w-[30%] min-w-[400px] border-2 dark:border-slate-600 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black'}`}
+                  className={`w-[30%] min-w-[400px] border-2 rounded-xl p-4 mt-1 bg-transparent ${redBorder ? 'border-red-400' : 'border-black dark:border-slate-600'}`}
                   placeholder='Username'
                   onInput={(event: React.ChangeEvent<HTMLInputElement>) => { setUsername(event.target.value); setRedBorder(false); }}
                   onKeyDown={(async (event: React.KeyboardEvent<HTMLInputElement>) => {

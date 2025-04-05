@@ -117,7 +117,7 @@ const LoginForm = () => {
                 <div>
                     <label className='text-lg font-medium'>Login</label>
                     <input
-                        className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100' }`}
+                        className={`w-full border-2 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.email && !validateEmail()) ? 'border-red-400' :  'border-gray-100 dark:border-slate-600' }`}
                         placeholder='Email, Phone'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: false, password: redBorder.password}); setEmail(event.target.value);}}
                         onKeyDown={(async (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -130,7 +130,7 @@ const LoginForm = () => {
                 <div>
                 <label className='text-lg font-medium mt-4 block'>Password</label>
                 <input
-                        className={`w-full border-2 dark:border-slate-600 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100' }`}
+                        className={`w-full border-2 rounded-xl p-4 mt-2 bg-transparent ${(redBorder.password && !validatePassword()) ? 'border-red-400' :  'border-gray-100 dark:border-slate-600' }`}
                         placeholder='Password'
                         type='password'
                         onInput={(event: React.ChangeEvent<HTMLInputElement>) => {setRedBorder({email: redBorder.email, password: false}); setPassword(event.target.value)}}
