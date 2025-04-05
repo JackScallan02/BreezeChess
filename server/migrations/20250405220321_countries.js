@@ -6,7 +6,7 @@ export function up(knex) {
     return knex.schema.createTable('countries', function (table) {
         table.increments('id');
         table.string('name').notNullable();
-        table.string('code').notNullable();
+        table.string('iso_code').notNullable();
     });
 };
 
