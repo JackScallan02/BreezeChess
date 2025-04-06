@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from './Loading';
@@ -13,7 +13,10 @@ import { CircleUserRound } from 'lucide-react';
 const Profile = () => {
   const { user, loading } = useAuth();
   const [userInfo, setUserInfo] = useState<null | UserInfo>(null);
+  const [loadingUserInfo, setLoadingUserInfo] = useState<boolean>(true);
   const { handleNavigation, key } = useNavigation();
+
+  const flagRef = useRef<string>(null);
 
   useEffect(() => {
     if (!loading && !user) handleNavigation('/')
@@ -24,6 +27,11 @@ const Profile = () => {
       if (user && Object.keys(user).length > 0) {
         const res = await getUserInfo(user.id, '?include=country');
         setUserInfo(res);
+        const flag = getFlag(res.country_code);
+        if (flag) {
+          flagRef.current = flag;
+        }
+        setLoadingUserInfo(false);
       }
     } catch (error) {
       console.error('Error fetching user info:', error);
@@ -35,7 +43,7 @@ const Profile = () => {
     handleGetUserInfo();
   }, [user]);
 
-  if (loading) return <LoadingScreen />
+  if (loading || loadingUserInfo) return <LoadingScreen />
 
   if (user && !loading && userInfo) {
     return (
@@ -48,8 +56,8 @@ const Profile = () => {
                     <p className="text-[2.5rem]">{user.username}</p>
                     <p className="text-[1.25rem]">Member since {formatDate(new Date(userInfo.created_at))}</p>
                     <div className="flex flex-row items-center">
-                      <img src={getFlag(userInfo.country_code)} alt="flag" className="w-8 h-8"/>
-                      <p className="text-[1.25rem] ml-2">{userInfo.country_name}</p>
+                      {flagRef.current && (<img src={flagRef.current} alt="flag" className="w-8 h-8 mr-2"/>)}
+                      <p className="text-[1.25rem]">{userInfo.country_name}</p>
                     </div>
                 </div>
             </div>
