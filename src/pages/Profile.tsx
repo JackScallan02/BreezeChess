@@ -6,6 +6,7 @@ import { getUserInfo } from '../api/users';
 import { useNavigation } from '../navigator/navigate';
 import { UserInfo } from '../types/userinfo';
 import { formatDate } from '../helpers/formatDate';
+import { getFlag } from '../helpers/getFlag';
 import { CircleUserRound } from 'lucide-react';
 
 
@@ -29,7 +30,6 @@ const Profile = () => {
     }
   }
 
-
   useEffect(() => {
     document.title = 'Profile';
     handleGetUserInfo();
@@ -47,7 +47,10 @@ const Profile = () => {
                 <div className="flex flex-col ml-8">
                     <p className="text-[2.5rem]">{user.username}</p>
                     <p className="text-[1.25rem]">Member since {formatDate(new Date(userInfo.created_at))}</p>
-                    <p className="text-[1.25rem]">{userInfo.country_name}</p>
+                    <div className="flex flex-row items-center">
+                      <img src={getFlag(userInfo.country_code)} alt="flag" className="w-8 h-8"/>
+                      <p className="text-[1.25rem] ml-2">{userInfo.country_name}</p>
+                    </div>
                 </div>
             </div>
         </main>
