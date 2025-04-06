@@ -73,13 +73,15 @@ async function readRoutes() {
         const route = await import(path.join(routesDirectory, file));
         const router = route.default || route;
         if (router && typeof router === 'function') {
+          console.log(`Loading route: ${routeName}`);
             app.use(`/${routeName}`, router);
-
           } else {
             console.error(`Invalid router in ${file}, skipping.`);
           }
       }
   }
+  
+  console.log("Finished loading all routes");
 }
 
 export async function startServer() {

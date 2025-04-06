@@ -47,7 +47,7 @@ router.get('/', async (req, res) => {
 
         if (uid || email) {
             const user = await db('users').where(uid ? { uid } : { email }).first();
-            if (!user) {
+            if (!user || Object.keys(user).length === 0) {
                 // Don't want to return a 404 and crash the app
                 return res.status(200).json({ error: 'User not found' });
             }
@@ -67,12 +67,46 @@ router.get('/', async (req, res) => {
     }
 });
 
+
+// GET route to fetch a user's info by user id.
+// Optional query parameter to include country name/code
+router.get('/:id/info', async (req, res) => {
+    const userId = req.params.id;
+    const includeCountry = req.query.include && req.query.include.includes('country'); // Check if country is requested
+  
+    try {
+      let query = db('user_info')
+        .join('users', 'user_info.user_id', 'users.id')
+        .where('users.id', userId);
+  
+      // Conditionally join the countries table if requested
+      if (includeCountry) {
+        query = query.join('countries', 'user_info.country_id', 'countries.id')
+                     .select('user_info.*', 'countries.name as country_name', 'countries.iso_code as country_code');
+      } else {
+        query = query.select('user_info.*');
+      }
+  
+      const userInfo = await query.first();
+  
+      if (!userInfo || Object.keys(userInfo).length === 0) {
+        return res.status(404).json({ error: 'User info not found' });
+      }
+  
+      return res.status(200).json(userInfo);
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: `Failed to get user info: ${error.message}` });
+    }
+});
+
 // GET route to fetch a user by ID
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const user = await db('users').where({ id }).first();
-        if (!user) {
+        if (!user || Object.keys(user).length === 0) {
             return res.status(404).json({ error: 'User not found' });
         }
         return res.status(200).json(user);

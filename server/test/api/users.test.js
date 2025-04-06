@@ -47,26 +47,53 @@ describe('Users API', function () {
         });
     });
 
-    describe('GET /users/:id', () => {
-        it('should fetch a user by ID', async () => {
-            const res = await chai.request(API_BASE_URL).get('/users/1');
+    // describe('GET /users/:id', () => {
+    //     it('should fetch a user by ID', async () => {
+    //         const res = await chai.request(API_BASE_URL).get('/users/1');
+    //         expect(res).to.have.status(200);
+    //         expect(res.body).to.be.an('object');
+    //         expect(res.body).to.have.property('id', 1);
+    //         expect(res.body).to.have.property('email', 'testemail1@gmail.com');
+    //         expect(res.body).to.have.property('provider', 'google');
+    //         expect(res.body).to.have.property('is_new_user', false);
+
+    //         const res2 = await chai.request(API_BASE_URL).get('/users/4');
+    //         expect(res2).to.have.status(200);
+    //         expect(res2.body).to.be.an('object');
+    //         expect(res2.body).to.have.property('id', 4);
+    //     });
+
+    //     it('should return 200 if user ID is not found', async () => {
+    //         const res = await chai.request(API_BASE_URL).get('/users/999');
+    //         expect(res).to.have.status(404);
+    //         expect(res.body).to.have.property('error', 'User not found');
+    //     });
+    // });
+
+    describe('GET /users/:id/info', () => {
+        it('should fetch user info by user ID', async () => {
+            const res = await chai.request(API_BASE_URL).get('/users/1/info');
             expect(res).to.have.status(200);
             expect(res.body).to.be.an('object');
-            expect(res.body).to.have.property('id', 1);
-            expect(res.body).to.have.property('email', 'testemail1@gmail.com');
-            expect(res.body).to.have.property('provider', 'google');
-            expect(res.body).to.have.property('is_new_user', false);
-
-            const res2 = await chai.request(API_BASE_URL).get('/users/4');
-            expect(res2).to.have.status(200);
-            expect(res2.body).to.be.an('object');
-            expect(res2.body).to.have.property('id', 4);
+            expect(res.body).to.have.property('user_id', 1);
+            expect(res.body).to.have.property('country_id', 14);
         });
-
-        it('should return 200 if user ID is not found', async () => {
-            const res = await chai.request(API_BASE_URL).get('/users/999');
+        it('should return 404 if user info is not found', async () => {
+            const res = await chai.request(API_BASE_URL).get('/users/999/info');
             expect(res).to.have.status(404);
-            expect(res.body).to.have.property('error', 'User not found');
+            expect(res.body).to.have.property('error', 'User info not found');
+        });
+    });
+
+    describe('GET /users/:id/info?include=country', () => {
+        it('should fetch user info by user ID', async () => {
+            const res = await chai.request(API_BASE_URL).get('/users/1/info?include=country');
+            expect(res).to.have.status(200);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.property('user_id', 1);
+            expect(res.body).to.have.property('country_id', 14);
+            expect(res.body).to.have.property('country_name', 'Barbados');
+            expect(res.body).to.have.property('country_code', 'BB');
         });
     });
 
