@@ -105,7 +105,11 @@ export const updateUser = async (id: number, params: Object) => {
     }  }
 };
 
-
+/**
+ * Given a username, check if it already exists
+ * @param username - The username to check.
+ * @returns A success message or an error message.
+ */
 export const checkUsernameExists = async (username: string) => {
   if (!username) {
     throw new Error('Username is required to check existence.');
@@ -118,6 +122,31 @@ export const checkUsernameExists = async (username: string) => {
     if (error.response) {
       console.error(`API Error: ${error.response.status} - ${error.response.data.error}`);
       throw new Error(error.response.data.error || 'An error occurred when checking username existence.');
+    } else {
+      console.error('Network or server error:', error.message);
+      throw new Error('Failed to connect to the server. Please try again later.');
+    }
+  }
+}
+
+/**
+ * Get the user info from a user id. Optionally include query parameters
+ * @param id - The ID of the user to get the user info from.
+ * @param params - The query parameters.
+ * @returns The user info object or an error message.
+ */
+export const getUserInfo = async (id: number, queryParams: string) => {
+  if (!id || typeof id !== 'number') {
+    throw new Error('Invalid user ID. Please provide a valid number.');
+  }
+
+  try {
+    const response = await apiClient.get(`/users/${id}/info${queryParams}`);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      console.error(`API Error: ${error.response.status} - ${error.response.data.error}`);
+      throw new Error(error.response.data.error || 'An error occurred when getting user info.');
     } else {
       console.error('Network or server error:', error.message);
       throw new Error('Failed to connect to the server. Please try again later.');

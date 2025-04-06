@@ -130,6 +130,16 @@ router.post('/', validateUser, async (req, res) => {
             is_new_user: true,
         }).returning('*');
 
+        if (!newUser) {
+            return res.status(400).json({ error: 'Failed to create user' });
+        }
+
+        // Create a new user_info entry for the new user
+        await db('user_info').insert({
+            user_id: newUser.id,
+            country_id: 183, // Default to 'United States' for now...
+        }).returning('*');
+
         return res.status(201).json(newUser);
     } catch (error) {
         console.error('Error inserting user:', error.message);

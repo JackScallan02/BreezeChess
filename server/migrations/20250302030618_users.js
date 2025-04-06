@@ -12,7 +12,6 @@ export function up(knex) {
         table.string('username').unique();
         table.boolean('is_new_user').notNullable();
         table.string('experience_level');
-        table.timestamps(true, true);
     });
 }
 
