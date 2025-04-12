@@ -139,15 +139,17 @@ const CountrySelector: React.FC<props> = ({ openDialog, setOpenDialog, handleGet
 
     const footerContent = () => (
         <div className="flex lg:justify-end justify-center items-center h-[10vh] mt-4">
-            <Button label="Cancel" icon="pi pi-times" onClick={() => setOpenDialog(false)} className="p-4 mr-4 w-[15%] h-[60%] min-w-[120px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all border-2 border-gray-200" />
+            <Button label="Cancel" icon="pi pi-times" onClick={() => { setHoverId(''); setSelectedCountry(null); setOpenDialog(false); }} className="p-4 mr-4 w-[15%] h-[60%] min-w-[120px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all border-2 border-gray-200" />
             <Button
                 label="Submit"
                 icon="pi pi-check"
                 className="p-4 w-[20%] h-[60%] min-w-[120px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all bg-sky-500 text-white" disabled={selectedCountry === null}
                 onClick={() => {
                     if (selectedCountry !== null) {
-                        setOpenDialog(false);
+                        setHoverId('');
+                        setSelectedCountry(null);
                         handleUserCountryUpdate();
+                        setOpenDialog(false);
                     }
                 }}
             />
