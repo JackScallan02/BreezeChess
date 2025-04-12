@@ -6,15 +6,16 @@ import { getUserInfo } from '../api/users';
 import { useNavigation } from '../navigator/navigate';
 import { UserInfo } from '../types/userinfo';
 import { formatDate } from '../helpers/formatDate';
-import { getFlag } from '../helpers/getFlag';
+import { getFlag } from '../helpers/countryHelpers';
 import { CircleUserRound } from 'lucide-react';
-
+import CountrySelector from '../components/CountrySelector';
 
 const Profile = () => {
   const { user, loading } = useAuth();
   const [userInfo, setUserInfo] = useState<null | UserInfo>(null);
   const [loadingUserInfo, setLoadingUserInfo] = useState<boolean>(true);
   const { handleNavigation, key } = useNavigation();
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
 
   const flagRef = useRef<string>(null);
 
@@ -50,17 +51,23 @@ const Profile = () => {
       <div key={key} className="flex flex-col min-h-screen">
         <MainToolBar />
         <main>
-            <div className="flex flex-row mt-16 ml-16 items-center">
-                <CircleUserRound className="w-24 h-24"/>
-                <div className="flex flex-col ml-8">
-                    <p className="text-[2.5rem]">{user.username}</p>
-                    <p className="text-[1.25rem]">Member since {formatDate(new Date(userInfo.created_at))}</p>
-                    <div className="flex flex-row items-center">
-                      {flagRef.current && (<img src={flagRef.current} alt="flag" className="w-8 h-8 mr-2"/>)}
-                      <p className="text-[1.25rem]">{userInfo.country_name}</p>
-                    </div>
-                </div>
+          <div className="flex flex-row mt-16 ml-16 items-center">
+            <CircleUserRound className="w-24 h-24" />
+            <div className="flex flex-col ml-8">
+              <p className="text-[2.5rem]">{user.username}</p>
+              <p className="text-[1.25rem]">Member since {formatDate(new Date(userInfo.created_at))}</p>
+              <div className="flex flex-row items-center">
+                {flagRef.current && (<img src={flagRef.current} alt="flag" className="w-8 h-8 mr-2" />)}
+                <p
+                  className="text-[1.25rem] hover:cursor-pointer hover:text-sky-400"
+                  onClick={() => { setOpenDialog(true); }}
+                >
+                  {userInfo.country_name}
+                </p>
+              </div>
             </div>
+          </div>
+          <CountrySelector openDialog={openDialog} setOpenDialog={setOpenDialog} handleGetUserInfo={handleGetUserInfo} />
         </main>
       </div>
     );

@@ -106,6 +106,30 @@ export const updateUser = async (id: number, params: Object) => {
 };
 
 /**
+ * Updates a user's info by ID.
+ * @param id - The ID of the user to update.
+ * @param params - The update parameters.
+ * @returns A success message or an error message.
+ */
+export const updateUserInfo = async (id: number, params: Object) => {
+  if (!id || !params || Object.keys(params).length === 0) {
+    throw new Error('User ID and update parameters are required.');
+  }
+
+  try {
+    const response = await apiClient.patch(`/users/${id}/info`, params);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      console.error(`API Error: ${error.response.status} - ${error.response.data.error}`);
+      throw new Error(error.response.data.error || 'An error occurred when patching the user info.');
+    } else {
+      console.error('Network or server error:', error.message);
+      throw new Error('Failed to connect to the server. Please try again later.');
+    }  }
+};
+
+/**
  * Given a username, check if it already exists
  * @param username - The username to check.
  * @returns A success message or an error message.

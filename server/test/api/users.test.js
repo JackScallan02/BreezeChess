@@ -147,4 +147,31 @@ describe('Users API', function () {
             expect(res.body).to.have.property('error', 'Update params object is required');
         });
     });
+
+    describe('PATCH /users/:id/info', () => {
+        it('should update an existing user\'s info', async () => {
+            const updates = { country_id: 43 };
+            const res = await chai.request(API_BASE_URL).patch('/users/1/info').send(updates);
+            expect(res).to.have.status(200);
+            expect(res.body).to.have.property('message', 'User info updated successfully');
+
+            const res2 = await chai.request(API_BASE_URL).get('/users/1/info');
+            expect(res2).to.have.status(200);
+            expect(res2.body).to.be.an('object');
+            expect(res2.body).to.have.property('country_id', 43);
+        });
+
+        it('should return 404 if user ID is not found', async () => {
+            const updates = { country_id: 31 };
+            const res = await chai.request(API_BASE_URL).patch('/users/999/info').send(updates);
+            expect(res).to.have.status(404);
+            expect(res.body).to.have.property('error', 'User info not found');
+        });
+
+        it('should return 400 if no updates are provided', async () => {
+            const res = await chai.request(API_BASE_URL).patch('/users/1/info').send({});
+            expect(res).to.have.status(400);
+            expect(res.body).to.have.property('error', 'Update params object is required');
+        });
+    });
 });

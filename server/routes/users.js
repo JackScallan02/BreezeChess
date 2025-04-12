@@ -168,4 +168,24 @@ router.patch('/:id', async (req, res) => {
     }
 });
 
+router.patch('/:id/info', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        if (!updates || Object.keys(updates).length === 0) {
+            return res.status(400).json({ error: 'Update params object is required' });
+        }
+
+        const result = await db('user_info').where('user_id', id).update(updates);
+        if (!result) {
+            return res.status(404).json({ error: 'User info not found' });
+        }
+        return res.status(200).json({ message: 'User info updated successfully' });
+    } catch (error) {
+        console.error('Error updating user info:', error.message);
+        return res.status(500).json({ error: `Failed to update user info: ${error.message}` });
+    }
+});
+
 export default router;
