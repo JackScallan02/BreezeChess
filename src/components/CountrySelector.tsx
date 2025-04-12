@@ -167,22 +167,26 @@ const CountrySelector: React.FC<props> = ({ openDialog, setOpenDialog, handleGet
             headerStyle={{ minWidth: '400px' }}
             onHide={() => { if (!openDialog) return; setOpenDialog(false); }}
         >
-            <InputText
-                value={query}
-                onChange={(e) => {
-                    const value = e.target.value;
-                    setQuery(value);
-                    searchCountry(value);
-                    setHoverId('');
-                    setSelectedCountry(null);
-                }}
-                placeholder="Search country"
-                className="w-full min-w-64 mt-2 text-[1.25rem] border-2 border-gray-200 rounded-lg p-2"
-            />
-            <div className="card">
-                <DataView className="overflow-scroll max-h-[50vh]" value={countries} listTemplate={listTemplate} layout={layout} header={header()} />
+            <div className="flex flex-col justify-between h-full">
+                <div>
+                    <InputText
+                        value={query}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setQuery(value);
+                            searchCountry(value);
+                            setHoverId('');
+                            setSelectedCountry(null);
+                        }}
+                        placeholder="Search country"
+                        className="w-full min-w-64 mt-2 text-[1.25rem] border-2 border-gray-200 rounded-lg p-2"
+                    />
+                    <div className="card">
+                        <DataView className="overflow-scroll max-h-[47.5vh]" value={countries} listTemplate={listTemplate} layout={layout} header={header()} />
+                    </div>
+                </div>
+                {footerContent()}
             </div>
-            {footerContent()}
         </Dialog>
     )
 }
