@@ -45,6 +45,34 @@ describe('Users API', function () {
             expect(res).to.have.status(200);
             expect(res.body).to.have.property('error', 'User not found');
         });
+
+        it('should return 401 for email if provided password is invalid', async () => {
+            // Usually we would return a 404 here, but we handle the case where the user is not found on the frontend
+            const res = await chai.request(API_BASE_URL).get('/users').query({ email: 'joe@gmail.com', password: 'wrongpassword' });
+            expect(res).to.have.status(401);
+            expect(res.body).to.have.property('error', 'Invalid credentials');
+        });
+
+        it('should return 401 for uid if provided password is invalid', async () => {
+            const res = await chai.request(API_BASE_URL).get('/users').query({ uid: 'kgj982d1omd', password: 'wrongpassword' });
+            expect(res).to.have.status(401);
+            expect(res.body).to.have.property('error', 'Invalid credentials');
+        });
+
+        it('should return 200 for email for a valid password provided', async () => {
+            const res = await chai.request(API_BASE_URL).get('/users').query({ email: 'joe@gmail.com', password: 'correctpassword' });
+            console.log(res.body);
+            expect(res).to.have.status(200);
+            expect(res.body).to.be.an('object');
+            expect(res.body.uid).to.equal('kgj982d1omd');
+        });
+
+        it('should return 200 for uid for a valid password provided', async () => {
+            const res = await chai.request(API_BASE_URL).get('/users').query({ uid: 'kgj982d1omd', password: 'correctpassword' });
+            expect(res).to.have.status(200);
+            expect(res.body).to.be.an('object');
+            expect(res.body.uid).to.equal('kgj982d1omd');
+        });
     });
 
     describe('GET /users/:id', () => {

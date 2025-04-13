@@ -8,6 +8,7 @@ export interface User {
 export interface UserParams {
     uid: string | null;
     email: string | null;
+    password: string | null;
   }
   
 export interface CreateUserData {

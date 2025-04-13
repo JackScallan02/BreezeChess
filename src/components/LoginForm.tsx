@@ -26,7 +26,8 @@ const LoginForm = () => {
         try {
             const params: UserParams = {
                 uid: null,
-                email: email
+                email,
+                password,
             }
             const result = await getUsers(params);
             if (result && result.provider === 'google.com') {
@@ -48,11 +49,10 @@ const LoginForm = () => {
                     </div>
                 </>
                 );
-            } else if (result.password !== password) {
-                // Invalid password. TODO: encryption
+            } else if (result && result.error === 'Invalid credentials') {
                 setErrorMsg(errorText('Invalid password. Please try again.'));
                 setRedBorder({email: false, password: true});   
-            } else {
+            } else if (result && !result.error) {
                 await signInWithEmailAndPassword(auth, email, password)
             }
         } catch (err: any) {

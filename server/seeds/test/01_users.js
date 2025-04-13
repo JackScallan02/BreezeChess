@@ -1,3 +1,5 @@
+import bcryptjs from 'bcryptjs';
+
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> } 
@@ -5,6 +7,9 @@
 export async function seed(knex) {
     // Deletes all existing entries
     await knex('users').del();
+
+    // Hashed password for testing
+    const hashedPassword = await bcryptjs.hash('correctpassword', 11);
   
     //Inserts fake test data
     await knex('users').insert([
@@ -15,6 +20,7 @@ export async function seed(knex) {
         { uid: 'fasdf9092sa3', email: 'asjidf982@gmail.com', provider: 'google', username: 'dsaoi832', is_new_user: false },
         { uid: '189ufcman93ka', email: 'asdufj02123u@gmail.com', provider: 'google', username: 'fkuf82', is_new_user: false },
         { uid: 'jf88192fdsak', email: 'godunfi923@gmail.com', provider: 'google', username: 'aiosdfui8', is_new_user: false },
+        { uid: 'kgj982d1omd', email: 'joe@gmail.com', provider: 'password', username: 'joe1234', is_new_user: false, password: hashedPassword },
       ]);
   };
   

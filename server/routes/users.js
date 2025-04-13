@@ -1,6 +1,10 @@
 import express from 'express';
 import db from '../db.js';
 import Joi from 'joi';
+import bcryptjs from 'bcryptjs';
+
+// If this ever gets updated, make sure to update the users test seed
+const saltRounds = 11;
 
 const router = express.Router();
 
@@ -43,13 +47,25 @@ router.get('/exists', async (req, res) => {
 // GET route to fetch users with optional filtering, pagination, and sorting
 router.get('/', async (req, res) => {
     try {
-        const { uid, email, limit = 10, offset = 0, sort_by = 'id', order = 'asc' } = req.query;
+        const { uid, email, password, limit = 10, offset = 0, sort_by = 'id', order = 'asc' } = req.query;
 
         if (uid || email) {
             const user = await db('users').where(uid ? { uid } : { email }).first();
             if (!user || Object.keys(user).length === 0) {
                 // Don't want to return a 404 and crash the app
                 return res.status(200).json({ error: 'User not found' });
+            }
+
+            if (password) {
+                if (!user.password) {
+                    return res.status(401).json({ error: 'User does not have a password' });
+                }
+
+                // Handles sign in verification, but only if a password is provided
+                const match = await bcryptjs.compare(password, user.password);
+                if (!match) {
+                    return res.status(401).json({ error: 'Invalid credentials' });
+                }
             }
             return res.status(200).json(user);
         }
@@ -120,13 +136,19 @@ router.get('/:id', async (req, res) => {
 router.post('/', validateUser, async (req, res) => {
     const { uid, username, email, password, provider } = req.body;
 
+    let hashedPassword;
+    if (password) {
+        // Hash the password, if provided
+        hashedPassword = await bcryptjs.hash(password, saltRounds);
+    }
+
     try {
         const [newUser] = await db('users').insert({
             uid,
             email,
             provider,
             username: username || null,
-            password: password || null,
+            password: hashedPassword || null,
             is_new_user: true,
         }).returning('*');
 

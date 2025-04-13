@@ -26,6 +26,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // fbUser: the logged-in firebase user object
     const unsubscribe = firebase.auth().onAuthStateChanged(async (fbUser: firebase.User | null) => {
       // Check if user has made account before. If not, create user in the database. Navigate to welcome.
       // If the user has made an account, but is still a "new" account, navigate to welcome.
@@ -34,7 +35,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (fbUser) {
           const params: UserParams = {
             uid: fbUser.uid,
-            email: null
+            email: null,
+            password: null, // Only provide password when signing in, for password validation
           }
           const getResult = await getUsers(params);
           if (getResult.error === 'User not found') {
@@ -97,7 +99,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const handleUserUpdate = async () => {
     if (user) {
       const getResult = await getUserById(user.id);
-      console.log("IS NEW USER: ", getResult.is_new_user);
 
       setUser({
         id: getResult.id,

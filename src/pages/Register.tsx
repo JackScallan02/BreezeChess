@@ -26,7 +26,8 @@ const Register = () => {
     try {
       const params: UserParams = {
           uid: null,
-          email: email
+          email: email,
+          password: null, // Only provide password when signing in, for password validation
       }
       const result = await getUsers(params);
 
