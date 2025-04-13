@@ -54,8 +54,8 @@ const Profile = () => {
           <div className="flex flex-row mt-16 ml-16 items-center">
             <CircleUserRound className="w-24 h-24" />
             <div className="flex flex-col ml-8">
-              <p className="text-[2.5rem]">{user.username}</p>
-              <p className="text-[1.25rem]">Member since {formatDate(new Date(userInfo.created_at))}</p>
+              <p className="text-[2.5rem] font-semibold">{user.username}</p>
+              <p className="text-[1.25rem] font-medium">Member since {formatDate(new Date(userInfo.created_at))}</p>
               <div className="flex flex-row items-center">
                 {flagRef.current && (<img src={flagRef.current} alt="flag" className="w-8 h-8 mr-2" />)}
                 <p

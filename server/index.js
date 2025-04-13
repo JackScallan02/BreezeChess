@@ -64,6 +64,7 @@ async function createS3Bucket() {
 }
 
 async function readRoutes() {
+  console.log("Loading routes...");
   const dirname = path.dirname(new URL(import.meta.url).pathname);
   const routesDirectory = path.join(dirname, 'routes'); // Absolute path to 'routes' directory
   // Read all files in the 'routes' directory
@@ -73,7 +74,6 @@ async function readRoutes() {
         const route = await import(path.join(routesDirectory, file));
         const router = route.default || route;
         if (router && typeof router === 'function') {
-          console.log(`Loading route: ${routeName}`);
             app.use(`/${routeName}`, router);
           } else {
             console.error(`Invalid router in ${file}, skipping.`);

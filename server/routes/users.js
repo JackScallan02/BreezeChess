@@ -137,7 +137,7 @@ router.post('/', validateUser, async (req, res) => {
         // Create a new user_info entry for the new user
         await db('user_info').insert({
             user_id: newUser.id,
-            country_id: 183, // Default to 'United States' for now...
+            country_id: 182, // Default to 'United States' for now...
         }).returning('*');
 
         return res.status(201).json(newUser);

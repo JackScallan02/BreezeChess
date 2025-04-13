@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST route to insert user goals
+// POST route to insert user goal(s) for a specified user
 router.post('/', validateUserGoals, async (req, res) => {
 
     let { user_id, goal_ids } = req.body;
