@@ -8,7 +8,7 @@ Step into a world where chess meets creativity. BreezeChess redefines training w
   - node.js: v22.14.0
   - docker: v24.0.6
 
-1. Add a `.env` file in the root directory of your repo. Add the following, in which the values can be obtained by setting up a `Firebase` account:
+1. Add a `.env` file in the root directory of your repo. Add the following environment variables to the file, in which the firebase variable values can be obtained by setting up a `Firebase` account:
 ```
 REACT_APP_FB_KEY=<Key goes here>
 REACT_APP_FB_PROJECT_ID=<Project ID goes here>
@@ -56,7 +56,7 @@ The mock AWS container. Connect to the S3 bucket: `aws --endpoint-url=http://loc
 
 ### Testing the app
 Currently, there are only server tests:
-First start up the app with `yarn dc:dev`. Then, run the tests with `yarn test:server`
+Set your`NODE_ENV` to `test`, and start up the app with `yarn dc:dev`. Then, run the tests with `yarn test:server`
 
 ### Run ESLint
 `npx eslint <directory>`
