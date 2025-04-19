@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Country } from '../types/country';
+import { RatingCategory } from '../types/ratingcategories';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:9001';
 
@@ -11,12 +11,12 @@ const apiClient = axios.create({
 });
 
 /**
- * Fetches all countries from the API
- * @returns A promise that resolves to an array of all available countries.
+ * Fetches all rating categories from the API
+ * @returns A promise that resolves to an array of all available rating categories.
  */
-export const getCountries = async () => {
+export const getRatingCategories = async () => {
   try {
-    const response = await apiClient.get<Country[]>(`${API_BASE_URL}/countries/`, {
+    const response = await apiClient.get<Array<RatingCategory>>(`${API_BASE_URL}/rating_categories/`, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -25,10 +25,10 @@ export const getCountries = async () => {
   } catch(error: any) {
     if (error.response) {
       console.error(`API Error: ${error.response.status} - ${error.response.data.error}`);
-      throw new Error(error.response.data.error || 'Failed to fetch countries.');
+      throw new Error(error.response.data.error || 'Failed to fetch rating categories.');
     } else {
       console.error('Network or server error:', error.message);
-      throw new Error('Failed to fetch countries. Please try again later.');
+      throw new Error('Failed to fetch rating categories. Please try again later.');
     }
   }
 }

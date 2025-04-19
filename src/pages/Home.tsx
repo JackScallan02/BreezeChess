@@ -17,11 +17,11 @@ const Home = () => {
 
   if (user && !loading) {
     return (
-      <div key={key} className="flex flex-col min-h-screen">
+      <div key={key} className="flex flex-col min-h-screen w-full">
         <MainToolBar />
-        <main>
-          <div className="flex flex-col">
-            <p>Welcome, {user.username}</p>
+        <main className="w-full">
+          <div className="flex flex-row w-full justify-center mt-8">
+            <p className="text-[2rem] font-semibold">Welcome, {user.username}</p>
           </div>
         </main>
       </div>
