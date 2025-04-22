@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+    @apply min-h-screen;
+}
+
+#root {
+    @apply min-h-screen;
+}
+
 .bc-dark-border {
     @apply dark:border-slate-600;
 }

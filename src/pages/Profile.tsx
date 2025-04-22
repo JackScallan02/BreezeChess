@@ -10,6 +10,7 @@ import { getFlag } from '../helpers/countryHelpers';
 import { CircleUserRound } from 'lucide-react';
 import CountrySelector from '../components/CountrySelector';
 import StatsBox from '../components/StatsBox';
+import RecentGamesBox from '../components/RecentGamesBox';
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -49,12 +50,12 @@ const Profile = () => {
 
   if (user && !loading && userInfo) {
     return (
-      <div key={key} className="flex flex-col h-screen">
+      <div key={key} className="flex flex-col min-h-screen">
         <MainToolBar />
-        <main className="h-screen">
-          <span className="flex w-full">
+        <main className="h-full">
+          <div className="flex w-full">
             <div>
-              <div className="flex flex-row mt-16 ml-16 items-center">
+              <div className="flex flex-row mt-16 ml-16 items-center min-w-[30rem]">
                 <CircleUserRound className="w-24 h-24 min-w-24 min-h-24" />
                 <div className="flex flex-col ml-8">
                   <p className="text-[2.5rem] font-semibold">{user.username}</p>
@@ -70,13 +71,17 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
+              <div className="w-[90%] mx-auto min-w-[20rem] hidden lg:block">
+                <RecentGamesBox />
+              </div>
             </div>
             <div className="w-[50%] mx-auto min-w-[30rem] hidden lg:block">
               <StatsBox />
             </div>
-          </span>
-          <div className="block lg:hidden w-full mt-8 pl-16 pr-16">
+          </div>
+          <div className="block lg:hidden w-full mt-8 pl-16 pr-16 pb-16">
             <StatsBox />
+            <RecentGamesBox />
           </div>
           <CountrySelector openDialog={openDialog} setOpenDialog={setOpenDialog} handleGetUserInfo={handleGetUserInfo} />
         </main>
