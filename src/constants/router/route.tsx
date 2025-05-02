@@ -5,6 +5,7 @@ import Register from "../../pages/Register";
 import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
 import Profile from "../../pages/Profile";
+import Contact from "../../pages/Contact";
 import React from 'react';
 
 interface Route {
@@ -40,5 +41,9 @@ export const ROUTES: Array<Route> = [
   {
     path: "/profile",
     element: <Profile />,
+  },
+  {
+    path: "/contact",
+    element: <Contact />,
   },
 ];

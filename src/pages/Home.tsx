@@ -23,7 +23,7 @@ const Home = () => {
         <MainToolBar />
         <main className="w-full h-full">
           <div className="flex flex-row w-full justify-center mt-8">
-            <p className="text-[3rem] font-semibold">Welcome, {user.username}</p>
+            <p className="text-[3rem] font-bold">Welcome, {user.username}</p>
           </div>
           <div className="flex flex-row w-full justify-evenly mt-16 h-[30rem]">
           <div
