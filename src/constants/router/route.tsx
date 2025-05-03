@@ -6,6 +6,7 @@ import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
 import Profile from "../../pages/Profile";
 import Contact from "../../pages/Contact";
+import Train from "../../pages/Train";
 import React from 'react';
 
 interface Route {
@@ -46,4 +47,8 @@ export const ROUTES: Array<Route> = [
     path: "/contact",
     element: <Contact />,
   },
+  {
+    path: "/train",
+    element: <Train />
+  }
 ];

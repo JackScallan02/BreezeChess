@@ -30,6 +30,7 @@ const Home = () => {
               className="group relative rounded-2xl p-4 bg-white shadow-md border w-[25%] h-full text-center flex flex-col justify-center items-center active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all overflow-hidden"
               onMouseOver={() => setHovered(0)}
               onMouseLeave={() => setHovered(-1)}
+              onClick={() => handleNavigation('/train')}
             >
               <img
                 src="/assets/other_images/training-image.jpeg"
