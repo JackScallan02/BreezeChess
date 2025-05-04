@@ -1,8 +1,7 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
 import pluginReact from "eslint-plugin-react";
-import pluginJest from "eslint-plugin-jest";
-import reactAppConfig from "eslint-config-react-app";
+import vitest from 'eslint-plugin-vitest';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -21,9 +20,10 @@ export default [
     },
   },
   {
-    files: ["**/*.{test,spec}.{js,mjs,cjs,jsx}"],
-    plugins: { jest: pluginJest },
-    languageOptions: { globals: globals.jest },
-    rules: pluginJest.configs.recommended.rules,
+    files: ['**/*.test.{js,ts,jsx,tsx}'],
+    plugins: { vitest },
+    rules: {
+      ...vitest.configs.recommended.rules,
+    },
   },
 ];
