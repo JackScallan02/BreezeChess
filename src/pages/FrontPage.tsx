@@ -32,7 +32,7 @@ const FrontPage = () => {
             </div>
           </div>
           <div className="flex justify-center h-full mt-10 border border-gray-300 dark:border-gray-800">
-            <div className="bg-sky-200 bc-dark-bg-light w-full">
+            <div className="bc-dark-bg-light w-full">
               <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto grow flex flex-col items-center pt-8">
                 <p className=" dark:text-white font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-center">
                   Participate in a thoughtfully crafted chess world
