@@ -7,6 +7,7 @@
     "@types/node": "^22.13.11",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^4.4.1",
     "axios": "^1.8.1",
     "bad-words": "^4.0.0",
     "boxicons": "^2.1.4",
@@ -23,18 +24,26 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1",
-    "react-scripts": "^5.0.1",
     "resolve-url-loader": "^5.0.0",
+    "rollup": "^4.40.1",
     "svgo": "^3.3.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2",
+    "vite": "^6.3.4",
+    "vitest": "^3.1.2",
     "web-vitals": "^4.2.4"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-musl": "4.9.5"
+  },
   "scripts": {
-    "start": "PORT=9000 react-scripts start",
+    "start": "vite --host",
     "dc:dev": "docker-compose down && docker-compose up",
-    "dev": "concurrently \"yarn start\" \"yarn firebase\" --host 0.0.0.0",
+    "dev": "concurrently \"yarn start\" \"yarn firebase\" --host",
     "firebase": "firebase emulators:start --only auth",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
     "test:server": "docker exec -it breezechess-server-1 yarn test"
   },
   "eslintConfig": {

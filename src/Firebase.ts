@@ -7,13 +7,13 @@ import { connectAuthEmulator } from "firebase/auth";
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FB_KEY,
-  authDomain: `${process.env.REACT_APP_PROJECT_ID}.firebaseapp.com`,
-  projectId: process.env.REACT_APP_FB_PROJECT_ID,
-  storageBucket: `${process.env.REACT_APP_PROJECT_ID}.firebasestorage.app`,
-  messagingSenderId: process.env.REACT_APP_FB_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FB_APP_ID,
-  measurementId: process.env.REACT_APP_FB_MEASUREMENT_ID,
+  apiKey: import.meta.env.VITE_FB_KEY,
+  authDomain: `${import.meta.env.VITE_PROJECT_ID}.firebaseapp.com`,
+  projectId: import.meta.env.VITE_FB_PROJECT_ID,
+  storageBucket: `${import.meta.env.VITE_PROJECT_ID}.firebasestorage.app`,
+  messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FB_APP_ID,
+  measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID,
 };
 
 const firebaseApp = firebase.initializeApp(firebaseConfig);

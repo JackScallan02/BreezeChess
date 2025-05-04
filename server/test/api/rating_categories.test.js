@@ -2,7 +2,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 
 const { expect } = chai;
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:9001';
+const API_BASE_URL = process.env.VITE_API_BASE_URL || 'http://localhost:9001';
 chai.use(chaiHttp);
 
 describe('Rating Categories API', function () {

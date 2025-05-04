@@ -15,6 +15,7 @@ services:
     volumes:
       - .:/app   # Mount the local directory to Docker container
       - ~/.config/configstore:/root/.config/configstore  # Mount the Firebase credentials
+      - node_modules:/app/node_modules
     command: ["npm", "run", "dev"]
 
   server:
@@ -75,3 +76,5 @@ networks:
 volumes:
   postgres_data:
     driver: local  # This ensures the volume is properly defined for persistent storage
+  node_modules:
+    driver: local  # This ensures the volume is properly defined for persistent storage 
