@@ -37,7 +37,7 @@
     "@rollup/rollup-linux-x64-musl": "4.9.5"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite --host",
     "dc:dev": "docker-compose down && docker-compose up",
     "dev": "concurrently \"yarn start\" \"yarn firebase\"",
     "firebase": "firebase emulators:start --only auth",

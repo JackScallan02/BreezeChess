@@ -4,6 +4,7 @@ import About from "../../pages/About";
 import Register from "../../pages/Register";
 import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
+import Contact from "../../pages/Contact";
 
 export const ROUTES = [
   {
@@ -29,5 +30,9 @@ export const ROUTES = [
   {
     path: "/welcome",
     element: <Welcome />,
+  },
+  {
+    path: "/contact",
+    element: <Contact />,
   },
 ];

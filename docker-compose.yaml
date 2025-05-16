@@ -14,6 +14,7 @@ services:
       - CHOKIDAR_USEPOLLING=true  # Enable file watching inside Docker
     volumes:
       - .:/app   # Mount the local directory to Docker container
+      - /app/node_modules  # Avoids conflicts with host node_modules
       - ~/.config/configstore:/root/.config/configstore  # Mount the Firebase credentials
     command: ["npm", "run", "dev"]
 
