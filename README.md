@@ -10,6 +10,7 @@ Step into a world where chess meets creativity. BreezeChess redefines training w
 
 1. Add a `.env` file in the root directory of your repo. Add the following environment variables to the file, in which the firebase variable values can be obtained by setting up a `Firebase` account:
 ```
+NODE_ENV=development
 VITE_FB_KEY=<Key goes here>
 VITE_FB_PROJECT_ID=<Project ID goes here>
 VITE_FB_APP_ID=<App ID goes here>
