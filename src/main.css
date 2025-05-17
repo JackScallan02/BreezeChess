@@ -15,3 +15,7 @@ html, body {
 .bc-dark-bg-light {
     @apply dark:bg-slate-800;
 }
+
+.firebase-emulator-warning {
+    display: none;
+  }
