@@ -12,7 +12,7 @@ const Contact = () => {
     <div className="flex flex-col min-h-screen">
       <MainToolBar />
       <main className="w-screen">
-        <div className="w-[60%] min-w-[400px] bg-white mx-auto rounded-lg flex flex-col justify-center items-center mt-16 pb-16 p-8 shadow-md border">
+        <div className="w-[60%] min-w-[400px] bg-gradient-to-r from-sky-50 to-sky-100 mx-auto rounded-lg flex flex-col justify-center items-center mt-16 pb-16 p-8 shadow-md border">
             <p className="text-[3rem] font-bold">Contact Us</p>
             <p className="text-lg font-medium mt-8 text-center">
                 If you have any questions, feedback, or need assistance, feel free to reach out to us!

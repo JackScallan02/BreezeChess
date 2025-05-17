@@ -5,6 +5,7 @@ import Register from "../../pages/Register";
 import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
 import Contact from "../../pages/Contact";
+import Profile from "../../pages/Profile";
 
 export const ROUTES = [
   {
@@ -30,6 +31,10 @@ export const ROUTES = [
   {
     path: "/welcome",
     element: <Welcome />,
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
   },
   {
     path: "/contact",

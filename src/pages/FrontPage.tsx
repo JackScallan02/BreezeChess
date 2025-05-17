@@ -31,7 +31,7 @@ const FrontPage = () => {
               </p>
             </div>
           </div>
-          <div className="flex justify-center h-full mt-10 border border-gray-300 dark:border-gray-800">
+          <div className="flex justify-center h-full mt-10 border border-slate-600 dark:border-gray-800">
             <div className="bc-dark-bg-light w-full">
               <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto grow flex flex-col items-center pt-8">
                 <p className=" dark:text-white font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-center">
@@ -45,7 +45,7 @@ const FrontPage = () => {
               </div>
             </div>
           </div>
-          <div className="flex justify-center h-full border border-gray-300 dark:border-gray-800">
+          <div className="flex justify-center h-full border border-slate-600 dark:border-gray-800">
             <div className="w-full">
               <div className="z-0 lg:w-1/2 md:w-2/3 w-full mx-auto grow flex flex-col items-center pt-8">
                 <p className=" dark:text-white font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight text-center">

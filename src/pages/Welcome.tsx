@@ -219,7 +219,7 @@ const Welcome = () => {
             <div key={level}>
               <button
                 className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all
-                  py-4 rounded-xl text-white text-lg font-bold ${userExp && userExp === level ? 'bg-sky-500 border-blue-500 border-2 bc-dark-border' : 'bg-sky-300'}`}
+                  py-4 rounded-xl text-white text-lg font-bold ${userExp && userExp === level ? 'bg-indigo-500 border-slate-500 border bc-dark-border' : 'bg-indigo-400'}`}
                   onClick={() => { handleExpSelection(level);
                 }}
               >
@@ -229,7 +229,7 @@ const Welcome = () => {
           ))}
         <div className="mt-4">
             <button
-              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-sky-400 disabled:opacity-50 disabled:hover:scale-100 disabled:bg-sky-300'}
+              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-indigo-400 disabled:opacity-50 disabled:hover:scale-100'}
               onClick={() => handleExpSubmission()}
               disabled={!userExp}
             >
@@ -259,7 +259,7 @@ const Welcome = () => {
             <div key={goal.id} className="mb-8">
               <button
                 className={`w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all flex items-center justify-center
-                  py-4 rounded-xl text-white text-lg font-bold ${userGoals && userGoals.includes(goal.id) ? 'bg-sky-500 border-blue-500 border-2 bc-dark-border' : 'bg-sky-300'}`}
+                  py-4 rounded-xl text-white text-lg font-bold ${userGoals && userGoals.includes(goal.id) ? 'bg-indigo-500 border-slate-500 border bc-dark-border' : 'bg-indigo-400'}`}
                 onClick={() => handleGoalSelection(goal)}
               >
                 {userGoals && userGoals.includes(goal.id) && <Check className="w-6 h-6 text-white-500 ml-4" />}
@@ -269,7 +269,7 @@ const Welcome = () => {
           ))}
           <div className="mt-4">
             <button
-              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-sky-400'}
+              className={'w-[30%] min-w-[400px] active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all py-4 rounded-xl text-white text-lg font-bold bg-indigo-400'}
               onClick={() => handleGoalSubmission()}
             >
               <p>

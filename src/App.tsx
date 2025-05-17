@@ -13,7 +13,7 @@ export default function App() {
   return (
     <AuthProvider>
       <PrimeReactProvider>
-        <div className="App min-h-screen bg-gradient-to-r from-sky-100 to-sky-400 dark:from-gray-800 dark:to-gray-900 dark:text-white">
+        <div className="App min-h-screen bg-gradient-to-r from-white to-sky-300 dark:from-gray-800 dark:to-gray-900 dark:text-white">
           <RouterProvider router={router} />
         </div>
       </PrimeReactProvider>
