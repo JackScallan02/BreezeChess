@@ -36,6 +36,7 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                 boxSizing: "border-box",
             }}
         >
+            <img src="/assets/chess_pieces/default/white/rook.webp" />
             <div className="flex flex-col items-center" style={{ minHeight: "300px", minWidth: "300px" }}>
                 <div className="flex">
                     {showLabels && (
@@ -57,9 +58,6 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                             ))}
                         </div>
                     )}
-
-
-                    {/* Chessboard */}
                     <div
                         ref={boardRef}
                         className="grid grid-cols-8 grid-rows-8
