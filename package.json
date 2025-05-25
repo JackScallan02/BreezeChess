@@ -11,6 +11,7 @@
     "axios": "^1.8.1",
     "bad-words": "^4.0.0",
     "boxicons": "^2.1.4",
+    "chess.js": "^1.2.0",
     "concurrently": "^9.1.2",
     "css-select": "^5.1.0",
     "dotenv": "^16.4.7",
