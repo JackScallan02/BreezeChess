@@ -8,8 +8,8 @@ import { Chess } from 'chess.js';
 const BoardBuilder = () => {
 
   const { handleNavigation } = useNavigation();
-  const [game] = useState(new Chess());
-  const [reRender, setRerender] = useState(false);
+  const [game, setGame] = useState(new Chess());
+  const [, setRerender] = useState(false);
 
 
   useDarkMode();
@@ -24,10 +24,10 @@ const BoardBuilder = () => {
         <ChessBoard
           showLabels
           game={game}
-          setRerender={setRerender}
+          setGame={setGame}
         />
         <div className="text-center text-gray-700 dark:text-gray-300">
-          Current Turn: <span className="font-bold">{game.turn() === 'w' ? 'White' : 'Black'}</span>
+          <span className="font-bold">{game.turn() === 'w' ? 'White' : 'Black'}</span> to move
         </div>
       </main>
     </div>

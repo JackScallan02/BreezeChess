@@ -4,7 +4,7 @@ import { Chess, Square, Piece } from 'chess.js';
 interface props {
     showLabels: boolean;
     game: Chess;
-    setRerender: React.Dispatch<React.SetStateAction<boolean>>;
+    setGame: React.Dispatch<React.SetStateAction<Chess>>;
 }
 
 interface DraggedPieceState {
@@ -12,7 +12,7 @@ interface DraggedPieceState {
     fromSquare: Square;
 }
 
-const ChessBoard: React.FC<props> = ({ showLabels, game, setRerender }) => {
+const ChessBoard: React.FC<props> = ({ showLabels, game, setGame }) => {
     const letters = ["a", "b", "c", "d", "e", "f", "g", "h"];
     const typeMapping: { [key: string]: string } = {
         p: "pawn", r: "rook", n: "knight", b: "bishop", q: "queen", k: "king",
@@ -121,7 +121,7 @@ const ChessBoard: React.FC<props> = ({ showLabels, game, setRerender }) => {
                     setFen(game.fen());
                     setSelectedSquare(null);
                     setPossibleMoves([]);
-                    setRerender(prev => !prev); // Trigger re-render because of game state change
+                    setGame(new Chess(game.fen())); // Update game state
                     // Check game over states
                     if (game.isCheckmate()) {
                         const winner = game.turn() === 'w' ? 'Black' : 'White';
@@ -149,7 +149,6 @@ const ChessBoard: React.FC<props> = ({ showLabels, game, setRerender }) => {
                     setPossibleMoves([]);
                 }
             } catch (error) {
-                console.log("Invalid click move:", error);
                 setSelectedSquare(null);
                 setPossibleMoves([]);
             }
@@ -229,7 +228,6 @@ const ChessBoard: React.FC<props> = ({ showLabels, game, setRerender }) => {
                     }
                 } catch (error) {
                     // Invalid move, snap back (by resetting draggedPiece)
-                    console.log("Invalid move:", error);
                 }
             }
         }
