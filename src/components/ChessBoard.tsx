@@ -32,9 +32,6 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
     const [gameResult, setGameResult] = useState<string | null>(null);
 
     const squareSize = boardWidth / 8;
-    // We use squareSize directly for the dragged piece visual size for simplicity,
-    // or you can keep 0.75 if you prefer a smaller dragged piece.
-    // Using squareSize might make centering feel more direct. Let's try squareSize.
     const draggedPieceVisualWidth = squareSize;
     const draggedPieceVisualHeight = squareSize;
 
@@ -63,7 +60,6 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
         return null;
     };
 
-    // Updated handleMouseDown to center the piece under the cursor.
     const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece, fromSquare: Square) => {
         if (isGameOver || !boardRef.current) return;
 
@@ -119,7 +115,7 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                         from: draggedPiece.fromSquare,
                         to: toSquare,
                         // Always promote to a Queen for simplicity in this example.
-                        // You might want to implement a UI for promotion choice.
+                        // TODO: implement a UI for promotion choice.
                         promotion: isPromotion ? 'q' : undefined,
                      });
 
@@ -137,7 +133,7 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                         } else if (game.isDraw()) {
                             setGameResult("Game over: Draw!");
                             setIsGameOver(true);
-                        } // Add other draw conditions if needed
+                        } // TODO: add other draw conditions
 
                     }
                 } catch (error) {
@@ -191,15 +187,15 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                         style={{
                             width: "min(85vmin, calc(100vh - 4rem - 48px), calc(100vw - 4rem - 48px))",
                             height: "min(85vmin, calc(100vh - 4rem - 48px), calc(100vw - 4rem - 48px))",
-                            position: 'relative', // <-- Key Fix: Added position relative
+                            position: 'relative',
                         }}
                     >
-                        {currentBoard.flat().map((piece, i) => { // Use game.board()
+                        {currentBoard.flat().map((piece, i) => {
                             const row = Math.floor(i / 8);
                             const col = i % 8;
-                            const isDark = (row + col) % 2 !== 0; // Fixed dark square logic
+                            const isDark = (row + col) % 2 !== 0;
                             const algebraicSquare = getAlgebraicSquare(i);
-                            const pieceImage = getPieceImage(piece || undefined); // Handle null
+                            const pieceImage = getPieceImage(piece || undefined);
                             const isDragged = draggedPiece?.fromSquare === algebraicSquare;
 
                             return (
@@ -214,10 +210,10 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                                             src={pieceImage}
                                             alt={`${piece?.color} ${piece?.type}`}
                                             style={{
-                                                width: '75%', // Keep 75% for stationary pieces
+                                                width: '75%',
                                                 height: '75%',
                                                 objectFit: 'contain',
-                                                cursor: game.turn() === piece?.color ? 'grab' : 'default', // Only allow dragging current turn's pieces
+                                                cursor: game.turn() === piece?.color ? 'grab' : 'default',
                                             }}
                                             onMouseDown={(e) => {
                                                 if (piece && game.turn() === piece.color) { // Check turn before dragging
@@ -236,10 +232,10 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                                 alt=""
                                 style={{
                                     position: 'absolute',
-                                    left: `${draggedPosition.x}px`, // Use template literals
-                                    top: `${draggedPosition.y}px`,  // Use template literals
-                                    width: `${draggedPieceVisualWidth}px`, // Use template literals
-                                    height: `${draggedPieceVisualHeight}px`, // Use template literals
+                                    left: `${draggedPosition.x}px`,
+                                    top: `${draggedPosition.y}px`,
+                                    width: `${draggedPieceVisualWidth}px`,
+                                    height: `${draggedPieceVisualHeight}px`,
                                     objectFit: 'contain',
                                     pointerEvents: 'none',
                                     zIndex: 1000,
