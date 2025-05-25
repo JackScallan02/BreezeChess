@@ -3,6 +3,8 @@ import { Chess, Square, Piece } from 'chess.js';
 
 interface props {
     showLabels: boolean;
+    game: Chess;
+    setRerender: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface DraggedPieceState {
@@ -10,7 +12,7 @@ interface DraggedPieceState {
     fromSquare: Square;
 }
 
-const ChessBoard: React.FC<props> = ({ showLabels }) => {
+const ChessBoard: React.FC<props> = ({ showLabels, game, setRerender }) => {
     const letters = ["a", "b", "c", "d", "e", "f", "g", "h"];
     const typeMapping: { [key: string]: string } = {
         p: "pawn", r: "rook", n: "knight", b: "bishop", q: "queen", k: "king",
@@ -22,7 +24,6 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
 
     const boardRef = useRef<HTMLDivElement>(null);
     const [boardWidth, setBoardWidth] = useState(0);
-    const [game] = useState(new Chess());
     const [fen, setFen] = useState(game.fen());
 
     const [draggedPiece, setDraggedPiece] = useState<DraggedPieceState | null>(null);
@@ -31,6 +32,11 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
     const [isGameOver, setIsGameOver] = useState(false);
     const [gameResult, setGameResult] = useState<string | null>(null);
 
+    // New states for click-to-move
+    const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
+    const [possibleMoves, setPossibleMoves] = useState<Square[]>([]);
+
+
     const squareSize = boardWidth / 8;
     const draggedPieceVisualWidth = squareSize;
     const draggedPieceVisualHeight = squareSize;
@@ -38,7 +44,14 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
     useEffect(() => {
         const updateBoardWidth = () => {
             if (boardRef.current) {
-                setBoardWidth(boardRef.current.offsetWidth);
+                // Calculate board width to be responsive, adapting to the smaller of viewport width or height
+                const viewportMin = Math.min(window.innerWidth, window.innerHeight);
+                let newBoardWidth = viewportMin * 0.7;
+
+                // Ensure boardWidth does not go below 300px
+                newBoardWidth = Math.max(newBoardWidth, 300);
+
+                setBoardWidth(newBoardWidth);
             }
         };
 
@@ -55,30 +68,99 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
 
     const getPieceImage = (piece: Piece | undefined): string | null => {
         if (piece) {
+            // Using actual image assets.
             return `/assets/chess_pieces/default/${colorMapping[piece.color]}/${typeMapping[piece.type]}.webp`;
         }
         return null;
     };
 
-    const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece, fromSquare: Square) => {
-        if (isGameOver || !boardRef.current) return;
-
+    // Modified handler for both click and drag initiation
+    const handleSquareInteraction = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
+        // Prevent default browser drag behavior immediately
         e.preventDefault();
 
-        const boardRect = boardRef.current.getBoundingClientRect();
+        if (isGameOver || !boardRef.current) {
+            return;
+        }
 
-        setDraggedPiece({ piece, fromSquare });
+        // If a piece is clicked and it's the current player's turn, select it
+        if (piece && game.turn() === piece.color) {
+            if (selectedSquare === square) {
+                // Deselect if the same square is clicked again
+                setSelectedSquare(null);
+                setPossibleMoves([]);
+            } else {
+                setSelectedSquare(square);
+                const moves = game.moves({ square: square, verbose: true }).map(move => move.to);
+                setPossibleMoves(moves as Square[]);
+            }
 
-        // Calculate initial position: Center of the piece under the mouse cursor.
-        setDraggedPosition({
-            x: e.clientX - boardRect.left - (draggedPieceVisualWidth / 2),
-            y: e.clientY - boardRect.top - (draggedPieceVisualHeight / 2),
-        });
+            // Start drag logic if mouse is down
+            const boardRect = boardRef.current.getBoundingClientRect();
+            setDraggedPiece({ piece, fromSquare: square });
+            setDraggedPosition({
+                x: e.clientX - boardRect.left - (draggedPieceVisualWidth / 2),
+                y: e.clientY - boardRect.top - (draggedPieceVisualHeight / 2),
+            });
+            document.body.style.cursor = 'grabbing';
 
-        document.body.style.cursor = 'grabbing';
-    }, [isGameOver, draggedPieceVisualWidth, draggedPieceVisualHeight]);
+        } else if (selectedSquare) {
+            // If a square is already selected, try to move to the clicked square
+            try {
+                const selectedPiece = game.get(selectedSquare);
+                const isPawn = selectedPiece && selectedPiece.type === 'p';
+                const isPromotion = (isPawn && ((selectedPiece.color === 'w' && square[1] === '8') || (selectedPiece.color === 'b' && square[1] === '1')));
 
-    // Updated handleMouseMove to keep the piece centered.
+                const moveResult = game.move({
+                    from: selectedSquare,
+                    to: square,
+                    promotion: isPromotion ? 'q' : undefined,
+                });
+
+                if (moveResult) {
+                    setFen(game.fen());
+                    setSelectedSquare(null);
+                    setPossibleMoves([]);
+                    setRerender(prev => !prev); // Trigger re-render because of game state change
+                    // Check game over states
+                    if (game.isCheckmate()) {
+                        const winner = game.turn() === 'w' ? 'Black' : 'White';
+                        setGameResult(`${winner} wins by checkmate!`);
+                        setIsGameOver(true);
+                    } else if (game.isStalemate()) {
+                        setGameResult("Game over: Stalemate!");
+                        setIsGameOver(true);
+                    } else if (game.isDraw()) {
+                        setGameResult("Game over: Draw!");
+                        setIsGameOver(true);
+                    } else if (game.isThreefoldRepetition()) {
+                        setGameResult("Game over: Draw by threefold repetition!");
+                        setIsGameOver(true);
+                    } else if (game.isInsufficientMaterial()) {
+                        setGameResult("Game over: Draw by insufficient material!");
+                        setIsGameOver(true);
+                    } else if (game.isDrawByFiftyMoves()) {
+                        setGameResult("Game over: Draw by fifty moves rule!");
+                        setIsGameOver(true);
+                    }
+                } else {
+                    // Invalid move, deselect
+                    setSelectedSquare(null);
+                    setPossibleMoves([]);
+                }
+            } catch (error) {
+                console.log("Invalid click move:", error);
+                setSelectedSquare(null);
+                setPossibleMoves([]);
+            }
+        } else {
+            // Clicked on an empty square or opponent's piece without a selected piece
+            setSelectedSquare(null);
+            setPossibleMoves([]);
+        }
+    }, [isGameOver, game, selectedSquare, draggedPieceVisualWidth, draggedPieceVisualHeight]);
+
+
     const handleMouseMove = useCallback((e: MouseEvent) => {
         if (draggedPiece && boardRef.current) {
             const boardRect = boardRef.current.getBoundingClientRect();
@@ -96,7 +178,6 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
             // Use the *center* of the dragged piece for dropping calculation
             const mouseX = (draggedPosition?.x ?? (e.clientX - boardRect.left)) + (draggedPieceVisualWidth / 2);
             const mouseY = (draggedPosition?.y ?? (e.clientY - boardRect.top)) + (draggedPieceVisualHeight / 2);
-
 
             const col = Math.floor(mouseX / squareSize);
             const row = Math.floor(mouseY / squareSize);
@@ -117,10 +198,12 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                         // Always promote to a Queen for simplicity in this example.
                         // TODO: implement a UI for promotion choice.
                         promotion: isPromotion ? 'q' : undefined,
-                     });
+                    });
 
                     if (moveResult) {
                         setFen(game.fen());
+                        setSelectedSquare(null); // Deselect after a successful drag move
+                        setPossibleMoves([]); // Clear possible moves
 
                         // Check game over states
                         if (game.isCheckmate()) {
@@ -133,8 +216,16 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                         } else if (game.isDraw()) {
                             setGameResult("Game over: Draw!");
                             setIsGameOver(true);
-                        } // TODO: add other draw conditions
-
+                        } else if (game.isThreefoldRepetition()) {
+                            setGameResult("Game over: Draw by threefold repetition!");
+                            setIsGameOver(true);
+                        } else if (game.isInsufficientMaterial()) {
+                            setGameResult("Game over: Draw by insufficient material!");
+                            setIsGameOver(true);
+                        } else if (game.isDrawByFiftyMoves()) {
+                            setGameResult("Game over: Draw by fifty moves rule!");
+                            setIsGameOver(true);
+                        }
                     }
                 } catch (error) {
                     // Invalid move, snap back (by resetting draggedPiece)
@@ -146,7 +237,7 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
         setDraggedPiece(null);
         setDraggedPosition(null);
         document.body.style.cursor = 'default';
-    }, [draggedPiece, game, getAlgebraicSquare, squareSize, draggedPosition, draggedPieceVisualWidth, draggedPieceVisualHeight]); // Added dependencies
+    }, [draggedPiece, game, getAlgebraicSquare, squareSize, draggedPosition, draggedPieceVisualWidth, draggedPieceVisualHeight]);
 
 
     useEffect(() => {
@@ -177,16 +268,17 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                     {showLabels && (
                         <div className="flex flex-col justify-between" style={{ height: boardWidth, marginRight: `min(${sideLabelWidth}px, 12px)` }}>
                             {numbers.map((num, i) => (
-                                <div key={i} className="flex-1 flex items-center justify-center text-sm">{num}</div>
+                                <div key={i} className="flex-1 flex items-center justify-center text-sm font-semibold">{num}</div>
                             ))}
                         </div>
                     )}
                     <div
                         ref={boardRef}
-                        className="grid grid-cols-8 grid-rows-8 max-w-full max-h-full min-w-[300px] min-h-[300px] border border-black" // Added border for clarity
+                        className="grid grid-cols-8 grid-rows-8 max-w-full max-h-full border-4 border-gray-700 rounded-md overflow-hidden"
                         style={{
-                            width: "min(85vmin, calc(100vh - 4rem - 48px), calc(100vw - 4rem - 48px))",
-                            height: "min(85vmin, calc(100vh - 4rem - 48px), calc(100vw - 4rem - 48px))",
+                            width: boardWidth,
+                            height: boardWidth,
+                            // minWidth and minHeight are now controlled by the boardWidth state itself
                             position: 'relative',
                         }}
                     >
@@ -197,13 +289,39 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                             const algebraicSquare = getAlgebraicSquare(i);
                             const pieceImage = getPieceImage(piece || undefined);
                             const isDragged = draggedPiece?.fromSquare === algebraicSquare;
+                            const isSelected = selectedSquare === algebraicSquare;
+                            const isPossibleMove = possibleMoves.includes(algebraicSquare);
 
                             return (
                                 <div
                                     key={i}
-                                    className={`${isDark ? "bg-sky-700" : "bg-slate-100"} relative flex items-center justify-center`} // Changed dark color for contrast
+                                    className={`${isDark ? "bg-sky-700" : "bg-slate-100"} relative flex items-center justify-center`}
                                     style={{ width: squareSize, height: squareSize }}
+                                    // Modified to use handleSquareInteraction
+                                    onMouseDown={(e) => handleSquareInteraction(e, piece || undefined, algebraicSquare)}
+                                    onClick={() => handleSquareInteraction({} as React.MouseEvent, piece || undefined, algebraicSquare)} // Pass a dummy event object for consistency
                                 >
+                                    {/* Highlighting for selected square */}
+                                    {isSelected && (
+                                        <div
+                                            className="absolute inset-0 bg-amber-200 opacity-70"
+                                            style={{ zIndex: 1 }}
+                                        ></div>
+                                    )}
+
+                                    {/* Highlighting for possible moves */}
+                                    {isPossibleMove && (
+                                        <div
+                                            className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`}
+                                            style={{
+                                                width: piece ? '100%' : '30%',
+                                                height: piece ? '100%' : '30%',
+                                                zIndex: 2,
+                                                transform: piece ? 'scale(0.9)' : 'none',
+                                            }}
+                                        ></div>
+                                    )}
+
                                     {/* Render piece only if it's NOT the one being dragged */}
                                     {!isDragged && pieceImage && (
                                         <img
@@ -214,12 +332,10 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                                                 height: '75%',
                                                 objectFit: 'contain',
                                                 cursor: game.turn() === piece?.color ? 'grab' : 'default',
+                                                userSelect: 'none',
+                                                zIndex: 3, // Ensure piece is above highlights
                                             }}
-                                            onMouseDown={(e) => {
-                                                if (piece && game.turn() === piece.color) { // Check turn before dragging
-                                                   handleMouseDown(e, piece, algebraicSquare);
-                                                }
-                                            }}
+                                            // The onMouseDown is now handled by the parent div's handleSquareInteraction
                                         />
                                     )}
                                 </div>
@@ -237,10 +353,10 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                                     width: `${draggedPieceVisualWidth}px`,
                                     height: `${draggedPieceVisualHeight}px`,
                                     objectFit: 'contain',
-                                    pointerEvents: 'none',
+                                    pointerEvents: 'none', // Allows mouse events to pass through to the board
                                     zIndex: 1000,
-                                    // Make the dragged piece slightly larger and centered
-                                    transform: 'scale(0.9)',
+                                    transform: 'scale(0.9)', // Make the dragged piece slightly larger
+                                    filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))', // Add a subtle shadow
                                 }}
                             />
                         )}
@@ -249,12 +365,12 @@ const ChessBoard: React.FC<props> = ({ showLabels }) => {
                 {showLabels && (
                     <div className="grid grid-cols-8" style={{ width: boardWidth, marginLeft: `min(${sideLabelWidth}px, 12px)`, marginTop: `min(${bottomLabelMarginTop}px, 6px)` }}>
                         {letters.map((letter, i) => (
-                            <div key={i} className="text-center text-sm">{letter}</div>
+                            <div key={i} className="text-center text-sm font-semibold">{letter}</div>
                         ))}
                     </div>
                 )}
                 {isGameOver && gameResult && (
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg text-lg font-bold">
+                    <div className="mt-4 p-3 rounded-lg shadow-lg text-lg font-bold text-center bg-white dark:bg-gray-700 text-red-600 dark:text-red-400">
                         {gameResult}
                     </div>
                 )}
