@@ -9,6 +9,7 @@ import Contact from "../../pages/Contact";
 import Train from "../../pages/Train";
 import BoardBuilder from "../../pages/BoardBuilder";
 import React from 'react';
+import PuzzleHome from "../../pages/PuzzleHome";
 
 interface Route {
   path: string;
@@ -55,5 +56,8 @@ export const ROUTES: Array<Route> = [
   {
     path: "/train/board-builder",
     element: <BoardBuilder />
+  },{
+    path: "/train/puzzle/home",
+    element: <PuzzleHome />
   }
 ];

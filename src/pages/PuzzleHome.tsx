@@ -1,13 +1,19 @@
 import React from 'react';
 import useDarkMode from '../darkmode/useDarkMode';
 import MainToolBar from '../components/MainToolBar';
+import { getPuzzles } from '../api/puzzles';
 import { useNavigation } from '../navigator/navigate';
 
-const Train = () => {
+const PuzzleHome = () => {
 
     const { handleNavigation } = useNavigation();
 
     useDarkMode();
+
+    const sendPuzzleRequest = async () => {
+        const res = await getPuzzles();
+        console.log("Res: ", res);
+    }
 
     return (
         <div className="flex flex-col min-h-screen w-full h-full">
@@ -20,15 +26,9 @@ const Train = () => {
                 <div className="flex flex-row w-full justify-center mt-8">
                     <button
                         className="ml-4 bg-indigo-500 text-white font-bold py-2 px-4 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
-                        onClick={() => handleNavigation('/train/board-builder')}
+                        onClick={() => sendPuzzleRequest()}
                     >
-                        Board Builder
-                    </button>
-                    <button
-                        className="ml-4 bg-indigo-500 text-white font-bold py-2 px-4 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
-                        onClick={() => handleNavigation('/train/puzzle/home')}
-                    >
-                        Puzzle Trainer
+                        Click me!
                     </button>
                 </div>
             </main>
@@ -36,4 +36,4 @@ const Train = () => {
     );
 };
 
-export default Train;
+export default PuzzleHome;

@@ -36,6 +36,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Password for the database
       POSTGRES_DB: ${POSTGRES_DB}          # Database name to create
       AWS_ENDPOINT: http://localstack:4566
+      PUZZLE_SERVICE_URL: http://puzzle_service:8000 
 
     command: ["npm", "run", "start"]  # Command to run your server
     restart: always  # This ensures the container restarts automatically
@@ -58,6 +59,24 @@ services:
       retries: 5
       start_period: 30s
       timeout: 10s
+  puzzle_service:
+    build:
+      context: ./puzzle_service
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - breezechess-network
+    volumes:
+      - ./puzzle_service:/app
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+    restart: always
   localstack:
     image: localstack/localstack:latest
     environment:
