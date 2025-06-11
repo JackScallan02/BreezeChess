@@ -36,7 +36,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Password for the database
       POSTGRES_DB: ${POSTGRES_DB}          # Database name to create
       AWS_ENDPOINT: http://localstack:4566
-      PUZZLE_SERVICE_URL: http://puzzle_service:8000 
+      PUZZLE_SERVICE_URL: http://puzzle_service:8000
+      MAX_PUZZLE_AMOUNT: ${MAX_PUZZLE_AMOUNT}
 
     command: ["npm", "run", "start"]  # Command to run your server
     restart: always  # This ensures the container restarts automatically
