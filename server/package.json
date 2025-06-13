@@ -4,7 +4,7 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node index.js",
+        "start": "nodemon index.js",
         "test": "npx mocha"
     },
     "dependencies": {
@@ -31,6 +31,7 @@
         "eslint": "^9.22.0",
         "eslint-plugin-chai-friendly": "^1.0.1",
         "eslint-plugin-react": "^7.37.4",
-        "globals": "^16.0.0"
+        "globals": "^16.0.0",
+        "nodemon": "^3.1.10"
     }
 }

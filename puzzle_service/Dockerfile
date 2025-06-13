@@ -32,4 +32,4 @@ EXPOSE 8000
 
 # Run main.py when the container launches
 # Use --host 0.0.0.0 to make it accessible from other containers
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
