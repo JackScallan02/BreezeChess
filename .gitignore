@@ -31,3 +31,5 @@ ui-debug.log
 
 yarn*.lock
 ./*/yarn*.lock
+
+*/__pychache__/*
