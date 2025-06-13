@@ -34,20 +34,15 @@ async def get_puzzles(request: ProcessRequest):
         db_name = os.getenv("POSTGRES_DB")
 
         connectionStr = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-
-        print(f"Using connection string: {connectionStr}")
         cpk.initialize_connection(connectionStr)
 
-        # TODO: Seed the puzzles table into the database from some kind of setup service
-
-        #puzzles = cpk.get_puzzle(count=count)
-        #print(f"Retrieved {len(puzzles)} puzzles")
+        puzzles = cpk.get_puzzle(count=count)
+        print(f"Retrieved {len(puzzles)} puzzles")
 
         return {
             "success": True,
             "input_received": request.dict(),
-            #"result": puzzles,
-            "result": "This is a placeholder for the actual puzzle data"
+            "result": puzzles,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

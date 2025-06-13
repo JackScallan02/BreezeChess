@@ -16,8 +16,8 @@ export default defineConfig({
     port: 9000,
     watch: {
       ignored: [
-        'server/**',
-        'puzzle_service/**'
+        '**/server/**',
+        '**/puzzle_service/**'
       ]
     }
   }
