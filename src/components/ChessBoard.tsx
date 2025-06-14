@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+ import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Chess, Square, Piece } from 'chess.js';
 
 // ChessBoard Component
@@ -72,9 +72,12 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
 
     // Handles a click on a square (either to select or to make a move)
     const handleSquareClick = useCallback((clickedSquare: Square) => {
+        // If it's not the player's turn, do nothing.
         if (isPlayerTurn !== undefined && !isPlayerTurn) return;
+
         // If a piece is already selected
         if (selectedSquare) {
+            // Case 1: Clicking the same square -> deselect the current piece
             if (selectedSquare === clickedSquare) {
                 setSelectedSquare(null);
                 setPossibleMoves([]);
@@ -82,18 +85,20 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
             }
 
             const pieceToMove = game.get(selectedSquare);
-
             const pieceOnClickedSquare = game.get(clickedSquare);
+
+            // Case 2: Clicking a different square that contains a friendly piece -> select the new friendly piece
             if (pieceOnClickedSquare && pieceOnClickedSquare.color === game.turn()) {
                 setSelectedSquare(clickedSquare);
+                // Calculate and display possible moves for the newly selected piece
                 const moves = game.moves({ square: clickedSquare, verbose: true }).map(move => move.to);
                 setPossibleMoves(moves as Square[]);
                 return;
             }
 
-            if (pieceToMove && pieceToMove.color === game.turn()) {
-                // If it's a pawn promotion move, we'll default to queen promotion for simplicity in UI
-                // In a full game, a promotion dialog would appear.
+            // Case 3: Clicking an empty square or an opponent's piece -> attempt a move
+            if (pieceToMove && pieceToMove.color === game.turn()) { // Ensure the currently selected piece belongs to the player
+                // Determine if it's a pawn promotion move (default to queen for simplicity)
                 let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
                 if (pieceToMove.type === 'p' && (
                     (pieceToMove.color === 'w' && clickedSquare.endsWith('8')) ||
@@ -102,29 +107,41 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
                     promotionPiece = 'q';
                 }
 
+                // Attempt to make the move. The external onMoveAttempt function will handle game logic.
                 onMoveAttempt(selectedSquare, clickedSquare, promotionPiece);
+                // Clear selection and possible moves after attempting a move.
+                // The board will re-render based on game state updates from onMoveAttempt.
                 setSelectedSquare(null);
                 setPossibleMoves([]);
                 return;
             } else {
+                // If a piece was selected but the clicked square is not a valid move target or a friendly piece,
+                // and the pieceToMove is not ours, deselect everything. This acts as a fallback.
                 setSelectedSquare(null);
                 setPossibleMoves([]);
             }
 
-        } else {
+        } else { // No piece is currently selected
             const pieceOnClickedSquare = game.get(clickedSquare);
+            // If the clicked square has a piece belonging to the current player, select it.
             if (pieceOnClickedSquare && pieceOnClickedSquare.color === game.turn()) {
                 setSelectedSquare(clickedSquare);
+                // Calculate and display possible moves for the newly selected piece.
                 const moves = game.moves({ square: clickedSquare, verbose: true }).map(move => move.to);
                 setPossibleMoves(moves as Square[]);
             }
+            // If the clicked square is empty or has an opponent's piece and nothing is selected, do nothing.
         }
-    }, [game, onMoveAttempt, selectedSquare]);
+    }, [game, onMoveAttempt, selectedSquare, isPlayerTurn]); // Added isPlayerTurn to dependencies
 
+
+    // Handles the mouse up event (end of a click or drag)
     const handleMouseUp = useCallback((e: MouseEvent) => {
+        // Always remove event listeners when the mouse button is released
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
 
+        // If it's not the player's turn, reset state and exit.
         if (isPlayerTurn !== undefined && !isPlayerTurn) {
             interactionState.current = null;
             setDraggedPiece(null);
@@ -133,61 +150,43 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
             return;
         }
 
-        if (interactionState.current) {
-            if (interactionState.current.isDragging) {
-                // Drag End Logic
-                if (boardRef.current) {
-                    const boardRect = boardRef.current.getBoundingClientRect();
-                    const mouseX = e.clientX - boardRect.left;
-                    const mouseY = e.clientY - boardRect.top;
+        // Only process drag-end logic if a drag was actually initiated
+        if (interactionState.current && interactionState.current.isDragging) {
+            if (boardRef.current) {
+                const boardRect = boardRef.current.getBoundingClientRect();
+                const mouseX = e.clientX - boardRect.left;
+                const mouseY = e.clientY - boardRect.top;
 
-                    // Calculate the target square based on mouse position
-                    const col = Math.floor(mouseX / squareSize);
-                    const row = Math.floor(mouseY / squareSize);
+                // Calculate the target square based on the mouse position at release
+                const col = Math.floor(mouseX / squareSize);
+                const row = Math.floor(mouseY / squareSize);
 
-                    if (col >= 0 && col < 8 && row >= 0 && row < 8) {
-                        const toSquare = getAlgebraicSquare(row * 8 + col);
-                        // If the piece was dragged to a different square, attempt the move
-                        if (interactionState.current.square !== toSquare) {
-                            const pieceToMove = game.get(interactionState.current.square);
-                            let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
-                            if (pieceToMove && pieceToMove.type === 'p' && (
-                                (pieceToMove.color === 'w' && toSquare.endsWith('8')) ||
-                                (pieceToMove.color === 'b' && toSquare.endsWith('1'))
-                            )) {
-                                promotionPiece = 'q';
-                            }
-                            onMoveAttempt(interactionState.current.square, toSquare, promotionPiece);
+                if (col >= 0 && col < 8 && row >= 0 && row < 8) {
+                    const toSquare = getAlgebraicSquare(row * 8 + col);
+                    // If the piece was dragged to a different square, attempt the move
+                    if (interactionState.current.square !== toSquare) {
+                        const pieceToMove = game.get(interactionState.current.square);
+                        let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
+                        if (pieceToMove && pieceToMove.type === 'p' && (
+                            (pieceToMove.color === 'w' && toSquare.endsWith('8')) ||
+                            (pieceToMove.color === 'b' && toSquare.endsWith('1'))
+                        )) {
+                            promotionPiece = 'q';
                         }
+                        onMoveAttempt(interactionState.current.square, toSquare, promotionPiece);
                     }
                 }
-            } else {
-                if (selectedSquare && selectedSquare !== interactionState.current.square) {
-                    const pieceToMove = game.get(selectedSquare);
-                    let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
-                    if (pieceToMove && pieceToMove.type === 'p' && (
-                        (pieceToMove.color === 'w' && interactionState.current.square.endsWith('8')) ||
-                        (pieceToMove.color === 'b' && interactionState.current.square.endsWith('1'))
-                    )) {
-                        promotionPiece = 'q';
-                    }
-                    onMoveAttempt(selectedSquare, interactionState.current.square, promotionPiece);
-                    setSelectedSquare(null);
-                    setPossibleMoves([]);
-                } else {
-                    handleSquareClick(interactionState.current.square);
-                }
-
             }
         }
 
-        // Reset all drag-related state variables
+        // Reset all drag-related state variables, regardless of whether it was a drag or a simple click
         interactionState.current = null;
         setDraggedPiece(null); // Clear the dragged piece visual
         setDraggedPosition(null);
         document.body.style.cursor = 'default';
 
-    }, [handleSquareClick, onMoveAttempt, squareSize, getAlgebraicSquare, game]); // Added game to dependencies
+        // Important: Simple clicks (non-drag) are now solely handled by the `onClick` handler on the square div.
+    }, [onMoveAttempt, squareSize, getAlgebraicSquare, game, isPlayerTurn]);
 
 
     // Handles the mouse move event (during a potential drag)
@@ -213,15 +212,14 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
 
         if (dx > dragThreshold || dy > dragThreshold) {
             interactionState.current.isDragging = true;
-            e.preventDefault(); // Prevent default browser drag behavior
+            e.preventDefault(); // Prevent default browser drag behavior (e.g., image ghosting)
 
             // Set the dragged piece state to trigger the visual feedback
-            // This was already here, but combined with the handleMouseDown change, ensures instant visibility.
             setDraggedPiece({
                 piece: interactionState.current.piece,
                 fromSquare: interactionState.current.square,
             });
-            // Clear any click-based selection when a drag starts
+            // Clear any click-based selection when a drag starts, as drag-and-drop will handle the move.
             setSelectedSquare(null);
             setPossibleMoves([]);
             document.body.style.cursor = 'grabbing';
@@ -231,6 +229,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
 
     // Handles the mouse down event (start of a click or drag)
     const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
+        // Only proceed if it's the player's turn, it's a left mouse click (button 0),
+        // there's a piece, and that piece belongs to the current player.
         if ((isPlayerTurn !== undefined && !isPlayerTurn) || e.button !== 0 || !piece || game.turn() !== piece.color) {
             return;
         }
@@ -239,27 +239,32 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         interactionState.current = {
             piece,
             square,
-            isDragging: false, // Initially not dragging
+            isDragging: false, // Initially, we assume it's a click, not a drag
             startX: e.clientX,
             startY: e.clientY,
         };
 
-        setDraggedPiece({
-            piece: piece,
-            fromSquare: square,
-        });
-        setDraggedPosition({
-            x: e.clientX - (boardRef.current?.getBoundingClientRect().left || 0) - draggedPieceVisualWidth / 2,
-            y: e.clientY - (boardRef.current?.getBoundingClientRect().top || 0) - draggedPieceVisualHeight / 2,
-        });
+        // Removed the immediate setting of draggedPiece and draggedPosition here.
+        // These will now only be set in handleMouseMove once a drag threshold is met.
 
-        // Add event listeners to the window for tracking mouse movement and release
+        // Add event listeners to the window for tracking mouse movement (for potential drag) and release
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
-    }, [game, handleMouseMove, handleMouseUp, draggedPieceVisualWidth, draggedPieceVisualHeight]);
+    }, [game, handleMouseMove, handleMouseUp, draggedPieceVisualWidth, draggedPieceVisualHeight, isPlayerTurn]);
 
 
-    const currentBoard = game.board();
+    // Guard against `game` being undefined before accessing its properties.
+    // If `game` is not provided, render nothing or a loading indicator.
+    if (!game) {
+        // You might want to render a loading spinner or a message here instead.
+        return (
+            <div className="flex justify-center items-center w-full h-full text-black dark:text-white">
+                Loading Chess Board...
+            </div>
+        );
+    }
+
+    const currentBoard = game.board(); // Get the current state of the board from the game object
 
     return (
         <div className="flex justify-center items-center w-full h-full text-black dark:text-white overflow-hidden" style={{ padding: "2rem", boxSizing: "border-box" }}>
@@ -289,7 +294,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
                                     className={`relative flex items-center justify-center ${algebraicSquare === incorrectSquare ? "bg-red-200" : isDark ? "bg-sky-700" : "bg-slate-100"}`}
                                     style={{ width: squareSize, height: squareSize }}
                                     onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)}
-                                    onClick={() => handleSquareClick(algebraicSquare)} // ✅ This is the key fix
+                                    // The onClick handler is now the sole entry point for non-drag clicks
+                                    onClick={() => handleSquareClick(algebraicSquare)}
                                 >
                                     {/* Visual feedback for selected square */}
                                     {isSelected && <div className="absolute inset-0 bg-amber-200 opacity-70" style={{ zIndex: 1 }}></div>}
@@ -305,7 +311,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
                                     {!isDragged && pieceImage && (
                                         <img
                                             src={pieceImage}
-                                            draggable={false}
+                                            draggable={false} // Prevent native browser drag
                                             alt={`${piece?.color} ${piece?.type}`}
                                             style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: game.turn() === piece?.color ? 'grab' : 'default', userSelect: 'none', zIndex: 3 }}
                                         />
@@ -326,10 +332,10 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
                                     width: `${draggedPieceVisualWidth}px`,
                                     height: `${draggedPieceVisualHeight}px`,
                                     objectFit: 'contain',
-                                    pointerEvents: 'none', // Ensures mouse events pass through to the board
-                                    zIndex: 1000,
-                                    transform: 'scale(0.9)',
-                                    filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))',
+                                    pointerEvents: 'none', // Ensures mouse events pass through to the board below
+                                    zIndex: 1000, // Ensure the dragged piece is on top
+                                    transform: 'scale(0.9)', // Slightly scale down for visual effect
+                                    filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))', // Add a shadow
                                 }}
                             />
                         )}

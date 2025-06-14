@@ -193,11 +193,18 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
             }
         } else {
             // If the user's move is incorrect
-            setPuzzleStatus("incorrect");
-            setIncorrectSquare(to); // ✅ Mark square as incorrect
-            setGame(tempGame); // ✅ Show the move anyway
+            const fenBeforeIncorrectMove = game.fen(); // Capture the FEN before the move
+            setPuzzleStatus("incorrect"); // Status becomes "incorrect" to show feedback color
+            setIncorrectSquare(to);
+            setGame(tempGame); // Briefly show the incorrect move on the board
             setFeedbackMessage("Incorrect move. Try again!");
 
+            // After a short delay, revert the move on the board and re-enable interaction
+            setTimeout(() => {
+                setGame(new Chess(fenBeforeIncorrectMove));
+                setIncorrectSquare(null); // Clear the red square after reverting
+                setPuzzleStatus("playing"); // Re-enable the board for another try
+            }, 300); // 300ms delay before reverting
         }
     }, [game, currentMoveIndex, puzzleSolution, userColor, puzzleStatus]);
 
@@ -251,10 +258,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
             </div>
         </div>
     );
-
-
-
-
 };
 
 export default PuzzleBoard;
