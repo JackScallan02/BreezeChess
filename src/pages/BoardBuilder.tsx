@@ -5,7 +5,7 @@ import useDarkMode from '../darkmode/useDarkMode';
 import MainToolBar from '../components/MainToolBar';
 import ChessBoard from '../components/ChessBoard';
 import { useNavigation } from '../navigator/navigate';
-import { Chess } from 'chess.js';
+import { Chess, Square } from 'chess.js';
 
 const BoardBuilder = () => {
   const { handleNavigation } = useNavigation();
@@ -13,6 +13,36 @@ const BoardBuilder = () => {
   const [isBoardReady, setIsBoardReady] = useState(false); // New state for board readiness
 
   useDarkMode();
+
+  const handleMove = useCallback((from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
+          // TODO: Currently not working
+          const tempGame = new Chess(game.fen());
+  
+          let moveResult;
+          const moveOptions: { from: Square; to: Square; promotion?: 'q' | 'r' | 'b' | 'n' } = { from, to };
+          if (promotion) {
+              moveOptions.promotion = promotion;
+          }
+  
+          try {
+              moveResult = tempGame.move(moveOptions);
+          } catch (e) {
+              // Catch errors for illegal moves
+              moveResult = null;
+          }
+  
+          if (moveResult === null) {
+              // If the move is illegal, do nothing
+              return;
+          }
+  
+          // Construct the user's move string, including promotion if it occurred
+          let userMoveFullAlgebraic = `${from}${to}`;
+          if (promotion) {
+              userMoveFullAlgebraic += promotion;
+          }
+  
+      }, [game]);
 
   // Callback function to be passed to ChessBoard
   const handleBoardReady = useCallback((ready: boolean) => {
@@ -29,8 +59,8 @@ const BoardBuilder = () => {
         <ChessBoard
           showLabels
           game={game}
-          setGame={setGame}
           onBoardReady={handleBoardReady} // Pass the callback
+          onMoveAttempt={handleMove}
         />
         {/* Conditionally render this div based on isBoardReady */}
         {isBoardReady && (

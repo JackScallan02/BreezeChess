@@ -1,28 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
-import PuzzleBoard from '../../pages/PuzzleBoard';
-import { getPuzzles } from "../../api/puzzles";
-import MainToolBar from "../MainToolBar";
+import PuzzleBoard from '../pages/PuzzleBoard';
+import { getPuzzles } from "../api/puzzles";
+import MainToolBar from "./MainToolBar";
 
+interface PuzzleProps {
+    title: string;
+    themes: Array<string>;
+};
 
-const MateInOne = () => {
+const PuzzleType: React.FC<PuzzleProps>  = ({title, themes}) => {
     const hasFetched = useRef(false); // <-- guard ref
     const [puzzleSolution, setPuzzleSolution] = useState({
         fen: '',
         moves: [''],
         name: '',
-        description: '',
     });
 
     const fetchPuzzle = async () => {
         try {
-            const res = await getPuzzles({ themes: ['mateIn1'] }, undefined);
+            const res = await getPuzzles({ themes: themes }, undefined);
             const puzzle = res.result[0];
             const moveList = puzzle.Moves.split(' ');
             setPuzzleSolution({
                 fen: puzzle.FEN,
                 moves: moveList,
-                name: puzzle.Themes,
-                description: 'some description',
+                name: title,
             });
         } catch (error) {
             console.error(error);
@@ -44,4 +46,4 @@ const MateInOne = () => {
     );
 };
 
-export default MateInOne;
+export default PuzzleType;

@@ -14,7 +14,6 @@ interface PuzzleBoardProps {
         fen: string;
         moves: string[];
         name?: string;
-        description?: string;
         fetchPuzzle: () => void;
     };
     showLabels?: boolean;
@@ -204,14 +203,9 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
 
     return (
         <div className="flex flex-col items-center h-full w-full overflow-hidden">
-            <h2 className="text-2xl font-bold mb-2 text-slate-800 dark:text-white">
+            <h2 className="text-2xl font-bold mt-4 mb-2 text-slate-800 dark:text-white">
                 {puzzleSolution.name || "Chess Puzzle"}
             </h2>
-            {puzzleSolution.description && (
-                <p className="text-center text-slate-600 dark:text-white mb-4">
-                    {puzzleSolution.description}
-                </p>
-            )}
             <div className="flex flex-row justify-between w-full max-w-5xl items-start ml-12">
                 {/* Optional placeholder for future content */}
                 <div className="w-full"></div>
