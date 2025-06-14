@@ -36,6 +36,26 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     const [draggedPosition, setDraggedPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
     const [possibleMoves, setPossibleMoves] = useState<Square[]>([]);
+    const [hoveredSquare, setHoveredSquare] = useState<Square | null>(null); // State for hovered square during drag
+
+    // Refs to hold current state values for event listeners that are attached to window
+    const possibleMovesRef = useRef<Square[]>([]);
+    const gameRef = useRef<Chess | null>(null);
+    const draggedPieceRef = useRef<DraggedPieceState | null>(null); // New ref for draggedPiece
+
+    // Update refs whenever the state or prop changes
+    useEffect(() => {
+        possibleMovesRef.current = possibleMoves;
+    }, [possibleMoves]);
+
+    useEffect(() => {
+        gameRef.current = game;
+    }, [game]);
+
+    useEffect(() => {
+        draggedPieceRef.current = draggedPiece; // Update draggedPieceRef whenever draggedPiece state changes
+    }, [draggedPiece]);
+
 
     const squareSize = boardWidth > 0 ? boardWidth / 8 : 0;
     const draggedPieceVisualWidth = squareSize;
@@ -132,7 +152,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
             }
             // If the clicked square is empty or has an opponent's piece and nothing is selected, do nothing.
         }
-    }, [game, onMoveAttempt, selectedSquare, isPlayerTurn]); // Added isPlayerTurn to dependencies
+    }, [game, onMoveAttempt, selectedSquare, isPlayerTurn]);
 
 
     // Handles the mouse up event (end of a click or drag)
@@ -140,6 +160,10 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         // Always remove event listeners when the mouse button is released
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
+
+        // Reset hovered square and possible moves for drag at the end of an interaction
+        setHoveredSquare(null);
+        setPossibleMoves([]); // Clear possible moves that were set for dragging
 
         // If it's not the player's turn, reset state and exit.
         if (isPlayerTurn !== undefined && !isPlayerTurn) {
@@ -165,7 +189,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
                     const toSquare = getAlgebraicSquare(row * 8 + col);
                     // If the piece was dragged to a different square, attempt the move
                     if (interactionState.current.square !== toSquare) {
-                        const pieceToMove = game.get(interactionState.current.square);
+                        // Use gameRef.current to get the most up-to-date game object
+                        const pieceToMove = gameRef.current?.get(interactionState.current.square);
                         let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
                         if (pieceToMove && pieceToMove.type === 'p' && (
                             (pieceToMove.color === 'w' && toSquare.endsWith('8')) ||
@@ -186,7 +211,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         document.body.style.cursor = 'default';
 
         // Important: Simple clicks (non-drag) are now solely handled by the `onClick` handler on the square div.
-    }, [onMoveAttempt, squareSize, getAlgebraicSquare, game, isPlayerTurn]);
+    }, [onMoveAttempt, squareSize, getAlgebraicSquare, isPlayerTurn]);
 
 
     // Handles the mouse move event (during a potential drag)
@@ -197,10 +222,38 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         if (interactionState.current.isDragging) {
             if (boardRef.current) {
                 const boardRect = boardRef.current.getBoundingClientRect();
+                const currentMouseX = e.clientX - boardRect.left;
+                const currentMouseY = e.clientY - boardRect.top;
+
                 setDraggedPosition({
-                    x: e.clientX - boardRect.left - draggedPieceVisualWidth / 2,
-                    y: e.clientY - boardRect.top - draggedPieceVisualHeight / 2,
+                    x: currentMouseX - draggedPieceVisualWidth / 2,
+                    y: currentMouseY - draggedPieceVisualHeight / 2,
                 });
+
+                // Calculate the square currently under the dragged piece
+                const col = Math.floor(currentMouseX / squareSize);
+                const row = Math.floor(currentMouseY / squareSize);
+
+                if (col >= 0 && col < 8 && row >= 0 && row < 8) {
+                    const currentHoveredSquare = getAlgebraicSquare(row * 8 + col);
+                    // Highlight if it's a valid move target OR the starting square of the dragged piece
+                    // Use draggedPieceRef.current for fromSquare
+                    if (possibleMovesRef.current.includes(currentHoveredSquare) || (draggedPieceRef.current && currentHoveredSquare === draggedPieceRef.current.fromSquare)) {
+                        if (currentHoveredSquare !== hoveredSquare) {
+                            setHoveredSquare(currentHoveredSquare);
+                        }
+                    } else {
+                        // If currentHoveredSquare is not a valid move target or the starting square, clear the hovered square
+                        if (hoveredSquare !== null) {
+                            setHoveredSquare(null);
+                        }
+                    }
+                } else {
+                    // If the piece is dragged outside the board, clear hoveredSquare
+                    if (hoveredSquare !== null) {
+                        setHoveredSquare(null);
+                    }
+                }
             }
             return;
         }
@@ -214,24 +267,36 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
             interactionState.current.isDragging = true;
             e.preventDefault(); // Prevent default browser drag behavior (e.g., image ghosting)
 
-            // Set the dragged piece state to trigger the visual feedback
-            setDraggedPiece({
+            // Set the dragged piece state and update ref simultaneously
+            const newDraggedPiece: DraggedPieceState = {
                 piece: interactionState.current.piece,
                 fromSquare: interactionState.current.square,
-            });
+            };
+            setDraggedPiece(newDraggedPiece);
+            draggedPieceRef.current = newDraggedPiece; // Update ref immediately
+
+            // When a drag starts, calculate possible moves for the dragged piece using the ref
+            if (gameRef.current) { // Ensure gameRef.current is not null
+                const moves = gameRef.current.moves({ square: interactionState.current.square, verbose: true }).map(move => move.to);
+                setPossibleMoves(moves as Square[]);
+            }
+
             // Clear any click-based selection when a drag starts, as drag-and-drop will handle the move.
             setSelectedSquare(null);
-            setPossibleMoves([]);
             document.body.style.cursor = 'grabbing';
         }
-    }, [draggedPieceVisualHeight, draggedPieceVisualWidth]);
+    }, [draggedPieceVisualHeight, draggedPieceVisualWidth, squareSize, getAlgebraicSquare, hoveredSquare]); // Removed draggedPiece from dependencies as it's now accessed via ref.
 
 
     // Handles the mouse down event (start of a click or drag)
     const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
+        // Prevent default browser behavior (like image dragging) immediately
+        e.preventDefault();
+
         // Only proceed if it's the player's turn, it's a left mouse click (button 0),
         // there's a piece, and that piece belongs to the current player.
-        if ((isPlayerTurn !== undefined && !isPlayerTurn) || e.button !== 0 || !piece || game.turn() !== piece.color) {
+        // Use gameRef.current for game.turn()
+        if ((isPlayerTurn !== undefined && !isPlayerTurn) || e.button !== 0 || !piece || gameRef.current?.turn() !== piece.color) {
             return;
         }
 
@@ -244,13 +309,10 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
             startY: e.clientY,
         };
 
-        // Removed the immediate setting of draggedPiece and draggedPosition here.
-        // These will now only be set in handleMouseMove once a drag threshold is met.
-
         // Add event listeners to the window for tracking mouse movement (for potential drag) and release
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
-    }, [game, handleMouseMove, handleMouseUp, draggedPieceVisualWidth, draggedPieceVisualHeight, isPlayerTurn]);
+    }, [handleMouseMove, handleMouseUp, isPlayerTurn]);
 
 
     // Guard against `game` being undefined before accessing its properties.
@@ -286,22 +348,25 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
                             const pieceImage = getPieceImage(piece || undefined);
                             const isDragged = draggedPiece?.fromSquare === algebraicSquare;
                             const isSelected = selectedSquare === algebraicSquare;
-                            const isPossibleMove = possibleMoves.includes(algebraicSquare);
+                            // possibleMoves for click-to-move AND valid drag targets
+                            const isPossibleMoveTarget = possibleMoves.includes(algebraicSquare);
+                            // Highlight if it's the hovered square and either a possible move target OR the starting square of the dragged piece
+                            const isHoveredHighlight = hoveredSquare === algebraicSquare && draggedPiece && (isPossibleMoveTarget || algebraicSquare === draggedPiece.fromSquare);
 
                             return (
                                 <div
                                     key={i}
-                                    className={`relative flex items-center justify-center ${algebraicSquare === incorrectSquare ? "bg-red-200" : isDark ? "bg-sky-700" : "bg-slate-100"}`}
+                                    className={`relative flex items-center justify-center
+                                        ${algebraicSquare === incorrectSquare ? "bg-red-200" : isDark ? "bg-sky-700" : "bg-slate-100"}
+                                        ${isSelected ? "bg-amber-200 opacity-70" : ""}
+                                        ${isHoveredHighlight ? "bg-green-300 opacity-70" : ""}`}
                                     style={{ width: squareSize, height: squareSize }}
                                     onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)}
                                     // The onClick handler is now the sole entry point for non-drag clicks
                                     onClick={() => handleSquareClick(algebraicSquare)}
                                 >
-                                    {/* Visual feedback for selected square */}
-                                    {isSelected && <div className="absolute inset-0 bg-amber-200 opacity-70" style={{ zIndex: 1 }}></div>}
-
-                                    {/* Visual feedback for possible moves */}
-                                    {isPossibleMove && (
+                                    {/* Visual feedback for possible moves (for both click-to-move and valid drag targets) */}
+                                    {isPossibleMoveTarget && (
                                         <div
                                             className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`}
                                             style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 2, transform: piece ? 'scale(0.9)' : 'none' }}
