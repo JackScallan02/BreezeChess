@@ -24,6 +24,11 @@ async def get_puzzles(request: ProcessRequest):
     try:
         filters = request.filters
         count = request.count
+        themes = None
+        print(filters)
+        if filters:
+            if filters['themes']:
+                themes = filters['themes']
         print(f"Received filters: {filters}, count: {count}")
         
         # You can access environment variables passed from docker-compose
@@ -36,7 +41,7 @@ async def get_puzzles(request: ProcessRequest):
         connectionStr = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
         cpk.initialize_connection(connectionStr)
 
-        puzzles = cpk.get_puzzle(count=count)
+        puzzles = cpk.get_puzzle(themes=themes, count=count)
         print(f"Retrieved {len(puzzles)} puzzles")
 
         return {

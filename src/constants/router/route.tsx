@@ -10,6 +10,7 @@ import Train from "../../pages/Train";
 import BoardBuilder from "../../pages/BoardBuilder";
 import React from 'react';
 import PuzzleHome from "../../pages/PuzzleHome";
+import MateInOne from "../../components/Puzzles/MateInOne";
 
 interface Route {
   path: string;
@@ -56,8 +57,13 @@ export const ROUTES: Array<Route> = [
   {
     path: "/train/board-builder",
     element: <BoardBuilder />
-  },{
-    path: "/train/puzzle/home",
+  },
+  {
+    path: "/train/puzzle",
     element: <PuzzleHome />
-  }
+  },
+    {
+    path: "/train/puzzle/mateInOne",
+    element: <MateInOne />
+  },
 ];

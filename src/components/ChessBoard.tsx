@@ -1,13 +1,14 @@
-// components/ChessBoard.tsx
-
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Chess, Square, Piece } from 'chess.js';
 
-interface props {
+// ChessBoard Component
+interface ChessBoardProps {
     showLabels: boolean;
     game: Chess;
-    setGame: React.Dispatch<React.SetStateAction<Chess>>;
-    onBoardReady?: (isReady: boolean) => void; // New prop
+    onBoardReady?: (isReady: boolean) => void;
+    onMoveAttempt: (from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => void; // Added promotion
+    incorrectSquare?: string | null;
+    isPlayerTurn?: boolean | undefined;
 }
 
 interface DraggedPieceState {
@@ -15,242 +16,248 @@ interface DraggedPieceState {
     fromSquare: Square;
 }
 
-const ChessBoard: React.FC<props> = ({ showLabels, game, setGame, onBoardReady }) => { // Destructure new prop
+interface InteractionState {
+    piece: Piece; // The piece that started the interaction
+    square: Square; // The square where the interaction started
+    isDragging: boolean;
+    startX: number;
+    startY: number;
+}
+
+const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt, isPlayerTurn, incorrectSquare }) => {
     const letters = ["a", "b", "c", "d", "e", "f", "g", "h"];
-    const typeMapping: { [key: string]: string } = {
-        p: "pawn", r: "rook", n: "knight", b: "bishop", q: "queen", k: "king",
-    };
-    const colorMapping: { [key: string]: string } = {
-        w: "white", b: "black",
-    };
     const numbers = [8, 7, 6, 5, 4, 3, 2, 1];
 
     const boardRef = useRef<HTMLDivElement>(null);
+    const interactionState = useRef<InteractionState | null>(null);
+
     const [boardWidth, setBoardWidth] = useState(0);
-
     const [draggedPiece, setDraggedPiece] = useState<DraggedPieceState | null>(null);
-    const [draggedPosition, setDraggedPosition] = useState<{ x: number, y: number } | null>(null);
-
-    const [isGameOver, setIsGameOver] = useState(false);
-    const [gameResult, setGameResult] = useState<string | null>(null);
-
+    const [draggedPosition, setDraggedPosition] = useState<{ x: number; y: number } | null>(null);
     const [selectedSquare, setSelectedSquare] = useState<Square | null>(null);
     const [possibleMoves, setPossibleMoves] = useState<Square[]>([]);
-
 
     const squareSize = boardWidth > 0 ? boardWidth / 8 : 0;
     const draggedPieceVisualWidth = squareSize;
     const draggedPieceVisualHeight = squareSize;
 
+    // Effect to update board width on resize
     useEffect(() => {
         const updateBoardWidth = () => {
             if (boardRef.current) {
+                // Determine board size based on viewport, ensuring a minimum size
                 const viewportMin = Math.min(window.innerWidth, window.innerHeight);
                 let newBoardWidth = viewportMin * 0.7;
-                newBoardWidth = Math.max(newBoardWidth, 300);
-
-                if (newBoardWidth !== boardWidth) { // Only update if changed
-                    setBoardWidth(newBoardWidth);
-                    // Call onBoardReady when the board width is set for the first time or changes
-                    if (onBoardReady) {
-                        onBoardReady(true);
-                    }
-                }
-            } else {
-                // If boardRef.current is null, the board is not ready
-                if (onBoardReady && boardWidth !== 0) { // Only send false if it was previously true
-                    onBoardReady(false);
-                }
+                newBoardWidth = Math.max(newBoardWidth, 300); // Minimum board size
+                if (newBoardWidth !== boardWidth) setBoardWidth(newBoardWidth);
             }
         };
-
-        updateBoardWidth();
+        updateBoardWidth(); // Set initial width
         window.addEventListener("resize", updateBoardWidth);
-
         return () => window.removeEventListener("resize", updateBoardWidth);
-    }, [boardWidth, onBoardReady]); // Add boardWidth and onBoardReady to dependency array
+    }, [boardWidth]); // Re-run if boardWidth changes
 
+    // Memoized function to get algebraic notation for a square index
     const getAlgebraicSquare = useCallback((index: number): Square => {
-        const file = String.fromCharCode(97 + (index % 8));
-        const rank = numbers[Math.floor(index / 8)];
+        const file = String.fromCharCode(97 + (index % 8)); // 'a' through 'h'
+        const rank = numbers[Math.floor(index / 8)]; // 8 through 1
         return (file + rank) as Square;
     }, [numbers]);
 
+    // Helper to get piece image URL
     const getPieceImage = (piece: Piece | undefined): string | null => {
-        if (piece) {
-            return `/assets/chess_pieces/default/${colorMapping[piece.color]}/${typeMapping[piece.type]}.webp`;
-        }
+        if (piece) return `https://images.chesscomfiles.com/chess-themes/pieces/neo/150/${piece.color}${piece.type}.png`;
         return null;
     };
 
-    const handleSquareInteraction = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
-        e.preventDefault();
+    // Handles a click on a square (either to select or to make a move)
+    const handleSquareClick = useCallback((clickedSquare: Square) => {
+        if (isPlayerTurn !== undefined && !isPlayerTurn) return;
+        // If a piece is already selected
+        if (selectedSquare) {
+            if (selectedSquare === clickedSquare) {
+                setSelectedSquare(null);
+                setPossibleMoves([]);
+                return;
+            }
 
-        if (isGameOver || !boardRef.current) {
+            const pieceToMove = game.get(selectedSquare);
+
+            const pieceOnClickedSquare = game.get(clickedSquare);
+            if (pieceOnClickedSquare && pieceOnClickedSquare.color === game.turn()) {
+                setSelectedSquare(clickedSquare);
+                const moves = game.moves({ square: clickedSquare, verbose: true }).map(move => move.to);
+                setPossibleMoves(moves as Square[]);
+                return;
+            }
+
+            if (pieceToMove && pieceToMove.color === game.turn()) {
+                // If it's a pawn promotion move, we'll default to queen promotion for simplicity in UI
+                // In a full game, a promotion dialog would appear.
+                let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
+                if (pieceToMove.type === 'p' && (
+                    (pieceToMove.color === 'w' && clickedSquare.endsWith('8')) ||
+                    (pieceToMove.color === 'b' && clickedSquare.endsWith('1'))
+                )) {
+                    promotionPiece = 'q';
+                }
+
+                onMoveAttempt(selectedSquare, clickedSquare, promotionPiece);
+                setSelectedSquare(null);
+                setPossibleMoves([]);
+                return;
+            } else {
+                setSelectedSquare(null);
+                setPossibleMoves([]);
+            }
+
+        } else {
+            const pieceOnClickedSquare = game.get(clickedSquare);
+            if (pieceOnClickedSquare && pieceOnClickedSquare.color === game.turn()) {
+                setSelectedSquare(clickedSquare);
+                const moves = game.moves({ square: clickedSquare, verbose: true }).map(move => move.to);
+                setPossibleMoves(moves as Square[]);
+            }
+        }
+    }, [game, onMoveAttempt, selectedSquare]);
+
+    const handleMouseUp = useCallback((e: MouseEvent) => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+
+        if (isPlayerTurn !== undefined && !isPlayerTurn) {
+            interactionState.current = null;
+            setDraggedPiece(null);
+            setDraggedPosition(null);
+            document.body.style.cursor = 'default';
             return;
         }
 
-        if (piece && game.turn() === piece.color) {
-            if (selectedSquare === square) {
-                setSelectedSquare(null);
-                setPossibleMoves([]);
-            } else {
-                setSelectedSquare(square);
-                const moves = game.moves({ square: square, verbose: true }).map(move => move.to);
-                setPossibleMoves(moves as Square[]);
-            }
+        if (interactionState.current) {
+            if (interactionState.current.isDragging) {
+                // Drag End Logic
+                if (boardRef.current) {
+                    const boardRect = boardRef.current.getBoundingClientRect();
+                    const mouseX = e.clientX - boardRect.left;
+                    const mouseY = e.clientY - boardRect.top;
 
-            if (game.turn() === piece.color && e.type === 'mousedown') {
-                const boardRect = boardRef.current.getBoundingClientRect();
-                setDraggedPiece({ piece, fromSquare: square });
-                setDraggedPosition({
-                    x: e.clientX - boardRect.left - (draggedPieceVisualWidth / 2),
-                    y: e.clientY - boardRect.top - (draggedPieceVisualHeight / 2),
-                });
-                document.body.style.cursor = 'grabbing';
-            }
+                    // Calculate the target square based on mouse position
+                    const col = Math.floor(mouseX / squareSize);
+                    const row = Math.floor(mouseY / squareSize);
 
-        } else if (selectedSquare) {
-            try {
-                const selectedPiece = game.get(selectedSquare);
-                const isPawn = selectedPiece && selectedPiece.type === 'p';
-                const isPromotion = (isPawn && ((selectedPiece.color === 'w' && square[1] === '8') || (selectedPiece.color === 'b' && square[1] === '1')));
-
-                const moveResult = game.move({
-                    from: selectedSquare,
-                    to: square,
-                    promotion: isPromotion ? 'q' : undefined,
-                });
-
-                if (moveResult) {
-                    setGame(new Chess(game.fen()));
-                    setSelectedSquare(null);
-                    setPossibleMoves([]);
-                    if (game.isCheckmate()) {
-                        const winner = game.turn() === 'w' ? 'Black' : 'White';
-                        setGameResult(`${winner} wins by checkmate!`);
-                        setIsGameOver(true);
-                    } else if (game.isStalemate()) {
-                        setGameResult("Game over: Stalemate!");
-                        setIsGameOver(true);
-                    } else if (game.isDraw()) {
-                        setGameResult("Game over: Draw!");
-                        setIsGameOver(true);
-                    } else if (game.isThreefoldRepetition()) {
-                        setGameResult("Game over: Draw by threefold repetition!");
-                        setIsGameOver(true);
-                    } else if (game.isInsufficientMaterial()) {
-                        setGameResult("Game over: Draw by insufficient material!");
-                        setIsGameOver(true);
-                    } else if (game.isDrawByFiftyMoves()) {
-                        setGameResult("Game over: Draw by fifty moves rule!");
-                        setIsGameOver(true);
-                    }
-                } else {
-                    setSelectedSquare(null);
-                    setPossibleMoves([]);
-                }
-            } catch (error) {
-                setSelectedSquare(null);
-                setPossibleMoves([]);
-            }
-        } else {
-            setSelectedSquare(null);
-            setPossibleMoves([]);
-        }
-    }, [isGameOver, game, selectedSquare, draggedPieceVisualWidth, draggedPieceVisualHeight, setGame]);
-
-
-    const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (draggedPiece && boardRef.current) {
-            const boardRect = boardRef.current.getBoundingClientRect();
-            setDraggedPosition({
-                x: e.clientX - boardRect.left - (draggedPieceVisualWidth / 2),
-                y: e.clientY - boardRect.top - (draggedPieceVisualHeight / 2),
-            });
-        }
-    }, [draggedPiece, draggedPieceVisualWidth, draggedPieceVisualHeight]);
-
-    const handleMouseUp = useCallback((e: MouseEvent) => {
-        if (draggedPiece && boardRef.current) {
-            const boardRect = boardRef.current.getBoundingClientRect();
-
-            const mouseX = (draggedPosition?.x ?? (e.clientX - boardRect.left)) + (draggedPieceVisualWidth / 2);
-            const mouseY = (draggedPosition?.y ?? (e.clientY - boardRect.top)) + (draggedPieceVisualHeight / 2);
-
-            const col = Math.floor(mouseX / squareSize);
-            const row = Math.floor(mouseY / squareSize);
-
-            if (col >= 0 && col < 8 && row >= 0 && row < 8) {
-                const targetIndex = row * 8 + col;
-                const toSquare = getAlgebraicSquare(targetIndex);
-
-                try {
-                    const piece = game.get(draggedPiece.fromSquare);
-                    const isPawn = piece && piece.type === 'p';
-                    const isPromotion = (isPawn && ((piece.color === 'w' && toSquare[1] === '8') || (piece.color === 'b' && toSquare[1] === '1')));
-
-                    const moveResult = game.move({
-                        from: draggedPiece.fromSquare,
-                        to: toSquare,
-                        promotion: isPromotion ? 'q' : undefined,
-                    });
-
-                    if (moveResult) {
-                        setGame(new Chess(game.fen()));
-                        setSelectedSquare(null);
-                        setPossibleMoves([]);
-
-                        if (game.isCheckmate()) {
-                            const winner = game.turn() === 'w' ? 'Black' : 'White';
-                            setGameResult(`${winner} wins by checkmate!`);
-                            setIsGameOver(true);
-                        } else if (game.isStalemate()) {
-                            setGameResult("Game over: Stalemate!");
-                            setIsGameOver(true);
-                        } else if (game.isDraw()) {
-                            setGameResult("Game over: Draw!");
-                            setIsGameOver(true);
-                        } else if (game.isThreefoldRepetition()) {
-                            setGameResult("Game over: Draw by threefold repetition!");
-                            setIsGameOver(true);
-                        } else if (game.isInsufficientMaterial()) {
-                            setGameResult("Game over: Draw by insufficient material!");
-                            setIsGameOver(true);
-                        } else if (game.isDrawByFiftyMoves()) {
-                            setGameResult("Game over: Draw by fifty moves rule!");
-                            setIsGameOver(true);
+                    if (col >= 0 && col < 8 && row >= 0 && row < 8) {
+                        const toSquare = getAlgebraicSquare(row * 8 + col);
+                        // If the piece was dragged to a different square, attempt the move
+                        if (interactionState.current.square !== toSquare) {
+                            const pieceToMove = game.get(interactionState.current.square);
+                            let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
+                            if (pieceToMove && pieceToMove.type === 'p' && (
+                                (pieceToMove.color === 'w' && toSquare.endsWith('8')) ||
+                                (pieceToMove.color === 'b' && toSquare.endsWith('1'))
+                            )) {
+                                promotionPiece = 'q';
+                            }
+                            onMoveAttempt(interactionState.current.square, toSquare, promotionPiece);
                         }
                     }
-                } catch (error) {
-                    // Invalid move, snap back (by resetting draggedPiece)
                 }
+            } else {
+                if (selectedSquare && selectedSquare !== interactionState.current.square) {
+                    const pieceToMove = game.get(selectedSquare);
+                    let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
+                    if (pieceToMove && pieceToMove.type === 'p' && (
+                        (pieceToMove.color === 'w' && interactionState.current.square.endsWith('8')) ||
+                        (pieceToMove.color === 'b' && interactionState.current.square.endsWith('1'))
+                    )) {
+                        promotionPiece = 'q';
+                    }
+                    onMoveAttempt(selectedSquare, interactionState.current.square, promotionPiece);
+                    setSelectedSquare(null);
+                    setPossibleMoves([]);
+                } else {
+                    handleSquareClick(interactionState.current.square);
+                }
+
             }
         }
 
-        setDraggedPiece(null);
+        // Reset all drag-related state variables
+        interactionState.current = null;
+        setDraggedPiece(null); // Clear the dragged piece visual
         setDraggedPosition(null);
         document.body.style.cursor = 'default';
-    }, [draggedPiece, game, getAlgebraicSquare, squareSize, draggedPosition, draggedPieceVisualWidth, draggedPieceVisualHeight, setGame]);
+
+    }, [handleSquareClick, onMoveAttempt, squareSize, getAlgebraicSquare, game]); // Added game to dependencies
 
 
-    useEffect(() => {
-        if (draggedPiece) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-        } else {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
+    // Handles the mouse move event (during a potential drag)
+    const handleMouseMove = useCallback((e: MouseEvent) => {
+        if (!interactionState.current) return;
+
+        // If already dragging, just update the visual position of the dragged piece
+        if (interactionState.current.isDragging) {
+            if (boardRef.current) {
+                const boardRect = boardRef.current.getBoundingClientRect();
+                setDraggedPosition({
+                    x: e.clientX - boardRect.left - draggedPieceVisualWidth / 2,
+                    y: e.clientY - boardRect.top - draggedPieceVisualHeight / 2,
+                });
+            }
+            return;
         }
 
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
-    }, [draggedPiece, handleMouseMove, handleMouseUp]);
+        // Check if the mouse has moved enough to initiate a drag
+        const dx = Math.abs(e.clientX - interactionState.current.startX);
+        const dy = Math.abs(e.clientY - interactionState.current.startY);
+        const dragThreshold = 5; // Pixels to move before considering it a drag
 
-    const sideLabelWidth = boardWidth * 0.04;
-    const bottomLabelMarginTop = boardWidth * 0.02;
+        if (dx > dragThreshold || dy > dragThreshold) {
+            interactionState.current.isDragging = true;
+            e.preventDefault(); // Prevent default browser drag behavior
+
+            // Set the dragged piece state to trigger the visual feedback
+            // This was already here, but combined with the handleMouseDown change, ensures instant visibility.
+            setDraggedPiece({
+                piece: interactionState.current.piece,
+                fromSquare: interactionState.current.square,
+            });
+            // Clear any click-based selection when a drag starts
+            setSelectedSquare(null);
+            setPossibleMoves([]);
+            document.body.style.cursor = 'grabbing';
+        }
+    }, [draggedPieceVisualHeight, draggedPieceVisualWidth]);
+
+
+    // Handles the mouse down event (start of a click or drag)
+    const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
+        if ((isPlayerTurn !== undefined && !isPlayerTurn) || e.button !== 0 || !piece || game.turn() !== piece.color) {
+            return;
+        }
+
+        // Initialize interactionState ref
+        interactionState.current = {
+            piece,
+            square,
+            isDragging: false, // Initially not dragging
+            startX: e.clientX,
+            startY: e.clientY,
+        };
+
+        setDraggedPiece({
+            piece: piece,
+            fromSquare: square,
+        });
+        setDraggedPosition({
+            x: e.clientX - (boardRef.current?.getBoundingClientRect().left || 0) - draggedPieceVisualWidth / 2,
+            y: e.clientY - (boardRef.current?.getBoundingClientRect().top || 0) - draggedPieceVisualHeight / 2,
+        });
+
+        // Add event listeners to the window for tracking mouse movement and release
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+    }, [game, handleMouseMove, handleMouseUp, draggedPieceVisualWidth, draggedPieceVisualHeight]);
+
 
     const currentBoard = game.board();
 
@@ -259,36 +266,18 @@ const ChessBoard: React.FC<props> = ({ showLabels, game, setGame, onBoardReady }
             <div className="flex flex-col items-center" style={{ minHeight: "300px", minWidth: "300px" }}>
                 <div className="flex">
                     {showLabels && (
-                        <div
-                            className="flex flex-col justify-between"
-                            style={{
-                                height: boardWidth > 0 ? boardWidth : 'auto',
-                                marginRight: `min(${sideLabelWidth}px, 12px)`,
-                                visibility: boardWidth === 0 ? 'hidden' : 'visible',
-                                transition: 'visibility 0s ease 0.1s'
-                            }}
-                        >
-                            {numbers.map((num, i) => (
-                                <div key={i} className="flex-1 flex items-center justify-center text-sm font-semibold">{num}</div>
-                            ))}
+                        <div className="flex flex-col justify-between" style={{ height: boardWidth > 0 ? boardWidth : 'auto', marginRight: `min(${boardWidth * 0.04}px, 12px)`, visibility: boardWidth === 0 ? 'hidden' : 'visible' }}>
+                            {numbers.map((num, i) => <div key={i} className="flex-1 flex items-center justify-center text-sm font-semibold">{num}</div>)}
                         </div>
                     )}
                     <div
                         ref={boardRef}
                         className="grid grid-cols-8 grid-rows-8 max-w-full max-h-full border-4 border-gray-700 rounded-md overflow-hidden"
-                        style={{
-                            width: boardWidth,
-                            height: boardWidth,
-                            position: 'relative',
-                            visibility: boardWidth === 0 ? 'hidden' : 'visible',
-                            transition: 'visibility 0s ease 0.1s'
-                        }}
+                        style={{ width: boardWidth, height: boardWidth, position: 'relative', visibility: boardWidth === 0 ? 'hidden' : 'visible' }}
                     >
                         {currentBoard.flat().map((piece, i) => {
-                            const row = Math.floor(i / 8);
-                            const col = i % 8;
-                            const isDark = (row + col) % 2 !== 0;
                             const algebraicSquare = getAlgebraicSquare(i);
+                            const isDark = (Math.floor(i / 8) + (i % 8)) % 2 !== 0;
                             const pieceImage = getPieceImage(piece || undefined);
                             const isDragged = draggedPiece?.fromSquare === algebraicSquare;
                             const isSelected = selectedSquare === algebraicSquare;
@@ -297,54 +286,38 @@ const ChessBoard: React.FC<props> = ({ showLabels, game, setGame, onBoardReady }
                             return (
                                 <div
                                     key={i}
-                                    className={`${isDark ? "bg-sky-700" : "bg-slate-100"} relative flex items-center justify-center`}
+                                    className={`relative flex items-center justify-center ${algebraicSquare === incorrectSquare ? "bg-red-200" : isDark ? "bg-sky-700" : "bg-slate-100"}`}
                                     style={{ width: squareSize, height: squareSize }}
-                                    onMouseDown={(e) => handleSquareInteraction(e, piece || undefined, algebraicSquare)}
-                                    onClick={(e) => {
-                                        if (!draggedPiece) {
-                                            handleSquareInteraction(e, piece || undefined, algebraicSquare);
-                                        }
-                                    }}
+                                    onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)}
+                                    onClick={() => handleSquareClick(algebraicSquare)} // ✅ This is the key fix
                                 >
-                                    {isSelected && (
-                                        <div
-                                            className="absolute inset-0 bg-amber-200 opacity-70"
-                                            style={{ zIndex: 1 }}
-                                        ></div>
-                                    )}
+                                    {/* Visual feedback for selected square */}
+                                    {isSelected && <div className="absolute inset-0 bg-amber-200 opacity-70" style={{ zIndex: 1 }}></div>}
 
+                                    {/* Visual feedback for possible moves */}
                                     {isPossibleMove && (
                                         <div
                                             className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`}
-                                            style={{
-                                                width: piece ? '100%' : '30%',
-                                                height: piece ? '100%' : '30%',
-                                                zIndex: 2,
-                                                transform: piece ? 'scale(0.9)' : 'none',
-                                            }}
+                                            style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 2, transform: piece ? 'scale(0.9)' : 'none' }}
                                         ></div>
                                     )}
-
+                                    {/* Hide the piece on the board if it's being dragged */}
                                     {!isDragged && pieceImage && (
                                         <img
                                             src={pieceImage}
+                                            draggable={false}
                                             alt={`${piece?.color} ${piece?.type}`}
-                                            style={{
-                                                width: '75%',
-                                                height: '75%',
-                                                objectFit: 'contain',
-                                                cursor: game.turn() === piece?.color ? 'grab' : 'default',
-                                                userSelect: 'none',
-                                                zIndex: 3,
-                                            }}
+                                            style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: game.turn() === piece?.color ? 'grab' : 'default', userSelect: 'none', zIndex: 3 }}
                                         />
                                     )}
                                 </div>
                             );
                         })}
+                        {/* This is the piece that follows the cursor during a drag */}
                         {draggedPiece && draggedPosition && (
                             <img
                                 src={getPieceImage(draggedPiece.piece) || ''}
+                                draggable={false}
                                 alt=""
                                 style={{
                                     position: 'absolute',
@@ -353,7 +326,7 @@ const ChessBoard: React.FC<props> = ({ showLabels, game, setGame, onBoardReady }
                                     width: `${draggedPieceVisualWidth}px`,
                                     height: `${draggedPieceVisualHeight}px`,
                                     objectFit: 'contain',
-                                    pointerEvents: 'none',
+                                    pointerEvents: 'none', // Ensures mouse events pass through to the board
                                     zIndex: 1000,
                                     transform: 'scale(0.9)',
                                     filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))',
@@ -363,24 +336,8 @@ const ChessBoard: React.FC<props> = ({ showLabels, game, setGame, onBoardReady }
                     </div>
                 </div>
                 {showLabels && (
-                    <div
-                        className="grid grid-cols-8"
-                        style={{
-                            width: boardWidth > 0 ? boardWidth : 'auto',
-                            marginLeft: `min(${sideLabelWidth}px, 12px)`,
-                            marginTop: `min(${bottomLabelMarginTop}px, 6px)`,
-                            visibility: boardWidth === 0 ? 'hidden' : 'visible',
-                            transition: 'visibility 0s ease 0.1s'
-                        }}
-                    >
-                        {letters.map((letter, i) => (
-                            <div key={i} className="text-center text-sm font-semibold">{letter}</div>
-                        ))}
-                    </div>
-                )}
-                {isGameOver && gameResult && (
-                    <div className="mt-4 p-3 rounded-lg shadow-lg text-lg font-bold text-center bg-white dark:bg-gray-700 text-red-600 dark:text-red-400">
-                        {gameResult}
+                    <div className="grid grid-cols-8" style={{ width: boardWidth > 0 ? boardWidth : 'auto', marginLeft: `min(${boardWidth * 0.04}px, 12px)`, marginTop: `min(${boardWidth * 0.02}px, 6px)`, visibility: boardWidth === 0 ? 'hidden' : 'visible' }}>
+                        {letters.map((letter, i) => <div key={i} className="text-center text-sm font-semibold">{letter}</div>)}
                     </div>
                 )}
             </div>

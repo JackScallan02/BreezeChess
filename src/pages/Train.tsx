@@ -26,7 +26,7 @@ const Train = () => {
                     </button>
                     <button
                         className="ml-4 bg-indigo-500 text-white font-bold py-2 px-4 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
-                        onClick={() => handleNavigation('/train/puzzle/home')}
+                        onClick={() => handleNavigation('/train/puzzle')}
                     >
                         Puzzle Trainer
                     </button>

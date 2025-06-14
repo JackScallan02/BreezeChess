@@ -13,9 +13,9 @@ const apiClient = axios.create({
  * Fetches all countries from the API
  * @returns A promise that resolves to an array of all available countries.
  */
-export const getPuzzles = async () => {
+export const getPuzzles = async (filters: Object | undefined, count: number | undefined) => {
   try {
-    const response = await apiClient.post(`${API_BASE_URL}/puzzles/`, {
+    const response = await apiClient.post(`${API_BASE_URL}/puzzles/`, { filters, count }, {
       headers: {
         'Content-Type': 'application/json',
       },
