@@ -1,12 +1,6 @@
-/**
- * PuzzleBoard Component
- * This component wraps the ChessBoard and manages the state for a chess puzzle,
- * ensuring the user always plays the final move in the sequence.
- */
 import React, { useEffect, useState, useCallback } from 'react';
 import { Chess, Square } from 'chess.js';
 import ChessBoard from '../components/ChessBoard';
-
 
 // PuzzleBoard Component
 interface PuzzleBoardProps {
@@ -25,9 +19,10 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     const [puzzleStatus, setPuzzleStatus] = useState<"playing" | "correct" | "incorrect" | "solved">("playing");
     const [feedbackMessage, setFeedbackMessage] = useState<string>("");
     const [userColor, setUserColor] = useState<'w' | 'b' | null>(null);
-    const [resetKey, setResetKey] = useState(0); // Key to force re-initialization on reset
+    const [resetKey, setResetKey] = useState(0);
     const [incorrectSquare, setIncorrectSquare] = useState<Square | null>(null);
     const [isPlayerTurn, setIsPlayerTurn] = useState(false);
+    const [showHighlights, setShowHighlights] = useState(true);
 
     useEffect(() => {
         const initialGame = new Chess(puzzleSolution.fen);
@@ -36,62 +31,38 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
         const fenTurn = initialGame.turn();
         const userPlaysFirst = totalMoves % 2 !== 0;
         const determinedUserColor = userPlaysFirst ? fenTurn : (fenTurn === 'w' ? 'b' : 'w');
+        
         setUserColor(determinedUserColor);
-
-        // Reset game and status
         setGame(new Chess(puzzleSolution.fen));
         setCurrentMoveIndex(0);
         setPuzzleStatus("playing");
         setFeedbackMessage("");
+        setShowHighlights(true);
 
         if (userPlaysFirst) {
-            // USER STARTS: The board is ready as is.
-            setGame(initialGame); // Set the game to the initial FEN
-            setCurrentMoveIndex(0); // User makes the 0th move
+            setIsPlayerTurn(true);
             setFeedbackMessage(`${determinedUserColor === 'w' ? 'White' : 'Black'} to move`);
         } else {
-            // OPPONENT STARTS: We must play the first move for them automatically.
-            setFeedbackMessage("");
-            // Use a timeout to make the opponent's move feel more natural.
+            setIsPlayerTurn(false);
             setTimeout(() => {
                 const opponentMove = moves[0];
                 const gameAfterOpponentMove = new Chess(puzzleSolution.fen);
-
-                let moveOptions: { from: Square; to: Square; promotion?: 'q' | 'r' | 'b' | 'n' };
-                // Extract from and to squares from the opponentMove string (e.g., "e2e4" or "e7e8q")
                 const from = opponentMove.substring(0, 2) as Square;
                 const to = opponentMove.substring(2, 4) as Square;
-                moveOptions = { from, to };
+                let moveOptions: { from: Square; to: Square; promotion?: string } = { from, to };
+                if (opponentMove.length === 5) moveOptions.promotion = opponentMove.substring(4);
 
-                if (opponentMove.length === 5) {
-                    moveOptions.promotion = opponentMove.substring(4, 5) as 'q' | 'r' | 'b' | 'n';
+                if (gameAfterOpponentMove.move(moveOptions)) {
+                    setShowHighlights(true);
+                    setGame(gameAfterOpponentMove);
+                    setIsPlayerTurn(true);
+                    setCurrentMoveIndex(1);
+                    setFeedbackMessage(`${determinedUserColor === 'w' ? 'White' : 'Black'} to move`);
                 }
-
-                try {
-                    const moveResult = gameAfterOpponentMove.move(moveOptions);
-
-                    if (moveResult) {
-                        setGame(gameAfterOpponentMove);
-                        setIsPlayerTurn(true);
-                        setCurrentMoveIndex(1); // Next move is user's (at index 1)
-                        setFeedbackMessage(`${determinedUserColor === 'w' ? 'White' : 'Black'} to move`);
-                    } else {
-                        console.error("Puzzle Data Error: The opponent's first move is illegal.", opponentMove);
-                        setPuzzleStatus("incorrect");
-                        setFeedbackMessage("Error in puzzle data. Please reset.");
-                    }
-                } catch (e) {
-                    console.error("Error making opponent's first move:", e);
-                    setPuzzleStatus("incorrect");
-                    setFeedbackMessage("An error occurred with the puzzle data.");
-                }
-            }, 1000); // 1 second delay for opponent's first move
+            }, 1000);
         }
-    }, [puzzleSolution, resetKey]); // Reruns when puzzle changes or is reset
+    }, [puzzleSolution, resetKey]);
 
-    /**
-     * Resets the puzzle to its initial state by incrementing the resetKey.
-     */
     const resetPuzzle = () => {
         setResetKey(prevKey => prevKey + 1);
         setIncorrectSquare(null);
@@ -100,111 +71,81 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     const nextPuzzle = async () => {
         await fetchPuzzle();
         setIncorrectSquare(null);
-    }
+    };
 
-    /**
-     * Handles an attempted move by the user.
-     */
     const handleMoveAttempt = useCallback((from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
-        // Only allow moves if the puzzle is "playing" and it's the user's turn
         if (puzzleStatus !== "playing" || game.turn() !== userColor) {
             return;
         }
 
         const expectedMove = puzzleSolution.moves[currentMoveIndex];
-        // Create a temporary game instance to validate the user's move
-        const tempGame = new Chess(game.fen());
+        const tempGame = new Chess(game.fen()); // Create a temporary game instance for move validation
+        const moveOptions = { from, to, promotion };
 
         let moveResult;
-        const moveOptions: { from: Square; to: Square; promotion?: 'q' | 'r' | 'b' | 'n' } = { from, to };
-        if (promotion) {
-            moveOptions.promotion = promotion;
-        }
-
         try {
             moveResult = tempGame.move(moveOptions);
         } catch (e) {
-            // Catch errors for illegal moves
-            moveResult = null;
+            // If the move is illegal (e.g., trying to move an empty square), just return.
+            // The Chess.js library handles illegal moves by returning null or throwing an error.
+            // We only care about legally invalid moves here.
+            return; 
         }
-
+        
         if (moveResult === null) {
-            // If the move is illegal, do nothing
+            // This means the move was illegal as per Chess.js rules, e.g., King in check, invalid piece movement
             return;
         }
 
-        // Construct the user's move string, including promotion if it occurred
-        let userMoveFullAlgebraic = `${from}${to}`;
-        if (promotion) {
-            userMoveFullAlgebraic += promotion;
-        }
+        const userMoveFullAlgebraic = `${from}${to}${moveResult.promotion || ''}`;
 
-        // Check if the user's move matches the expected move from the puzzle solution
-        if (userMoveFullAlgebraic === expectedMove) { // Direct comparison now that both include promotion if applicable
-            // If the user's move is correct, update the game state
-            const gameAfterUserMove = new Chess(tempGame.fen());
-            setGame(gameAfterUserMove);
+        if (userMoveFullAlgebraic === expectedMove) {
+            // Correct move logic
+            setShowHighlights(true);
+            setGame(tempGame); // Update game state with the correct move
             const nextMoveIndex = currentMoveIndex + 1;
 
-            // Check if the puzzle is solved
             if (nextMoveIndex >= puzzleSolution.moves.length) {
                 setPuzzleStatus("solved");
                 setFeedbackMessage("Puzzle Solved!");
             } else {
-                // Puzzle is not yet solved, prepare for opponent's reply
                 setPuzzleStatus("correct");
                 setFeedbackMessage("Correct! Opponent is thinking...");
                 setCurrentMoveIndex(nextMoveIndex);
+                setIsPlayerTurn(false);
 
-                // Simulate opponent's reply after a short delay
                 setTimeout(() => {
                     const opponentMoveStr = puzzleSolution.moves[nextMoveIndex];
-                    const opponentGame = new Chess(gameAfterUserMove.fen());
-
-                    let opponentMoveOptions: { from: Square; to: Square; promotion?: 'q' | 'r' | 'b' | 'n' };
+                    const opponentGame = new Chess(tempGame.fen()); // Create new game instance from user's correct move
                     const oppFrom = opponentMoveStr.substring(0, 2) as Square;
                     const oppTo = opponentMoveStr.substring(2, 4) as Square;
-                    opponentMoveOptions = { from: oppFrom, to: oppTo };
-
-                    if (opponentMoveStr.length === 5) {
-                        opponentMoveOptions.promotion = opponentMoveStr.substring(4, 5) as 'q' | 'r' | 'b' | 'n';
+                    const oppPromotion = opponentMoveStr.length === 5 ? opponentMoveStr.substring(4, 5) as 'q' | 'r' | 'b' | 'n' : undefined;
+                    
+                    if (opponentGame.move({ from: oppFrom, to: oppTo, promotion: oppPromotion })) {
+                        setShowHighlights(true);
+                        setGame(opponentGame);
+                        setIsPlayerTurn(true);
+                        setCurrentMoveIndex(nextMoveIndex + 1);
+                        setPuzzleStatus("playing");
+                        setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`);
                     }
-
-                    try {
-                        const opponentMoveResult = opponentGame.move(opponentMoveOptions);
-                        if (opponentMoveResult) {
-                            setGame(opponentGame);
-                            setIsPlayerTurn(true);
-                            setCurrentMoveIndex(nextMoveIndex + 1);
-                            setPuzzleStatus("playing");
-                            setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`);
-                        } else {
-                            // This should ideally not happen with valid puzzle data
-                            console.error("Puzzle data error: Opponent's reply is illegal.", opponentMoveStr);
-                            setPuzzleStatus("incorrect");
-                            setFeedbackMessage("An error occurred with the puzzle data. Please reset.");
-                        }
-                    } catch (e) {
-                        console.error("Error making opponent's move:", e);
-                        setPuzzleStatus("incorrect");
-                        setFeedbackMessage("An error occurred with the puzzle data.");
-                    }
-                }, 700); // 700ms delay for subsequent opponent moves
+                }, 700);
             }
         } else {
-            // If the user's move is incorrect
-            const fenBeforeIncorrectMove = game.fen(); // Capture the FEN before the move
-            setPuzzleStatus("incorrect"); // Status becomes "incorrect" to show feedback color
+            // Incorrect (but legal) move logic.
+            // Update the game state with the incorrect move temporarily
+            const originalFen = game.fen(); // Store the original FEN to revert later
+            setGame(tempGame); // Show the incorrect move on the board
+            setPuzzleStatus("incorrect");
             setIncorrectSquare(to);
-            setGame(tempGame); // Briefly show the incorrect move on the board
             setFeedbackMessage("Incorrect move. Try again!");
 
-            // After a short delay, revert the move on the board and re-enable interaction
             setTimeout(() => {
-                setGame(new Chess(fenBeforeIncorrectMove));
-                setIncorrectSquare(null); // Clear the red square after reverting
-                setPuzzleStatus("playing"); // Re-enable the board for another try
-            }, 300); // 300ms delay before reverting
+                setGame(new Chess(originalFen)); // Revert the game state to before the incorrect move
+                setIncorrectSquare(null);
+                setPuzzleStatus("playing");
+                setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`); // Reset feedback message
+            }, 500);
         }
     }, [game, currentMoveIndex, puzzleSolution, userColor, puzzleStatus]);
 
@@ -214,10 +155,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                 {puzzleSolution.name || "Chess Puzzle"}
             </h2>
             <div className="flex flex-row justify-between w-full max-w-5xl items-start ml-12">
-                {/* Optional placeholder for future content */}
                 <div className="w-full"></div>
-
-                {/* Chess board in center */}
                 <div className="flex justify-center w-full">
                     <ChessBoard
                         showLabels={showLabels}
@@ -225,10 +163,9 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                         onMoveAttempt={handleMoveAttempt}
                         incorrectSquare={incorrectSquare}
                         isPlayerTurn={isPlayerTurn}
+                        showLastMoveHighlight={showHighlights}
                     />
                 </div>
-
-                {/* Sidebar with button and feedback */}
                 <div className="ml-12 mt-36 flex flex-col items-center">
                     <button
                         onClick={resetPuzzle}
@@ -238,19 +175,17 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                     </button>
                     <button
                         onClick={nextPuzzle}
-                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors w-42"
+                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus://www.google.com/search?q=puzzle+chess+next+puzzle+button+style&sca_esv=fb408e001dfa158b&bih=927&biw=1920&hl=en&sxsrf=ADLYWIL2t1i2J8p1l1N43XJ1X6eP4L9dFQ%3A1718314816999&ei=0399ZtH7M_W9ptQP7d602AQ&oq=puzzle+chess+next+puzzle+button+style&gs_lp=Egxnd3Mtd2l6LXNlcnAiInB1enpsZSBjaGVzcyBuZXh0IHB1enpsZSBidXR0b24gc3R5bGUyBRAhGKABMgUQIRigAUjJgAFY6QJgAXgAkAEAmAFpoAGlCKoBAzMuNogBA8gBApABAw&sclient=gws-wiz-serp&ved=0ahUKEwiw0L2MxeGGAxX1plYDHW1vDUoQ4dUDCBA&uact=5ring-blue-500 focus:ring-offset-2 transition-colors w-42"
                     >
                         Next Puzzle
                     </button>
                     <p
-                        className={`pt-8 text-lg font-semibold text-center ${puzzleStatus === "correct"
-                                ? "text-green-600 dark:text-green-400"
-                                : puzzleStatus === "incorrect"
-                                    ? "text-red-600 dark:text-red-400"
-                                    : puzzleStatus === "solved"
-                                        ? "text-purple-600 dark:text-purple-400"
-                                        : "text-gray-700 dark:text-slate-200"
-                            }`}
+                        className={`pt-8 text-lg font-semibold text-center ${
+                            puzzleStatus === "correct" ? "text-green-600 dark:text-green-400"
+                            : puzzleStatus === "incorrect" ? "text-red-600 dark:text-red-400"
+                            : puzzleStatus === "solved" ? "text-purple-600 dark:text-purple-400"
+                            : "text-gray-700 dark:text-slate-200"
+                        }`}
                     >
                         {feedbackMessage}
                     </p>
