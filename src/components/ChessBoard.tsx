@@ -55,50 +55,40 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
 
     const gameRef = useRef<Chess | null>(null);
 
-    // Update gameRef whenever the game prop changes
     useEffect(() => {
         gameRef.current = game;
     }, [game]);
 
-// Effect 1: Update lastMove based on game history & showLastMoveHighlight (only if no premoves or not player's turn)
-useEffect(() => {
-    if (isPlayerTurn && preMoves.length > 0) {
-        // Don't update lastMove here; let the premove effect handle it
-        return;
-    }
-    const history = game.history({ verbose: true });
-    if (showLastMoveHighlight && history.length > 0) {
-        const last = history[history.length - 1];
-        setLastMove({ from: last.from, to: last.to });
-        console.log("Setting lastMove from history", last);
-    } else {
-        setLastMove(null);
-        console.log("Clearing lastMove (no premove, no history or highlight off)");
-    }
-}, [game, showLastMoveHighlight, isPlayerTurn, preMoves]);
-
-// Effect 2: Handle premove attempts, check legality, move or clear lastMove immediately
-useEffect(() => {
-    if (isPlayerTurn && preMoves.length > 0) {
-        const nextPreMove = preMoves[0];
-        const legalMoves = game.moves({ verbose: true });
-        const isPreMoveLegal = legalMoves.some(
-            move => move.from === nextPreMove.from && move.to === nextPreMove.to
-        );
-
-        if (isPreMoveLegal) {
-            console.log("Premove is legal:", nextPreMove);
-            onMoveAttempt(nextPreMove.from, nextPreMove.to, nextPreMove.promotion);
-            setPreMoves(prev => prev.slice(1));
-            // Let effect 1 update lastMove on next render/game update
-        } else {
-            console.log("Premove is NOT legal, clearing lastMove highlight immediately");
-            setLastMove(null);
-            setPreMoves([]);
+    useEffect(() => {
+        if (isPlayerTurn && preMoves.length > 0) {
+            return;
         }
-    }
-}, [preMoves, isPlayerTurn, game, onMoveAttempt]);
+        const history = game.history({ verbose: true });
+        if (showLastMoveHighlight && history.length > 0) {
+            const last = history[history.length - 1];
+            setLastMove({ from: last.from, to: last.to });
+        } else {
+            setLastMove(null);
+        }
+    }, [game, showLastMoveHighlight, isPlayerTurn, preMoves]);
 
+    useEffect(() => {
+        if (isPlayerTurn && preMoves.length > 0) {
+            const nextPreMove = preMoves[0];
+            const legalMoves = game.moves({ verbose: true });
+            const isPreMoveLegal = legalMoves.some(
+                move => move.from === nextPreMove.from && move.to === nextPreMove.to
+            );
+
+            if (isPreMoveLegal) {
+                onMoveAttempt(nextPreMove.from, nextPreMove.to, nextPreMove.promotion);
+                setPreMoves(prev => prev.slice(1));
+            } else {
+                setLastMove(null);
+                setPreMoves([]);
+            }
+        }
+    }, [preMoves, isPlayerTurn, game, onMoveAttempt]);
 
     const squareSize = boardWidth > 0 ? boardWidth / 8 : 0;
     const draggedPieceVisualWidth = squareSize;
@@ -129,67 +119,70 @@ useEffect(() => {
         return null;
     };
 
+    // FIXED: This function's logic is now robust for click-to-move and captures.
     const handleSquareClick = useCallback((clickedSquare: Square) => {
-        // Prevent interaction if it's the very first turn and computer's turn, UNLESS in builder mode
-        if (!canMoveAnyPiece && !isPlayerTurn && game.history().length === 0) {
-            console.log("Click prevented: It's the first move and computer's turn.");
+        if (interactionState.current?.isDragging) {
             return;
         }
-
-        setDraggedPiece(null);
-        setDraggedPosition(null);
-        document.body.style.cursor = 'default';
-
+    
+        if (!canMoveAnyPiece && !isPlayerTurn && game.history().length === 0) {
+            return;
+        }
+    
+        // If a piece is already selected
         if (selectedSquare) {
+            // Deselect if the same square is clicked again
             if (selectedSquare === clickedSquare) {
                 setSelectedSquare(null);
                 setPossibleMoves([]);
                 return;
             }
-
-            const pieceToMove = game.get(selectedSquare);
-            const pieceOnClickedSquare = game.get(clickedSquare);
-
-            // Allow selection of any piece if in builder mode, otherwise restrict by userColor
-            if (pieceOnClickedSquare && (canMoveAnyPiece || pieceOnClickedSquare.color === userColor)) {
-                setSelectedSquare(clickedSquare);
-                setPossibleMoves(game.moves({ square: clickedSquare, verbose: true }).map(move => move.to) as Square[]);
-                return;
-            }
-
-            let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
-            if (pieceToMove?.type === 'p' && (
-                (pieceToMove.color === 'w' && clickedSquare.endsWith('8')) ||
-                (pieceToMove.color === 'b' && clickedSquare.endsWith('1'))
-            )) {
-                promotionPiece = 'q';
-            }
-
-            // In builder mode, always call onMoveAttempt directly, no premoves
-            if (isPlayerTurn || canMoveAnyPiece) {
-                onMoveAttempt(selectedSquare, clickedSquare, promotionPiece);
-            } else {
-                // Prevent premove if it's the very first move and computer's turn (puzzle mode)
-                if (!canMoveAnyPiece && game.history().length === 0) {
-                    console.log("Preventing premove: It's the first move and computer's turn.");
-                    return;
+    
+            // Check if the clicked square is a valid move (for moving or capturing)
+            const isMovePossible = possibleMoves.includes(clickedSquare);
+    
+            if (isMovePossible) {
+                const pieceToMove = game.get(selectedSquare);
+                let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
+                if (pieceToMove?.type === 'p' &&
+                    ((pieceToMove.color === 'w' && clickedSquare.endsWith('8')) ||
+                     (pieceToMove.color === 'b' && clickedSquare.endsWith('1')))) {
+                    promotionPiece = 'q';
                 }
-                setPreMoves(prev => [...prev, { from: selectedSquare, to: clickedSquare, promotion: promotionPiece }]);
+    
+                if (isPlayerTurn || canMoveAnyPiece) {
+                    onMoveAttempt(selectedSquare, clickedSquare, promotionPiece);
+                } else {
+                    setPreMoves(prev => [...prev, { from: selectedSquare, to: clickedSquare, promotion: promotionPiece }]);
+                }
+    
+                // Reset selection after the move attempt
+                setSelectedSquare(null);
+                setPossibleMoves([]);
+            } else {
+                // If not a valid move, check if the user is clicking another of their own pieces to change selection
+                const pieceOnClickedSquare = game.get(clickedSquare);
+                if (pieceOnClickedSquare && (canMoveAnyPiece || pieceOnClickedSquare.color === userColor)) {
+                    setSelectedSquare(clickedSquare);
+                    setPossibleMoves(game.moves({ square: clickedSquare, verbose: true }).map(move => move.to));
+                } else {
+                    // Invalid move, deselect the piece
+                    setSelectedSquare(null);
+                    setPossibleMoves([]);
+                }
             }
-            setSelectedSquare(null);
-            setPossibleMoves([]);
         } else {
+            // If no piece is selected, select the clicked piece if it's the user's color
             const pieceOnClickedSquare = game.get(clickedSquare);
-            // Allow selection of any piece if in builder mode, otherwise restrict by userColor
             if (pieceOnClickedSquare && (canMoveAnyPiece || pieceOnClickedSquare.color === userColor)) {
                 setSelectedSquare(clickedSquare);
-                // Always show possible moves if in builder mode or if it's player's turn in puzzle
                 if (isPlayerTurn || canMoveAnyPiece) {
-                    setPossibleMoves(game.moves({ square: clickedSquare, verbose: true }).map(move => move.to) as Square[]);
+                    setPossibleMoves(game.moves({ square: clickedSquare, verbose: true }).map(move => move.to));
                 }
             }
         }
-    }, [game, onMoveAttempt, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece]); // Added canMoveAnyPiece
+    }, [game, onMoveAttempt, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece, possibleMoves]);
+
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         const currentInteraction = interactionState.current;
@@ -214,7 +207,7 @@ useEffect(() => {
                     currentLegalMoves = gameRef.current.moves({ square: currentInteraction.square, verbose: true }).map(move => move.to) as Square[];
                 }
 
-                if (isPlayerTurn || canMoveAnyPiece) { // Show possible moves in builder mode too
+                if (isPlayerTurn || canMoveAnyPiece) {
                     setPossibleMoves(currentLegalMoves);
                 }
 
@@ -237,37 +230,37 @@ useEffect(() => {
         if (dx > dragThreshold || dy > dragThreshold) {
             interactionState.current.isDragging = true;
             e.preventDefault();
-
             setDraggedPiece({
                 piece: currentInteraction.piece,
                 fromSquare: currentInteraction.square,
             });
-
-            if (isPlayerTurn || canMoveAnyPiece) { // Show possible moves in builder mode too
+            if (isPlayerTurn || canMoveAnyPiece) {
                 setPossibleMoves(gameRef.current?.moves({ square: currentInteraction.square, verbose: true }).map(move => move.to) as Square[] || []);
             }
             setSelectedSquare(null);
             document.body.style.cursor = 'grabbing';
         }
-    }, [draggedPieceVisualHeight, draggedPieceVisualWidth, squareSize, getAlgebraicSquare, isPlayerTurn, canMoveAnyPiece]); // Added canMoveAnyPiece
+    }, [draggedPieceVisualHeight, draggedPieceVisualWidth, squareSize, getAlgebraicSquare, isPlayerTurn, canMoveAnyPiece]);
 
+    // FIXED: This function now only handles the end of a DRAG action, not a click.
     const handleMouseUp = useCallback((e: MouseEvent) => {
         const currentInteraction = interactionState.current;
-
+    
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
-
-        setHoveredTargetSquare(null);
-        setPossibleMoves([]);
-
+    
+        // Only process a move and clean up state if a drag actually happened.
         if (currentInteraction?.isDragging) {
+            setHoveredTargetSquare(null);
+            setPossibleMoves([]);
+    
             if (boardRef.current) {
                 const boardRect = boardRef.current.getBoundingClientRect();
                 const mouseX = e.clientX - boardRect.left;
                 const mouseY = e.clientY - boardRect.top;
                 const col = Math.floor(mouseX / squareSize);
                 const row = Math.floor(mouseY / squareSize);
-
+    
                 if (col >= 0 && col < 8 && row >= 0 && row < 8) {
                     const toSquare = getAlgebraicSquare(row * 8 + col);
                     if (currentInteraction.square !== toSquare) {
@@ -276,38 +269,37 @@ useEffect(() => {
                         if (pieceToMove?.type === 'p' && ((pieceToMove.color === 'w' && toSquare.endsWith('8')) || (pieceToMove.color === 'b' && toSquare.endsWith('1')))) {
                             promotionPiece = 'q';
                         }
-                        // In builder mode, always call onMoveAttempt directly, no premoves
                         if (isPlayerTurn || canMoveAnyPiece) {
                             onMoveAttempt(currentInteraction.square, toSquare, promotionPiece);
                         } else {
-                            // Prevent premove if it's the very first move and computer's turn (puzzle mode)
                             if (!canMoveAnyPiece && game.history().length === 0) {
                                 console.log("Preventing premove: It's the first move and computer's turn.");
-                                return;
+                            } else {
+                                setPreMoves(prev => [...prev, { from: currentInteraction.square, to: toSquare, promotion: promotionPiece }]);
                             }
-                            setPreMoves(prev => [...prev, { from: currentInteraction.square, to: toSquare, promotion: promotionPiece }]);
                         }
                     }
                 }
             }
+    
+            // Clean up all drag-related state
+            setDraggedPiece(null);
+            setDraggedPosition(null);
+            document.body.style.cursor = 'default';
+            setSelectedSquare(null);
         }
-
+    
+        // Always clear the interaction ref, for both clicks and drags.
         interactionState.current = null;
-        setDraggedPiece(null);
-        setDraggedPosition(null);
-        document.body.style.cursor = 'default';
-        setSelectedSquare(null);
-    }, [onMoveAttempt, squareSize, getAlgebraicSquare, isPlayerTurn, handleMouseMove, game, canMoveAnyPiece]); // Added canMoveAnyPiece
+    }, [onMoveAttempt, squareSize, getAlgebraicSquare, isPlayerTurn, handleMouseMove, game, canMoveAnyPiece]);
+    
 
     const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
         e.preventDefault();
-        // Prevent interaction if it's the very first turn and computer's turn, UNLESS in builder mode
         if (!canMoveAnyPiece && !isPlayerTurn && game.history().length === 0) {
-            console.log("Mouse down prevented: It's the first move and computer's turn.");
             return;
         }
 
-        // Allow interaction with any piece if in builder mode, otherwise restrict by userColor
         if (e.button !== 0 || !piece || (!canMoveAnyPiece && piece.color !== userColor)) {
             return;
         }
@@ -320,7 +312,7 @@ useEffect(() => {
         };
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
-    }, [handleMouseMove, handleMouseUp, userColor, isPlayerTurn, game, canMoveAnyPiece]); // Added canMoveAnyPiece to dependencies
+    }, [handleMouseMove, handleMouseUp, userColor, isPlayerTurn, game, canMoveAnyPiece]);
 
     if (!game) {
         return <div className="flex justify-center items-center w-full h-full text-black dark:text-white">Loading Chess Board...</div>;
@@ -362,8 +354,7 @@ useEffect(() => {
                             else if (isLastMoveFrom) bgColorClass = "bg-blue-300";
                             else if (isLastMoveTo) bgColorClass = "bg-blue-200";
                             else if (isSelected) bgColorClass = "bg-indigo-200";
-                            else if (isHintSquare) bgColorClass = "bg-yellow-300"; // New hint highlight
-                            // This check should be last to override others
+                            else if (isHintSquare) bgColorClass = "bg-yellow-300";
                             if (isHoveredTarget) bgColorClass = "bg-indigo-100";
 
 
@@ -390,7 +381,6 @@ useEffect(() => {
                                                 width: '75%',
                                                 height: '75%',
                                                 objectFit: 'contain',
-                                                // Cursor logic: grab if in builder mode, or if it's the player's piece AND player's turn
                                                 cursor: (canMoveAnyPiece || (piece?.color === userColor && isPlayerTurn)) ? 'grab' : 'default',
                                                 userSelect: 'none',
                                                 zIndex: 3
