@@ -74,7 +74,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     };
 
     const handleMoveAttempt = useCallback((from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
-        if (puzzleStatus !== "playing" || game.turn() !== userColor) {
+        // Only allow a move attempt if it's the player's turn in the puzzle
+        if (puzzleStatus !== "playing" || game.turn() !== userColor) { // Added game.turn() check to align with Chess.js
             return;
         }
 
@@ -87,13 +88,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
             moveResult = tempGame.move(moveOptions);
         } catch (e) {
             // If the move is illegal (e.g., trying to move an empty square), just return.
-            // The Chess.js library handles illegal moves by returning null or throwing an error.
-            // We only care about legally invalid moves here.
             return; 
         }
         
         if (moveResult === null) {
-            // This means the move was illegal as per Chess.js rules, e.g., King in check, invalid piece movement
+            // This means the move was illegal as per Chess.js rules
             return;
         }
 
@@ -164,6 +163,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                         incorrectSquare={incorrectSquare}
                         isPlayerTurn={isPlayerTurn}
                         showLastMoveHighlight={showHighlights}
+                        userColor={userColor} // Pass userColor to ChessBoard
                     />
                 </div>
                 <div className="ml-12 mt-36 flex flex-col items-center">
@@ -175,7 +175,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                     </button>
                     <button
                         onClick={nextPuzzle}
-                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus://www.google.com/search?q=puzzle+chess+next+puzzle+button+style&sca_esv=fb408e001dfa158b&bih=927&biw=1920&hl=en&sxsrf=ADLYWIL2t1i2J8p1l1N43XJ1X6eP4L9dFQ%3A1718314816999&ei=0399ZtH7M_W9ptQP7d602AQ&oq=puzzle+chess+next+puzzle+button+style&gs_lp=Egxnd3Mtd2l6LXNlcnAiInB1enpsZSBjaGVzcyBuZXh0IHB1enpsZSBidXR0b24gc3R5bGUyBRAhGKABMgUQIRigAUjJgAFY6QJgAXgAkAEAmAFpoAGlCKoBAzMuNogBA8gBApABAw&sclient=gws-wiz-serp&ved=0ahUKEwiw0L2MxeGGAxX1plYDHW1vDUoQ4dUDCBA&uact=5ring-blue-500 focus:ring-offset-2 transition-colors w-42"
+                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors w-42"
                     >
                         Next Puzzle
                     </button>
