@@ -62,7 +62,11 @@ const BoardBuilder = () => {
         {/* Conditionally render this div based on isBoardReady */}
         {isBoardReady && (
           <div className="text-center text-gray-700 dark:text-gray-300">
-            <span className="font-bold">{game.turn() === 'w' ? 'White' : 'Black'}</span> to move
+            {game.isCheckmate() ? (
+              <span className="font-bold">{game.turn() === 'w' ? 'Black wins by checkmate' : 'White wins by checkmate'}</span>
+            ): (
+              <span className="font-bold">{game.turn() === 'w' ? 'White to move' : 'Black to move'}</span>
+            )}
           </div>
         )}
       </main>

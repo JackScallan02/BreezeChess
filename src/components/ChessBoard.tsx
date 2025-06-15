@@ -354,7 +354,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
                             else if (isLastMoveFrom) bgColorClass = "bg-blue-300";
                             else if (isLastMoveTo) bgColorClass = "bg-blue-200";
                             else if (isSelected) bgColorClass = "bg-indigo-200";
-                            else if (isHintSquare) bgColorClass = "bg-yellow-300";
+                            else if (isHintSquare) bgColorClass = "bg-amber-100";
                             if (isHoveredTarget) bgColorClass = "bg-indigo-100";
 
 

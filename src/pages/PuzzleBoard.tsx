@@ -191,17 +191,17 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                 <div className="ml-12 mt-36 flex flex-col items-center">
                     <button
                         onClick={resetPuzzle}
-                        className="cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors w-48"
+                        className="cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none transition-colors w-48"
                     >
-                        <span className="flex items-center justify-center"> {/* Use a flex container */}
+                        <span className="flex items-center justify-center">
                             <RotateCcw className="mr-2" />
                             Reset Puzzle
                         </span>                    </button>
                     <button
                         onClick={nextPuzzle}
-                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors w-48"
+                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none transition-colors w-48"
                     >
-                        <span className="flex items-center justify-center"> {/* Use a flex container */}
+                        <span className="flex items-center justify-center">
                             <ArrowRight className="mr-2" />
                             Next Puzzle
                         </span>
@@ -209,9 +209,9 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                     <button
                         onClick={handleGetHint}
                         disabled={!isPlayerTurn || puzzleStatus !== "playing"}
-                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors w-48 disabled:opacity-50 disabled:cursor-default"
+                        className="mt-4 cursor-pointer px-6 py-3 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-500 bg-indigo-400 focus:outline-none transition-colors w-48 disabled:opacity-50 disabled:cursor-default"
                     >
-                        <span className="flex items-center justify-center"> {/* Use a flex container */}
+                        <span className="flex items-center justify-center">
                             <Lightbulb className="mr-2" />
                             Get a Hint
                         </span>
