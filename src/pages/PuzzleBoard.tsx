@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Chess, Square } from 'chess.js';
+import { Lightbulb } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import ChessBoard from '../components/ChessBoard';
 
 // PuzzleBoard Component
@@ -23,6 +26,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     const [incorrectSquare, setIncorrectSquare] = useState<Square | null>(null);
     const [isPlayerTurn, setIsPlayerTurn] = useState(false);
     const [showHighlights, setShowHighlights] = useState(true);
+    // New state for hint square
+    const [hintSquare, setHintSquare] = useState<Square | null>(null);
 
     useEffect(() => {
         const initialGame = new Chess(puzzleSolution.fen);
@@ -31,13 +36,14 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
         const fenTurn = initialGame.turn();
         const userPlaysFirst = totalMoves % 2 !== 0;
         const determinedUserColor = userPlaysFirst ? fenTurn : (fenTurn === 'w' ? 'b' : 'w');
-        
+
         setUserColor(determinedUserColor);
         setGame(new Chess(puzzleSolution.fen));
         setCurrentMoveIndex(0);
         setPuzzleStatus("playing");
         setFeedbackMessage("");
         setShowHighlights(true);
+        setHintSquare(null); // Reset hint on new puzzle or reset
 
         if (userPlaysFirst) {
             setIsPlayerTurn(true);
@@ -66,18 +72,33 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     const resetPuzzle = () => {
         setResetKey(prevKey => prevKey + 1);
         setIncorrectSquare(null);
+        setHintSquare(null); // Clear hint on reset
     };
 
     const nextPuzzle = async () => {
         await fetchPuzzle();
         setIncorrectSquare(null);
+        setHintSquare(null); // Clear hint on next puzzle
     };
+
+    const handleGetHint = useCallback(() => {
+        // Only provide a hint if it's the player's turn and the puzzle is "playing"
+        if (isPlayerTurn && puzzleStatus === "playing" && currentMoveIndex < puzzleSolution.moves.length) {
+            const nextExpectedMove = puzzleSolution.moves[currentMoveIndex];
+            const fromSquareForHint = nextExpectedMove.substring(0, 2) as Square;
+            setHintSquare(fromSquareForHint);
+        }
+    }, [isPlayerTurn, puzzleStatus, currentMoveIndex, puzzleSolution.moves]);
+
 
     const handleMoveAttempt = useCallback((from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
         // Only allow a move attempt if it's the player's turn in the puzzle
         if (puzzleStatus !== "playing" || game.turn() !== userColor) { // Added game.turn() check to align with Chess.js
             return;
         }
+
+        // Clear hint after a move attempt
+        setHintSquare(null);
 
         const expectedMove = puzzleSolution.moves[currentMoveIndex];
         const tempGame = new Chess(game.fen()); // Create a temporary game instance for move validation
@@ -88,9 +109,9 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
             moveResult = tempGame.move(moveOptions);
         } catch (e) {
             // If the move is illegal (e.g., trying to move an empty square), just return.
-            return; 
+            return;
         }
-        
+
         if (moveResult === null) {
             // This means the move was illegal as per Chess.js rules
             return;
@@ -119,7 +140,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                     const oppFrom = opponentMoveStr.substring(0, 2) as Square;
                     const oppTo = opponentMoveStr.substring(2, 4) as Square;
                     const oppPromotion = opponentMoveStr.length === 5 ? opponentMoveStr.substring(4, 5) as 'q' | 'r' | 'b' | 'n' : undefined;
-                    
+
                     if (opponentGame.move({ from: oppFrom, to: oppTo, promotion: oppPromotion })) {
                         setShowHighlights(true);
                         setGame(opponentGame);
@@ -163,29 +184,44 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                         incorrectSquare={incorrectSquare}
                         isPlayerTurn={isPlayerTurn}
                         showLastMoveHighlight={showHighlights}
-                        userColor={userColor} // Pass userColor to ChessBoard
+                        userColor={userColor}
+                        hintSquare={hintSquare}
                     />
                 </div>
                 <div className="ml-12 mt-36 flex flex-col items-center">
                     <button
                         onClick={resetPuzzle}
-                        className="cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors w-42"
+                        className="cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors w-48"
                     >
-                        Reset Puzzle
-                    </button>
+                        <span className="flex items-center justify-center"> {/* Use a flex container */}
+                            <RotateCcw className="mr-2" />
+                            Reset Puzzle
+                        </span>                    </button>
                     <button
                         onClick={nextPuzzle}
-                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors w-42"
+                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors w-48"
                     >
-                        Next Puzzle
+                        <span className="flex items-center justify-center"> {/* Use a flex container */}
+                            <ArrowRight className="mr-2" />
+                            Next Puzzle
+                        </span>
+                    </button>
+                    <button
+                        onClick={handleGetHint}
+                        disabled={!isPlayerTurn || puzzleStatus !== "playing"}
+                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-400 text-white font-semibold rounded-lg shadow-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors w-48 disabled:opacity-50 disabled:cursor-default"
+                    >
+                        <span className="flex items-center justify-center"> {/* Use a flex container */}
+                            <Lightbulb className="mr-2" />
+                            Get a Hint
+                        </span>
                     </button>
                     <p
-                        className={`pt-8 text-lg font-semibold text-center ${
-                            puzzleStatus === "correct" ? "text-green-600 dark:text-green-400"
-                            : puzzleStatus === "incorrect" ? "text-red-600 dark:text-red-400"
-                            : puzzleStatus === "solved" ? "text-purple-600 dark:text-purple-400"
-                            : "text-gray-700 dark:text-slate-200"
-                        }`}
+                        className={`pt-8 text-lg font-semibold text-center ${puzzleStatus === "correct" ? "text-green-600 dark:text-green-400"
+                                : puzzleStatus === "incorrect" ? "text-red-600 dark:text-red-400"
+                                    : puzzleStatus === "solved" ? "text-purple-600 dark:text-purple-400"
+                                        : "text-gray-700 dark:text-slate-200"
+                            }`}
                     >
                         {feedbackMessage}
                     </p>

@@ -10,6 +10,7 @@ interface ChessBoardProps {
     isPlayerTurn?: boolean | undefined;
     showLastMoveHighlight?: boolean;
     userColor: 'w' | 'b' | null;
+    hintSquare?: Square | null; // New prop for hint
 }
 
 interface DraggedPieceState {
@@ -36,7 +37,7 @@ interface PreMove {
     promotion?: 'q' | 'r' | 'b' | 'n';
 }
 
-const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt, isPlayerTurn, incorrectSquare, showLastMoveHighlight = true, userColor }) => {
+const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt, isPlayerTurn, incorrectSquare, showLastMoveHighlight = true, userColor, hintSquare }) => {
     const letters = ["a", "b", "c", "d", "e", "f", "g", "h"];
     const numbers = [8, 7, 6, 5, 4, 3, 2, 1];
     const boardRef = useRef<HTMLDivElement>(null);
@@ -349,6 +350,7 @@ useEffect(() => {
                             const isHoveredTarget = hoveredTargetSquare === algebraicSquare;
                             const isPossibleMoveTarget = possibleMoves.includes(algebraicSquare);
                             const isPreMove = preMoves.some(move => move.from === algebraicSquare || move.to === algebraicSquare);
+                            const isHintSquare = hintSquare === algebraicSquare; // Check for hint square
 
                             let bgColorClass = isDark ? "bg-sky-700" : "bg-slate-100";
 
@@ -357,6 +359,7 @@ useEffect(() => {
                             else if (isLastMoveFrom) bgColorClass = "bg-blue-300";
                             else if (isLastMoveTo) bgColorClass = "bg-blue-200";
                             else if (isSelected) bgColorClass = "bg-indigo-200";
+                            else if (isHintSquare) bgColorClass = "bg-indigo-200"; // New hint highlight
                             // This check should be last to override others
                             if (isHoveredTarget) bgColorClass = "bg-indigo-100";
 
