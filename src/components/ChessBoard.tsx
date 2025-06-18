@@ -160,7 +160,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     return null;
   };
 
-  // *** FIXED: This function now correctly calculates coordinates by accounting for the board's border ***
   const getCoordsFromRefs = useCallback((from: Square, to: Square) => {
     const boardEl = boardRef.current;
     const startSquareEl = squareRefs.current.get(from);
@@ -174,28 +173,104 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     const startSquareRect = startSquareEl.getBoundingClientRect();
     const endSquareRect = endSquareEl.getBoundingClientRect();
 
-    // The absolutely positioned animating piece is relative to the board's padding box.
-    // getBoundingClientRect() is relative to the viewport and includes the border.
-    // We must account for the board's border to align the animation correctly.
     const boardStyle = window.getComputedStyle(boardEl);
     const boardBorderLeft = parseFloat(boardStyle.borderLeftWidth);
     const boardBorderTop = parseFloat(boardStyle.borderTopWidth);
 
-    // The offset needed to center the piece within its square.
     const pieceOffsetX = (startSquareRect.width - currentPieceVisualSize) / 2;
     const pieceOffsetY = (startSquareRect.height - currentPieceVisualSize) / 2;
 
-    // Calculate start position: square's position relative to board's viewport position, 
-    // minus the board's border, plus the centering offset.
     const startX = (startSquareRect.left - boardRect.left - boardBorderLeft) + pieceOffsetX;
     const startY = (startSquareRect.top - boardRect.top - boardBorderTop) + pieceOffsetY;
 
-    // Calculate end position similarly.
     const endX = (endSquareRect.left - boardRect.left - boardBorderLeft) + pieceOffsetX;
     const endY = (endSquareRect.top - boardRect.top - boardBorderTop) + pieceOffsetY;
 
     return { startX, startY, endX, endY };
   }, [currentPieceVisualSize]);
+
+  const getEnhancedPossibleMoves = useCallback((square: Square): Square[] => {
+    const legalMoves = game.moves({ square, verbose: true });
+    const possibleDests = legalMoves.map(move => move.to);
+
+    const piece = game.get(square);
+    if (piece && piece.type === 'k') {
+      const rank = square.charAt(1);
+
+      if (legalMoves.some(move => move.san === 'O-O')) {
+        const rookSquare = ('h' + rank) as Square;
+        if (!possibleDests.includes(rookSquare)) {
+          possibleDests.push(rookSquare);
+        }
+      }
+
+      if (legalMoves.some(move => move.san === 'O-O-O')) {
+        const rookSquare = ('a' + rank) as Square;
+        const bFileSquare = ('b' + rank) as Square;
+        const dFileSquare = ('d' + rank) as Square;
+        if (!possibleDests.includes(rookSquare)) possibleDests.push(rookSquare);
+        if (!possibleDests.includes(bFileSquare)) possibleDests.push(bFileSquare);
+        if (!possibleDests.includes(dFileSquare)) possibleDests.push(dFileSquare);
+      }
+    }
+
+    return possibleDests;
+  }, [game]);
+
+  const getInterpretedMove = useCallback((from: Square, to: Square): Square => {
+    const piece = game.get(from);
+    if (!piece || piece.type !== 'k') {
+      return to;
+    }
+
+    const legalMoves = game.moves({ square: from, verbose: true });
+    const isDirectlyLegal = legalMoves.some(m => m.to === to);
+
+    const targetPiece = game.get(to);
+    if (targetPiece && targetPiece.type === 'r' && targetPiece.color === piece.color) {
+      if (to.startsWith('h')) {
+        const castleMove = legalMoves.find(m => m.san === 'O-O');
+        if (castleMove) return castleMove.to;
+      } else if (to.startsWith('a')) {
+        const castleMove = legalMoves.find(m => m.san === 'O-O-O');
+        if (castleMove) return castleMove.to;
+      }
+    }
+
+    if (!isDirectlyLegal) {
+      if ((from === 'e1' && (to === 'b1' || to === 'd1')) || (from === 'e8' && (to === 'b8' || to === 'd8'))) {
+        const castleMove = legalMoves.find(m => m.san === 'O-O-O');
+        if (castleMove) {
+          return castleMove.to;
+        }
+      }
+    }
+
+    return to;
+  }, [game]);
+
+  const executeMove = useCallback((from: Square, to: Square) => {
+    const pieceToMove = game.get(from);
+    if (!pieceToMove) return;
+
+    if (isPlayerTurn || canMoveAnyPiece) {
+      const coords = getCoordsFromRefs(from, to);
+      if (coords) {
+        setAnimatingPiece({ piece: pieceToMove, from, to, ...coords });
+      } else {
+        onMoveAttempt(from, to);
+      }
+    } else {
+      let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
+      if (pieceToMove?.type === 'p' && ((pieceToMove.color === 'w' && to.endsWith('8')) || (pieceToMove.color === 'b' && to.endsWith('1')))) {
+        promotionPiece = 'q';
+      }
+      setPreMoves(prev => [...prev, { from, to, promotion: promotionPiece }]);
+    }
+
+    setSelectedSquare(null);
+    setPossibleMoves([]);
+  }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt]);
 
   const handleSquareClick = useCallback((clickedSquare: Square) => {
     if (interactionState.current?.isDragging) return;
@@ -207,36 +282,18 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         setPossibleMoves([]);
         return;
       }
-      const isMovePossible = possibleMoves.includes(clickedSquare);
-      if (isMovePossible) {
-        const pieceToMove = game.get(selectedSquare);
-        if (pieceToMove && (isPlayerTurn || canMoveAnyPiece)) {
-          const coords = getCoordsFromRefs(selectedSquare, clickedSquare);
-          if (coords) {
-            setAnimatingPiece({
-              piece: pieceToMove,
-              from: selectedSquare,
-              to: clickedSquare,
-              ...coords,
-            });
-          } else {
-            onMoveAttempt(selectedSquare, clickedSquare);
-          }
-        } else {
-          let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
-          if (pieceToMove?.type === 'p' && ((pieceToMove.color === 'w' && clickedSquare.endsWith('8')) || (pieceToMove.color === 'b' && clickedSquare.endsWith('1')))) {
-            promotionPiece = 'q';
-          }
-          setPreMoves(prev => [...prev, { from: selectedSquare, to: clickedSquare, promotion: promotionPiece }]);
-        }
-        setSelectedSquare(null);
-        setPossibleMoves([]);
+
+      const interpretedTo = getInterpretedMove(selectedSquare, clickedSquare);
+      const isMoveLegal = game.moves({ verbose: true }).some(m => m.from === selectedSquare && m.to === interpretedTo);
+
+      if (isMoveLegal) {
+        executeMove(selectedSquare, interpretedTo);
       } else {
         const pieceOnClickedSquare = game.get(clickedSquare);
         if (pieceOnClickedSquare && (canMoveAnyPiece || pieceOnClickedSquare.color === userColor)) {
           setSelectedSquare(clickedSquare);
           if (isPlayerTurn || canMoveAnyPiece) {
-            setPossibleMoves(game.moves({ square: clickedSquare, verbose: true }).map(move => move.to));
+            setPossibleMoves(getEnhancedPossibleMoves(clickedSquare));
           }
         } else {
           setSelectedSquare(null);
@@ -248,12 +305,13 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       if (pieceOnClickedSquare && (canMoveAnyPiece || pieceOnClickedSquare.color === userColor)) {
         setSelectedSquare(clickedSquare);
         if (isPlayerTurn || canMoveAnyPiece) {
-          setPossibleMoves(game.moves({ square: clickedSquare, verbose: true }).map(move => move.to));
+          setPossibleMoves(getEnhancedPossibleMoves(clickedSquare));
         }
       }
     }
-  }, [game, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece, possibleMoves, getCoordsFromRefs, onMoveAttempt]);
+  }, [game, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece, getInterpretedMove, executeMove, getEnhancedPossibleMoves]);
 
+  // *** UPDATED: Now uses the enhanced move list for hover detection ***
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const currentInteraction = interactionState.current;
     if (!currentInteraction || !currentInteraction.piece) return;
@@ -267,17 +325,15 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         setDraggedPosition({ x: currentMouseX - currentSquareSize / 2, y: currentMouseY - currentSquareSize / 2 });
         const col = Math.floor(currentMouseX / currentSquareSize);
         const row = Math.floor(currentMouseY / currentSquareSize);
-        let currentLegalMoves: Square[] = [];
-        if (gameRef.current) {
-          currentLegalMoves = gameRef.current.moves({ square: currentInteraction.square, verbose: true }).map(move => move.to) as Square[];
-        }
-        if (isPlayerTurn || canMoveAnyPiece) {
-          setPossibleMoves(currentLegalMoves);
-        }
+        
+        // Use the enhanced list to check for valid hover targets
+        const enhancedLegalMoves = getEnhancedPossibleMoves(currentInteraction.square);
+        
         let newHoveredTargetSquare: Square | null = null;
         if (col >= 0 && col < 8 && row >= 0 && row < 8) {
           const currentSquareUnderMouse = getAlgebraicSquare(row * 8 + col);
-          if (currentLegalMoves.includes(currentSquareUnderMouse)) {
+          // Check if the square under the mouse is in our enhanced list
+          if (enhancedLegalMoves.includes(currentSquareUnderMouse)) {
             newHoveredTargetSquare = currentSquareUnderMouse;
           }
         }
@@ -293,12 +349,12 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       e.preventDefault();
       setDraggedPiece({ piece: currentInteraction.piece, fromSquare: currentInteraction.square });
       if (isPlayerTurn || canMoveAnyPiece) {
-        setPossibleMoves(gameRef.current?.moves({ square: currentInteraction.square, verbose: true }).map(move => move.to) as Square[] || []);
+        setPossibleMoves(getEnhancedPossibleMoves(currentInteraction.square));
       }
       setSelectedSquare(null);
       document.body.style.cursor = 'grabbing';
     }
-  }, [currentSquareSize, getAlgebraicSquare, isPlayerTurn, canMoveAnyPiece]);
+  }, [currentSquareSize, getAlgebraicSquare, isPlayerTurn, canMoveAnyPiece, getEnhancedPossibleMoves]);
 
   const handleMouseUp = useCallback((e: MouseEvent) => {
     const currentInteraction = interactionState.current;
@@ -307,7 +363,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     if (currentInteraction?.isDragging) {
       setHoveredTargetSquare(null);
       setPossibleMoves([]);
-      if (boardRef.current) {
+      if (boardRef.current && gameRef.current) {
         const boardRect = boardRef.current.getBoundingClientRect();
         const mouseX = e.clientX - boardRect.left;
         const mouseY = e.clientY - boardRect.top;
@@ -316,29 +372,12 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         if (col >= 0 && col < 8 && row >= 0 && row < 8) {
           const toSquare = getAlgebraicSquare(row * 8 + col);
           if (currentInteraction.square !== toSquare) {
-            const pieceToMove = gameRef.current?.get(currentInteraction.square);
-            if (isPlayerTurn || canMoveAnyPiece) {
-              const coords = getCoordsFromRefs(currentInteraction.square, toSquare);
-              if (coords) {
-                setAnimatingPiece({
-                  piece: currentInteraction.piece,
-                  from: currentInteraction.square,
-                  to: toSquare,
-                  ...coords,
-                });
-              } else {
-                onMoveAttempt(currentInteraction.square, toSquare);
-              }
-            } else {
-              if (!canMoveAnyPiece && game.history().length === 0) {
-                console.log("Preventing premove: It's the first move and computer's turn.");
-              } else {
-                let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
-                if (pieceToMove?.type === 'p' && ((pieceToMove.color === 'w' && toSquare.endsWith('8')) || (pieceToMove.color === 'b' && toSquare.endsWith('1')))) {
-                  promotionPiece = 'q';
-                }
-                setPreMoves(prev => [...prev, { from: currentInteraction.square, to: toSquare, promotion: promotionPiece }]);
-              }
+            const fromSquare = currentInteraction.square;
+            const interpretedTo = getInterpretedMove(fromSquare, toSquare);
+
+            const isMoveLegal = gameRef.current.moves({ verbose: true }).some(m => m.from === fromSquare && m.to === interpretedTo);
+            if (isMoveLegal || !(isPlayerTurn || canMoveAnyPiece)) {
+              executeMove(fromSquare, interpretedTo);
             }
           }
         }
@@ -349,7 +388,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       setSelectedSquare(null);
     }
     interactionState.current = null;
-  }, [currentSquareSize, getAlgebraicSquare, isPlayerTurn, handleMouseMove, game, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt]);
+  }, [currentSquareSize, getAlgebraicSquare, isPlayerTurn, canMoveAnyPiece, handleMouseMove, getInterpretedMove, executeMove]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
     e.preventDefault();
