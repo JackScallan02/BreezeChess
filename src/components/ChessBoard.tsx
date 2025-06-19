@@ -11,6 +11,8 @@ interface ChessBoardProps {
   userColor: 'w' | 'b' | null;
   hintSquare?: Square | null;
   canMoveAnyPiece?: boolean;
+  // NEW: Prop to control piece animations.
+  animationsEnabled?: boolean;
 }
 
 interface DraggedPieceState {
@@ -37,7 +39,6 @@ interface PreMove {
   promotion?: 'q' | 'r' | 'b' | 'n';
 }
 
-// NEW: Interface for storing information about each piece to be animated.
 interface AnimatingPieceInfo {
   piece: Piece;
   from: Square;
@@ -49,12 +50,11 @@ interface AnimatingPieceInfo {
 }
 
 
-const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt, isPlayerTurn, incorrectSquare, showLastMoveHighlight = true, userColor, hintSquare, canMoveAnyPiece }) => {
+const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt, isPlayerTurn, incorrectSquare, showLastMoveHighlight = true, userColor, hintSquare, canMoveAnyPiece, animationsEnabled = true }) => {
   const letters = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const numbers = [8, 7, 6, 5, 4, 3, 2, 1];
   const boardRef = useRef<HTMLDivElement>(null);
   const interactionState = useRef<InteractionState | null>(null);
-  // NEW: A map to hold references to the DOM elements of the animating pieces.
   const animatedPieceElementsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
   const squareRefs = useRef(new Map<Square, HTMLDivElement>());
 
@@ -66,29 +66,114 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
   const [hoveredTargetSquare, setHoveredTargetSquare] = useState<Square | null>(null);
   const [lastMove, setLastMove] = useState<LastMove | null>(null);
   const [preMoves, setPreMoves] = useState<PreMove[]>([]);
-  // UPDATED: State to handle an array of animating pieces, not just one.
   const [animatingPieces, setAnimatingPieces] = useState<AnimatingPieceInfo[]>([]);
 
   const gameRef = useRef<Chess | null>(null);
-  // NEW: Ref to store the details of the move being animated.
   const moveBeingAnimated = useRef<Move | null>(null);
 
   const currentSquareSize = boardWidth > 0 ? boardWidth / 8 : 0;
   const currentPieceVisualSize = currentSquareSize * 0.75;
 
+    const getCoordsFromRefs = useCallback((from: Square, to: Square) => {
+    const boardEl = boardRef.current;
+    const startSquareEl = squareRefs.current.get(from);
+    const endSquareEl = squareRefs.current.get(to);
+
+    if (!boardEl || !startSquareEl || !endSquareEl) {
+      return null;
+    }
+
+    const boardRect = boardEl.getBoundingClientRect();
+    const startSquareRect = startSquareEl.getBoundingClientRect();
+    const endSquareRect = endSquareEl.getBoundingClientRect();
+
+    const boardStyle = window.getComputedStyle(boardEl);
+    const boardBorderLeft = parseFloat(boardStyle.borderLeftWidth);
+    const boardBorderTop = parseFloat(boardStyle.borderTopWidth);
+
+    const pieceOffsetX = (startSquareRect.width - currentPieceVisualSize) / 2;
+    const pieceOffsetY = (startSquareRect.height - currentPieceVisualSize) / 2;
+
+    const startX = (startSquareRect.left - boardRect.left - boardBorderLeft) + pieceOffsetX;
+    const startY = (startSquareRect.top - boardRect.top - boardBorderTop) + pieceOffsetY;
+
+    const endX = (endSquareRect.left - boardRect.left - boardBorderLeft) + pieceOffsetX;
+    const endY = (endSquareRect.top - boardRect.top - boardBorderTop) + pieceOffsetY;
+
+    return { startX, startY, endX, endY };
+  }, [currentPieceVisualSize]);
+
+  // Forward declaration of executeMove for use in effects
+  const executeMove = useCallback((from: Square, to: Square) => {
+    const pieceToMove = game.get(from);
+    if (!pieceToMove) return;
+
+    // Handle premoves if it's not the user's turn
+    if (!isPlayerTurn && !canMoveAnyPiece) {
+      let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
+      if (pieceToMove.type === 'p' && ((pieceToMove.color === 'w' && to.endsWith('8')) || (pieceToMove.color === 'b' && to.endsWith('1')))) {
+        promotionPiece = 'q';
+      }
+      setPreMoves(prev => [...prev, { from, to, promotion: promotionPiece }]);
+      setSelectedSquare(null);
+      setPossibleMoves([]);
+      return;
+    }
+
+    const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to);
+    if (!move) return;
+
+    // NEW: Check if animations are disabled. If so, move the piece instantly and exit.
+    if (!animationsEnabled) {
+      onMoveAttempt(from, to, move.promotion as any);
+      setSelectedSquare(null);
+      setPossibleMoves([]);
+      return;
+    }
+
+    // If animations are enabled, proceed with the animation setup.
+    moveBeingAnimated.current = move;
+    const piecesToAnimate: AnimatingPieceInfo[] = [];
+
+    const mainCoords = getCoordsFromRefs(move.from, move.to);
+    if (mainCoords) {
+      piecesToAnimate.push({ piece: pieceToMove, from: move.from, to: move.to, ...mainCoords });
+    }
+
+    if (move.flags.includes('k') || move.flags.includes('q')) {
+      const isKingside = move.flags.includes('k');
+      const rank = move.color === 'w' ? '1' : '8';
+      const rookFromSq = (isKingside ? 'h' : 'a') + rank as Square;
+      const rookToSq = (isKingside ? 'f' : 'd') + rank as Square;
+      const rookPiece = game.get(rookFromSq);
+      const rookCoords = getCoordsFromRefs(rookFromSq, rookToSq);
+
+      if (rookPiece && rookCoords) {
+        piecesToAnimate.push({ piece: rookPiece, from: rookFromSq, to: rookToSq, ...rookCoords });
+      }
+    }
+
+    if (piecesToAnimate.length > 0) {
+      setAnimatingPieces(piecesToAnimate);
+    } else {
+      onMoveAttempt(from, to, move.promotion as any);
+    }
+
+    setSelectedSquare(null);
+    setPossibleMoves([]);
+  }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt, animationsEnabled]);
+
+
   useEffect(() => {
     gameRef.current = game;
   }, [game]);
 
-  // *** UPDATED: Animation effect to handle multiple pieces ***
   useEffect(() => {
-    // Only run if there are pieces to animate.
     if (animatingPieces.length > 0) {
-      const duration = 200; // Animation duration in ms.
-      const primaryPieceInfo = animatingPieces[0]; // The main piece of the move (e.g., the king).
+      const duration = 200;
+      const primaryPieceInfo = animatingPieces[0];
       const primaryElement = animatedPieceElementsRef.current.get(primaryPieceInfo.from);
 
-      // 1. Set start positions for all pieces without a transition.
       animatingPieces.forEach(p => {
         const el = animatedPieceElementsRef.current.get(p.from);
         if (el) {
@@ -97,8 +182,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         }
       });
 
-      // 2. Use requestAnimationFrame to apply the end positions on the next frame, with the transition enabled.
-      // This ensures the move animation is visible.
       requestAnimationFrame(() => {
         animatingPieces.forEach(p => {
           const el = animatedPieceElementsRef.current.get(p.from);
@@ -109,24 +192,18 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         });
       });
 
-      // 3. Set up a listener for when the primary piece's animation finishes.
       if (primaryElement) {
         const handleTransitionEnd = () => {
           primaryElement.removeEventListener('transitionend', handleTransitionEnd);
-
           const move = moveBeingAnimated.current;
           if (move) {
-            // Once animation is complete, officially attempt the move in the game logic.
             onMoveAttempt(move.from, move.to, move.promotion as 'q' | 'r' | 'b' | 'n' | undefined);
           }
-
-          // 4. Clean up the animation state.
           setAnimatingPieces([]);
           animatedPieceElementsRef.current.clear();
           moveBeingAnimated.current = null;
         };
         primaryElement.addEventListener('transitionend', handleTransitionEnd);
-
         return () => {
           primaryElement.removeEventListener('transitionend', handleTransitionEnd);
         };
@@ -155,6 +232,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     }
   }, [game, showLastMoveHighlight, isPlayerTurn, preMoves]);
 
+  // UPDATED: This effect now uses executeMove so premoves can be animated.
   useEffect(() => {
     if (isPlayerTurn && preMoves.length > 0) {
       const nextPreMove = preMoves[0];
@@ -164,14 +242,15 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       );
 
       if (isPreMoveLegal) {
-        onMoveAttempt(nextPreMove.from, nextPreMove.to, nextPreMove.promotion);
+        // By calling executeMove, premoves will now also respect the animationsEnabled prop.
+        executeMove(nextPreMove.from, nextPreMove.to);
         setPreMoves(prev => prev.slice(1));
       } else {
         setLastMove(null);
         setPreMoves([]);
       }
     }
-  }, [preMoves, isPlayerTurn, game, onMoveAttempt]);
+  }, [preMoves, isPlayerTurn, game, executeMove]);
 
   useEffect(() => {
     const updateBoardWidth = () => {
@@ -193,34 +272,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     return null;
   };
 
-  const getCoordsFromRefs = useCallback((from: Square, to: Square) => {
-    const boardEl = boardRef.current;
-    const startSquareEl = squareRefs.current.get(from);
-    const endSquareEl = squareRefs.current.get(to);
 
-    if (!boardEl || !startSquareEl || !endSquareEl) {
-      return null;
-    }
-
-    const boardRect = boardEl.getBoundingClientRect();
-    const startSquareRect = startSquareEl.getBoundingClientRect();
-    const endSquareRect = endSquareEl.getBoundingClientRect();
-
-    const boardStyle = window.getComputedStyle(boardEl);
-    const boardBorderLeft = parseFloat(boardStyle.borderLeftWidth);
-    const boardBorderTop = parseFloat(boardStyle.borderTopWidth);
-
-    const pieceOffsetX = (startSquareRect.width - currentPieceVisualSize) / 2;
-    const pieceOffsetY = (startSquareRect.height - currentPieceVisualSize) / 2;
-
-    const startX = (startSquareRect.left - boardRect.left - boardBorderLeft) + pieceOffsetX;
-    const startY = (startSquareRect.top - boardRect.top - boardBorderTop) + pieceOffsetY;
-
-    const endX = (endSquareRect.left - boardRect.left - boardBorderLeft) + pieceOffsetX;
-    const endY = (endSquareRect.top - boardRect.top - boardBorderTop) + pieceOffsetY;
-
-    return { startX, startY, endX, endY };
-  }, [currentPieceVisualSize]);
 
   const getEnhancedPossibleMoves = useCallback((square: Square): Square[] => {
     const legalMoves = game.moves({ square, verbose: true });
@@ -281,59 +333,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
 
     return to;
   }, [game]);
-
-  // *** UPDATED: executeMove now identifies castling and prepares animation for all involved pieces. ***
-  const executeMove = useCallback((from: Square, to: Square) => {
-    const pieceToMove = game.get(from);
-    if (!pieceToMove) return;
-
-    if (!isPlayerTurn && !canMoveAnyPiece) {
-      let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
-      if (pieceToMove.type === 'p' && ((pieceToMove.color === 'w' && to.endsWith('8')) || (pieceToMove.color === 'b' && to.endsWith('1')))) {
-        promotionPiece = 'q';
-      }
-      setPreMoves(prev => [...prev, { from, to, promotion: promotionPiece }]);
-      setSelectedSquare(null);
-      setPossibleMoves([]);
-      return;
-    }
-
-    const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to);
-    if (!move) return;
-
-    moveBeingAnimated.current = move; // Store the move for the animation end handler
-    const piecesToAnimate: AnimatingPieceInfo[] = [];
-
-    // 1. Add the primary piece (king in castling, or any other piece)
-    const mainCoords = getCoordsFromRefs(move.from, move.to);
-    if (mainCoords) {
-      piecesToAnimate.push({ piece: pieceToMove, from: move.from, to: move.to, ...mainCoords });
-    }
-
-    // 2. Check for castling flags ('k' for kingside, 'q' for queenside) to animate the rook
-    if (move.flags.includes('k') || move.flags.includes('q')) {
-      const isKingside = move.flags.includes('k');
-      const rank = move.color === 'w' ? '1' : '8';
-      const rookFromSq = (isKingside ? 'h' : 'a') + rank as Square;
-      const rookToSq = (isKingside ? 'f' : 'd') + rank as Square;
-      const rookPiece = game.get(rookFromSq);
-      const rookCoords = getCoordsFromRefs(rookFromSq, rookToSq);
-
-      if (rookPiece && rookCoords) {
-        piecesToAnimate.push({ piece: rookPiece, from: rookFromSq, to: rookToSq, ...rookCoords });
-      }
-    }
-
-    if (piecesToAnimate.length > 0) {
-      setAnimatingPieces(piecesToAnimate);
-    } else {
-      // Fallback to moving without animation if coordinates fail for any reason
-      onMoveAttempt(from, to, move.promotion as any);
-    }
-
-    setSelectedSquare(null);
-    setPossibleMoves([]);
-  }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt]);
 
   const handleSquareClick = useCallback((clickedSquare: Square) => {
     if (interactionState.current?.isDragging) return;
@@ -505,7 +504,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
               else if (isSelected) bgColorClass = "bg-indigo-200";
               else if (isHintSquare) bgColorClass = "bg-amber-100";
               if (isHoveredTarget) bgColorClass = "bg-indigo-100";
-              // UPDATED: A square is hidden if it's the start or end point for any animating piece.
               const isHiddenDuringAnimation = animatingPieces.some(p => p.from === algebraicSquare || p.to === algebraicSquare);
               return (
                 <div
@@ -526,7 +524,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
             })}
             {draggedPiece && draggedPosition && (<img src={getPieceImage(draggedPiece.piece) || ''} draggable={false} alt="" style={{ position: 'absolute', left: `${draggedPosition.x}px`, top: `${draggedPosition.y}px`, width: `${currentSquareSize}px`, height: `${currentSquareSize}px`, objectFit: 'contain', pointerEvents: 'none', zIndex: 1000, transform: 'scale(0.9)', filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))' }} />)}
             
-            {/* UPDATED: Render all pieces that are currently animating. */}
             {animatingPieces.length > 0 && animatingPieces.map(p => (
               <div
                 key={p.from}
