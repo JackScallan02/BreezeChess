@@ -1,0 +1,45 @@
+/* In your CSS file (e.g., src/index.css or src/App.css) */
+
+/* Dark mode overrides for PrimeReact DataView */
+.dark .p-dataview .p-dataview-header {
+    background-color: #1e293b !important; /* Tailwind slate-800 */
+    color: #fff !important; /* Tailwind white */
+    border-color:rgba(255, 255, 255, 0) !important; /* No border */
+}
+
+.dark .p-dataview-content .border-1 {
+    border-color: #334155 !important; /* Tailwind slate-700 */
+}
+
+.dark .p-dataview .p-dataview-content {
+    background-color: #1e293b !important; /* Tailwind slate-800 */
+}
+
+/* Adjust the layout options buttons within the header for dark mode icons/backgrounds */
+.dark .p-dataview-layout-options .p-button {
+    background-color: transparent !important; /* Ensures transparent background */
+    color: #fff !important; /* White icon */
+    border-color: #64748b !important; /* slate-500 border for visibility */
+}
+
+.dark .p-dataview-layout-options .p-button.p-highlight {
+    background-color: #0ea5e9 !important; /* sky-500 for active state */
+    color: #fff !important;
+    border-color: #0ea5e9 !important;
+}
+
+/* Ensure the default "surface-border" and "surface-card" classes (if used elsewhere by PrimeReact) are also dark */
+.dark .surface-border {
+    border-color: #475569 !important; /* slate-600 */
+}
+
+.dark .surface-card {
+    background-color: #1e293b !important; /* slate-800 */
+    color: #fff !important;
+}
+
+/* To address any remaining default text color for generic elements within dark mode containers */
+.dark .p-dataview,
+.dark .p-dataview * {
+    color: #fff; /* Default text white for all elements within dataview */
+}

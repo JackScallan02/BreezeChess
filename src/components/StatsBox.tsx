@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Skeleton } from 'primereact/skeleton';
+import useDarkMode from '../darkmode/useDarkMode';
 
 
 const StatsBox = () => {
@@ -15,6 +16,8 @@ const StatsBox = () => {
 
     const [ratingCategories, setRatingCategories] = useState<Array<RatingCategory>>([]);
     const [userRatings, setUserRatings] = useState<Array<UserRating>>([]);
+
+    const isDarkMode = useDarkMode();
 
     const fetchRatingData = async () => {
         const ratingCategoriesRes = await getRatingCategories();
@@ -30,7 +33,7 @@ const StatsBox = () => {
 
     return (
 
-        <div className={`rounded-lg p-4 bg-white shadow-md border mt-16 w-full`}>
+        <div className={`rounded-lg p-4 bg-whit dark:bg-slate-800 shadow-md border mt-16 w-full`}>
             <div className="w-full flex justify-center mt-8">
                 <p className="text-[2rem] font-medium">Statistics</p>
             </div>
@@ -39,7 +42,7 @@ const StatsBox = () => {
                     <div className="card w-full">
                         {ratingCategories.length === 0 ? (
                             <>
-                                <Skeleton height="16rem" className="bg-gray-100"></Skeleton>
+                                <Skeleton height="16rem" className="bg-gray-100 dark:bg-slate-500"></Skeleton>
                             </>
                         ) : (
                             <DataTable
@@ -51,9 +54,21 @@ const StatsBox = () => {
                                 }))}
                                 tableStyle={{ width: '100%' }}
                             >
-                                <Column field="name" header="Name" style={{ width: '33%' }}></Column>
-                                <Column field="rating" header="Rating" style={{ width: '33%' }}></Column>
-                                <Column field="numgames" header="Games Played" style={{ width: '33%' }}></Column>
+                                <Column field="name" header="Name" style={{
+                                    width: '33%',
+                                    backgroundColor: isDarkMode ? '#314158' : undefined,
+                                    color: isDarkMode ? 'white' : undefined
+                                }}></Column>
+                                <Column field="rating" header="Rating" style={{
+                                    width: '33%',
+                                    backgroundColor: isDarkMode ? '#314158' : undefined,
+                                    color: isDarkMode ? 'white' : undefined
+                                }}></Column>
+                                <Column field="numgames" header="Games Played" style={{
+                                    width: '33%',
+                                    backgroundColor: isDarkMode ? '#314158' : undefined,
+                                    color: isDarkMode ? 'white' : undefined
+                                }}></Column>
                             </DataTable>
                         )}
 

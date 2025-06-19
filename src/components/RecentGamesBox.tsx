@@ -15,7 +15,7 @@ const RecentGamesBox = () => {
 
     return (
 
-        <div className={`rounded-lg p-4 bg-white shadow-md border mt-16 w-full`}>
+        <div className={`rounded-lg p-4 bg-white dark:bg-slate-800 shadow-md border mt-16 w-full`}>
             <div className="w-full flex justify-center mt-8">
                 <p className="text-[2rem] font-medium">Recent Games</p>
             </div>

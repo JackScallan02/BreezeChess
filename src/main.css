@@ -18,4 +18,33 @@ html, body {
 
 .firebase-emulator-warning {
     display: none;
-  }
+}
+
+/* === SCROLLBAR STYLING FOR DARK MODE === */
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+.dark ::-webkit-scrollbar {
+    width: 12px; /* Width of the vertical scrollbar */
+    height: 12px; /* Height of the horizontal scrollbar */
+}
+
+.dark ::-webkit-scrollbar-track {
+    background: #1e293b; /* slate-800 for the track */
+    border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background-color: #475569; /* slate-600 for the thumb */
+    border-radius: 10px;
+    border: 3px solid #1e293b; /* Creates padding around the thumb matching the track */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #64748b; /* slate-500 on hover */
+}
+
+/* Firefox */
+.dark {
+    scrollbar-color: #475569 #1e293b; /* thumb color track color */
+    scrollbar-width: thin; /* auto, thin, none */
+}
