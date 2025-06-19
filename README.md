@@ -57,7 +57,7 @@ The backend server, which contains the express routes and database migrations/se
 
 The mock AWS container. Connect to the S3 bucket: `aws --endpoint-url=http://localhost:4566 s3 ls`
 
-### Puzzle Service
+#### Puzzle Service
 
 The python service for filtering and retrieving puzzles from the database
 
