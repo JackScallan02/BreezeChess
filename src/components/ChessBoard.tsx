@@ -121,7 +121,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
     return { startX, startY, endX, endY };
   }, [currentPieceVisualSize]);
 
-  const executeMove = useCallback((from: Square, to: Square, wasDragged = false) => {
+  const executeMove = useCallback((from: Square, to: Square, wasDragged = false, isPremove = false) => {
     const pieceToMove = game.get(from);
     if (!pieceToMove) return;
 
@@ -139,7 +139,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
     const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to);
     if (!move) return;
 
-    if (!animationsEnabled || wasDragged) {
+    if (!animationsEnabled || wasDragged || isPremove) {
       onMoveAttempt(from, to, move.promotion as any);
       setSelectedSquare(null);
       setPossibleMoves([]);
@@ -246,7 +246,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
       );
 
       if (isPreMoveLegal) {
-        executeMove(nextPreMove.from, nextPreMove.to, false);
+        executeMove(nextPreMove.from, nextPreMove.to, false, true);
         setPreMoves(prev => prev.slice(1));
       } else {
         setLastMove(null);
