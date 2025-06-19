@@ -253,7 +253,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       if (boardRef.current) {
         const viewportMin = Math.min(window.innerWidth, window.innerHeight);
         let newBoardWidth = viewportMin * 0.8;
-        newBoardWidth = Math.max(newBoardWidth, 300);
         if (newBoardWidth !== boardWidth) setBoardWidth(newBoardWidth);
       }
     };
@@ -471,7 +470,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
 
   return (
     <div className="flex justify-center items-center w-full h-full text-black dark:text-white overflow-hidden" style={{ boxSizing: "border-box" }}>
-      <div className="flex flex-col items-center" style={{ minHeight: "300px", minWidth: "300px" }}>
+      <div className="flex flex-col items-center">
         <div className="flex">
           {showLabels && (
             <div className="flex flex-col justify-between" style={{ height: boardWidth > 0 ? boardWidth : 'auto', marginRight: `min(${boardWidth * 0.04}px, 12px)`, visibility: boardWidth === 0 ? 'hidden' : 'visible' }}>

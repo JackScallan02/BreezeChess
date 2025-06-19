@@ -50,7 +50,7 @@ const BoardBuilder = () => {
         <MainToolBar />
       </div>
 
-      <main className="flex-1 w-full overflow-hidden">
+      <main className="flex-1 w-full overflow-hidden mt-6">
         <ChessBoard
           showLabels
           game={game}
