@@ -11,7 +11,6 @@ interface ChessBoardProps {
   userColor: 'w' | 'b' | null;
   hintSquare?: Square | null;
   canMoveAnyPiece?: boolean;
-  // NEW: Prop to control piece animations.
   animationsEnabled?: boolean;
 }
 
@@ -74,7 +73,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
   const currentSquareSize = boardWidth > 0 ? boardWidth / 8 : 0;
   const currentPieceVisualSize = currentSquareSize * 0.75;
 
-    const getCoordsFromRefs = useCallback((from: Square, to: Square) => {
+  const getCoordsFromRefs = useCallback((from: Square, to: Square) => {
     const boardEl = boardRef.current;
     const startSquareEl = squareRefs.current.get(from);
     const endSquareEl = squareRefs.current.get(to);
@@ -103,12 +102,11 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     return { startX, startY, endX, endY };
   }, [currentPieceVisualSize]);
 
-  // Forward declaration of executeMove for use in effects
-  const executeMove = useCallback((from: Square, to: Square) => {
+  // UPDATED: executeMove now accepts a flag to indicate if the move was from a drag.
+  const executeMove = useCallback((from: Square, to: Square, wasDragged = false) => {
     const pieceToMove = game.get(from);
     if (!pieceToMove) return;
 
-    // Handle premoves if it's not the user's turn
     if (!isPlayerTurn && !canMoveAnyPiece) {
       let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
       if (pieceToMove.type === 'p' && ((pieceToMove.color === 'w' && to.endsWith('8')) || (pieceToMove.color === 'b' && to.endsWith('1')))) {
@@ -123,15 +121,14 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to);
     if (!move) return;
 
-    // NEW: Check if animations are disabled. If so, move the piece instantly and exit.
-    if (!animationsEnabled) {
+    // UPDATED: Skip animation if disabled OR if the piece was dragged.
+    if (!animationsEnabled || wasDragged) {
       onMoveAttempt(from, to, move.promotion as any);
       setSelectedSquare(null);
       setPossibleMoves([]);
       return;
     }
 
-    // If animations are enabled, proceed with the animation setup.
     moveBeingAnimated.current = move;
     const piecesToAnimate: AnimatingPieceInfo[] = [];
 
@@ -232,7 +229,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     }
   }, [game, showLastMoveHighlight, isPlayerTurn, preMoves]);
 
-  // UPDATED: This effect now uses executeMove so premoves can be animated.
   useEffect(() => {
     if (isPlayerTurn && preMoves.length > 0) {
       const nextPreMove = preMoves[0];
@@ -242,8 +238,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       );
 
       if (isPreMoveLegal) {
-        // By calling executeMove, premoves will now also respect the animationsEnabled prop.
-        executeMove(nextPreMove.from, nextPreMove.to);
+        // Premoves are not dragged, so they should animate (pass false).
+        executeMove(nextPreMove.from, nextPreMove.to, false);
         setPreMoves(prev => prev.slice(1));
       } else {
         setLastMove(null);
@@ -256,7 +252,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     const updateBoardWidth = () => {
       if (boardRef.current) {
         const viewportMin = Math.min(window.innerWidth, window.innerHeight);
-        let newBoardWidth = viewportMin * 0.7;
+        let newBoardWidth = viewportMin * 0.8;
         newBoardWidth = Math.max(newBoardWidth, 300);
         if (newBoardWidth !== boardWidth) setBoardWidth(newBoardWidth);
       }
@@ -349,7 +345,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       const isMoveLegal = game.moves({ verbose: true }).some(m => m.from === selectedSquare && m.to === interpretedTo);
 
       if (isMoveLegal) {
-        executeMove(selectedSquare, interpretedTo);
+        // Click-based moves are not dragged, so pass false to animate.
+        executeMove(selectedSquare, interpretedTo, false);
       } else {
         const pieceOnClickedSquare = game.get(clickedSquare);
         if (pieceOnClickedSquare && (canMoveAnyPiece || pieceOnClickedSquare.color === userColor)) {
@@ -436,7 +433,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
 
             const isMoveLegal = gameRef.current.moves({ verbose: true }).some(m => m.from === fromSquare && m.to === interpretedTo);
             if (isMoveLegal || !(isPlayerTurn || canMoveAnyPiece)) {
-              executeMove(fromSquare, interpretedTo);
+              // Pass true to indicate the move was dragged, preventing animation.
+              executeMove(fromSquare, interpretedTo, true);
             }
           }
         }
@@ -472,7 +470,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
   const currentBoard = game.board();
 
   return (
-    <div className="flex justify-center items-center w-full h-full text-black dark:text-white overflow-hidden" style={{ padding: "2rem", boxSizing: "border-box" }}>
+    <div className="flex justify-center items-center w-full h-full text-black dark:text-white overflow-hidden" style={{ boxSizing: "border-box" }}>
       <div className="flex flex-col items-center" style={{ minHeight: "300px", minWidth: "300px" }}>
         <div className="flex">
           {showLabels && (
