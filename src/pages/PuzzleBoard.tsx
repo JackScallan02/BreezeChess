@@ -26,7 +26,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     const [incorrectSquare, setIncorrectSquare] = useState<Square | null>(null);
     const [isPlayerTurn, setIsPlayerTurn] = useState(false);
     const [showHighlights, setShowHighlights] = useState(true);
-    // New state for hint square
     const [hintSquare, setHintSquare] = useState<Square | null>(null);
 
     useEffect(() => {
@@ -43,7 +42,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
         setPuzzleStatus("playing");
         setFeedbackMessage("");
         setShowHighlights(true);
-        setHintSquare(null); // Reset hint on new puzzle or reset
+        setHintSquare(null);
 
         if (userPlaysFirst) {
             setIsPlayerTurn(true);
@@ -72,17 +71,16 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     const resetPuzzle = () => {
         setResetKey(prevKey => prevKey + 1);
         setIncorrectSquare(null);
-        setHintSquare(null); // Clear hint on reset
+        setHintSquare(null);
     };
 
     const nextPuzzle = async () => {
         await fetchPuzzle();
         setIncorrectSquare(null);
-        setHintSquare(null); // Clear hint on next puzzle
+        setHintSquare(null);
     };
 
     const handleGetHint = useCallback(() => {
-        // Only provide a hint if it's the player's turn and the puzzle is "playing"
         if (isPlayerTurn && puzzleStatus === "playing" && currentMoveIndex < puzzleSolution.moves.length) {
             const nextExpectedMove = puzzleSolution.moves[currentMoveIndex];
             const fromSquareForHint = nextExpectedMove.substring(0, 2) as Square;
@@ -92,37 +90,32 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
 
 
     const handleMoveAttempt = useCallback((from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
-        // Only allow a move attempt if it's the player's turn in the puzzle
-        if (puzzleStatus !== "playing" || game.turn() !== userColor) { // Added game.turn() check to align with Chess.js
+        if (puzzleStatus !== "playing" || game.turn() !== userColor) {
             return;
         }
 
-        // Clear hint after a move attempt
         setHintSquare(null);
 
         const expectedMove = puzzleSolution.moves[currentMoveIndex];
-        const tempGame = new Chess(game.fen()); // Create a temporary game instance for move validation
+        const tempGame = new Chess(game.fen());
         const moveOptions = { from, to, promotion };
 
         let moveResult;
         try {
             moveResult = tempGame.move(moveOptions);
         } catch (e) {
-            // If the move is illegal (e.g., trying to move an empty square), just return.
             return;
         }
 
         if (moveResult === null) {
-            // This means the move was illegal as per Chess.js rules
             return;
         }
 
         const userMoveFullAlgebraic = `${from}${to}${moveResult.promotion || ''}`;
 
         if (userMoveFullAlgebraic === expectedMove) {
-            // Correct move logic
             setShowHighlights(true);
-            setGame(tempGame); // Update game state with the correct move
+            setGame(tempGame);
             const nextMoveIndex = currentMoveIndex + 1;
 
             if (nextMoveIndex >= puzzleSolution.moves.length) {
@@ -136,7 +129,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
 
                 setTimeout(() => {
                     const opponentMoveStr = puzzleSolution.moves[nextMoveIndex];
-                    const opponentGame = new Chess(tempGame.fen()); // Create new game instance from user's correct move
+                    const opponentGame = new Chess(tempGame.fen());
                     const oppFrom = opponentMoveStr.substring(0, 2) as Square;
                     const oppTo = opponentMoveStr.substring(2, 4) as Square;
                     const oppPromotion = opponentMoveStr.length === 5 ? opponentMoveStr.substring(4, 5) as 'q' | 'r' | 'b' | 'n' : undefined;
@@ -152,19 +145,17 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                 }, 700);
             }
         } else {
-            // Incorrect (but legal) move logic.
-            // Update the game state with the incorrect move temporarily
-            const originalFen = game.fen(); // Store the original FEN to revert later
-            setGame(tempGame); // Show the incorrect move on the board
+            const originalFen = game.fen();
+            setGame(tempGame);
             setPuzzleStatus("incorrect");
             setIncorrectSquare(to);
             setFeedbackMessage("Incorrect move. Try again!");
 
             setTimeout(() => {
-                setGame(new Chess(originalFen)); // Revert the game state to before the incorrect move
+                setGame(new Chess(originalFen));
                 setIncorrectSquare(null);
                 setPuzzleStatus("playing");
-                setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`); // Reset feedback message
+                setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`);
             }, 500);
         }
     }, [game, currentMoveIndex, puzzleSolution, userColor, puzzleStatus]);
@@ -186,6 +177,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                         showLastMoveHighlight={showHighlights}
                         userColor={userColor}
                         hintSquare={hintSquare}
+                        orientation={userColor || 'w'} // Sets board orientation based on player color
                     />
                 </div>
                 <div className="ml-12 mt-36 flex flex-col items-center">

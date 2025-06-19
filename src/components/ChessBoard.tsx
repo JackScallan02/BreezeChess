@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Chess, Square, Piece, Move } from 'chess.js';
 
+// --- TYPE DEFINITIONS ---
+
 interface ChessBoardProps {
   showLabels: boolean;
   game: Chess;
@@ -12,6 +14,7 @@ interface ChessBoardProps {
   hintSquare?: Square | null;
   canMoveAnyPiece?: boolean;
   animationsEnabled?: boolean;
+  orientation?: 'w' | 'b'; // New optional prop for board orientation
 }
 
 interface DraggedPieceState {
@@ -49,9 +52,25 @@ interface AnimatingPieceInfo {
 }
 
 
-const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt, isPlayerTurn, incorrectSquare, showLastMoveHighlight = true, userColor, hintSquare, canMoveAnyPiece, animationsEnabled = true }) => {
-  const letters = ["a", "b", "c", "d", "e", "f", "g", "h"];
-  const numbers = [8, 7, 6, 5, 4, 3, 2, 1];
+// --- COMPONENT IMPLEMENTATION ---
+
+const ChessBoard: React.FC<ChessBoardProps> = ({
+  showLabels,
+  game,
+  onMoveAttempt,
+  isPlayerTurn,
+  incorrectSquare,
+  showLastMoveHighlight = true,
+  userColor,
+  hintSquare,
+  canMoveAnyPiece,
+  animationsEnabled = true,
+  orientation = 'w'
+}) => {
+  // Dynamically set letters and numbers based on orientation
+  const letters = orientation === 'w' ? ["a", "b", "c", "d", "e", "f", "g", "h"] : ["h", "g", "f", "e", "d", "c", "b", "a"];
+  const numbers = orientation === 'w' ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8];
+
   const boardRef = useRef<HTMLDivElement>(null);
   const interactionState = useRef<InteractionState | null>(null);
   const animatedPieceElementsRef = useRef<Map<string, HTMLDivElement | null>>(new Map());
@@ -102,7 +121,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     return { startX, startY, endX, endY };
   }, [currentPieceVisualSize]);
 
-  // UPDATED: executeMove now accepts a flag to indicate if the move was from a drag.
   const executeMove = useCallback((from: Square, to: Square, wasDragged = false) => {
     const pieceToMove = game.get(from);
     if (!pieceToMove) return;
@@ -121,7 +139,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to);
     if (!move) return;
 
-    // UPDATED: Skip animation if disabled OR if the piece was dragged.
     if (!animationsEnabled || wasDragged) {
       onMoveAttempt(from, to, move.promotion as any);
       setSelectedSquare(null);
@@ -159,7 +176,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     setSelectedSquare(null);
     setPossibleMoves([]);
   }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt, animationsEnabled]);
-
 
   useEffect(() => {
     gameRef.current = game;
@@ -208,14 +224,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     }
   }, [animatingPieces, onMoveAttempt]);
 
-
-  const getAlgebraicSquare = useCallback((index: number): Square => {
-    const file = String.fromCharCode(97 + (index % 8));
-    const rank = numbers[Math.floor(index / 8)];
-    return (file + rank) as Square;
-  }, [numbers]);
-
-
   useEffect(() => {
     if (isPlayerTurn && preMoves.length > 0) {
       return;
@@ -238,7 +246,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       );
 
       if (isPreMoveLegal) {
-        // Premoves are not dragged, so they should animate (pass false).
         executeMove(nextPreMove.from, nextPreMove.to, false);
         setPreMoves(prev => prev.slice(1));
       } else {
@@ -261,13 +268,10 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     return () => window.removeEventListener("resize", updateBoardWidth);
   }, [boardWidth]);
 
-
   const getPieceImage = (piece: Piece | undefined): string | null => {
     if (piece) return `https://images.chesscomfiles.com/chess-themes/pieces/neo/150/${piece.color}${piece.type}.png`;
     return null;
   };
-
-
 
   const getEnhancedPossibleMoves = useCallback((square: Square): Square[] => {
     const legalMoves = game.moves({ square, verbose: true });
@@ -344,7 +348,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       const isMoveLegal = game.moves({ verbose: true }).some(m => m.from === selectedSquare && m.to === interpretedTo);
 
       if (isMoveLegal) {
-        // Click-based moves are not dragged, so pass false to animate.
         executeMove(selectedSquare, interpretedTo, false);
       } else {
         const pieceOnClickedSquare = game.get(clickedSquare);
@@ -387,7 +390,9 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         
         let newHoveredTargetSquare: Square | null = null;
         if (col >= 0 && col < 8 && row >= 0 && row < 8) {
-          const currentSquareUnderMouse = getAlgebraicSquare(row * 8 + col);
+          const file = letters[col];
+          const rank = numbers[row];
+          const currentSquareUnderMouse = (file + rank) as Square;
           if (enhancedLegalMoves.includes(currentSquareUnderMouse)) {
             newHoveredTargetSquare = currentSquareUnderMouse;
           }
@@ -409,7 +414,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       setSelectedSquare(null);
       document.body.style.cursor = 'grabbing';
     }
-  }, [currentSquareSize, getAlgebraicSquare, isPlayerTurn, canMoveAnyPiece, getEnhancedPossibleMoves]);
+  }, [currentSquareSize, getEnhancedPossibleMoves, isPlayerTurn, canMoveAnyPiece, letters, numbers]);
 
   const handleMouseUp = useCallback((e: MouseEvent) => {
     const currentInteraction = interactionState.current;
@@ -425,14 +430,15 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
         const col = Math.floor(mouseX / currentSquareSize);
         const row = Math.floor(mouseY / currentSquareSize);
         if (col >= 0 && col < 8 && row >= 0 && row < 8) {
-          const toSquare = getAlgebraicSquare(row * 8 + col);
+          const file = letters[col];
+          const rank = numbers[row];
+          const toSquare = (file + rank) as Square;
           if (currentInteraction.square !== toSquare) {
             const fromSquare = currentInteraction.square;
             const interpretedTo = getInterpretedMove(fromSquare, toSquare);
 
             const isMoveLegal = gameRef.current.moves({ verbose: true }).some(m => m.from === fromSquare && m.to === interpretedTo);
             if (isMoveLegal || !(isPlayerTurn || canMoveAnyPiece)) {
-              // Pass true to indicate the move was dragged, preventing animation.
               executeMove(fromSquare, interpretedTo, true);
             }
           }
@@ -444,7 +450,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
       setSelectedSquare(null);
     }
     interactionState.current = null;
-  }, [currentSquareSize, getAlgebraicSquare, isPlayerTurn, canMoveAnyPiece, handleMouseMove, getInterpretedMove, executeMove]);
+  }, [currentSquareSize, handleMouseMove, isPlayerTurn, canMoveAnyPiece, getInterpretedMove, executeMove, letters, numbers]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
     e.preventDefault();
@@ -466,8 +472,6 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
     return <div className="flex justify-center items-center w-full h-full text-black dark:text-white">Loading Chess Board...</div>;
   }
 
-  const currentBoard = game.board();
-
   return (
     <div className="flex justify-center items-center w-full h-full text-black dark:text-white overflow-hidden" style={{ boxSizing: "border-box" }}>
       <div className="flex flex-col items-center">
@@ -482,45 +486,56 @@ const ChessBoard: React.FC<ChessBoardProps> = ({ showLabels, game, onMoveAttempt
             className="grid grid-cols-8 grid-rows-8 max-w-full max-h-full border-4 border-gray-700 rounded-md overflow-hidden"
             style={{ width: boardWidth, height: boardWidth, position: 'relative', visibility: boardWidth === 0 ? 'hidden' : 'visible' }}
           >
-            {currentBoard.flat().map((piece, i) => {
-              const algebraicSquare = getAlgebraicSquare(i);
-              const isDark = (Math.floor(i / 8) + (i % 8)) % 2 !== 0;
-              const isDragged = draggedPiece?.fromSquare === algebraicSquare;
-              const isSelected = selectedSquare === algebraicSquare;
-              const isLastMoveFrom = lastMove?.from === algebraicSquare;
-              const isLastMoveTo = lastMove?.to === algebraicSquare;
-              const isHoveredTarget = hoveredTargetSquare === algebraicSquare;
-              const isPossibleMoveTarget = possibleMoves.includes(algebraicSquare);
-              const isPreMove = preMoves.some(move => move.from === algebraicSquare || move.to === algebraicSquare);
-              const isHintSquare = hintSquare === algebraicSquare;
-              let bgColorClass = isDark ? "bg-sky-700" : "bg-slate-100";
-              if (algebraicSquare === incorrectSquare) bgColorClass = "bg-red-200";
-              else if (isPreMove) bgColorClass = "bg-red-100";
-              else if (isLastMoveFrom) bgColorClass = "bg-blue-300";
-              else if (isLastMoveTo) bgColorClass = "bg-blue-200";
-              else if (isSelected) bgColorClass = "bg-indigo-200";
-              else if (isHintSquare) bgColorClass = "bg-amber-100";
-              if (isHoveredTarget) bgColorClass = "bg-indigo-100";
-              const isHiddenDuringAnimation = animatingPieces.some(p => p.from === algebraicSquare || p.to === algebraicSquare);
-              return (
-                <div
-                  key={i}
-                  ref={el => {
-                    if (el) squareRefs.current.set(algebraicSquare, el);
-                    else squareRefs.current.delete(algebraicSquare);
-                  }}
-                  className={`relative flex items-center justify-center ${bgColorClass}`}
-                  style={{ width: currentSquareSize, height: currentSquareSize }}
-                  onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)}
-                  onClick={() => handleSquareClick(algebraicSquare)}
-                >
-                  {isPossibleMoveTarget && (<div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>)}
-                  {piece && !isDragged && (<img src={getPieceImage(piece)} draggable={false} alt={`${piece?.color} ${piece?.type}`} style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: (canMoveAnyPiece || (piece?.color === userColor && isPlayerTurn)) ? 'grab' : 'default', userSelect: 'none', zIndex: 3, visibility: isHiddenDuringAnimation ? 'hidden' : 'visible' }} />)}
-                </div>
-              );
-            })}
+            {numbers.map((rank, rowIndex) =>
+              letters.map((file, colIndex) => {
+                const algebraicSquare = `${file}${rank}` as Square;
+                const piece = game.get(algebraicSquare);
+
+                const fileIndex = file.charCodeAt(0) - 'a'.charCodeAt(0);
+                const rankIndex = rank - 1;
+                const isDark = (fileIndex + rankIndex) % 2 === 1;
+
+                const isDragged = draggedPiece?.fromSquare === algebraicSquare;
+                const isSelected = selectedSquare === algebraicSquare;
+                const isLastMoveFrom = lastMove?.from === algebraicSquare;
+                const isLastMoveTo = lastMove?.to === algebraicSquare;
+                const isHoveredTarget = hoveredTargetSquare === algebraicSquare;
+                const isPossibleMoveTarget = possibleMoves.includes(algebraicSquare);
+                const isPreMove = preMoves.some(move => move.from === algebraicSquare || move.to === algebraicSquare);
+                const isHintSquare = hintSquare === algebraicSquare;
+
+                let bgColorClass = isDark ? "bg-sky-700" : "bg-slate-100";
+                if (algebraicSquare === incorrectSquare) bgColorClass = "bg-red-200";
+                else if (isPreMove) bgColorClass = "bg-red-100";
+                else if (isLastMoveFrom) bgColorClass = "bg-blue-300";
+                else if (isLastMoveTo) bgColorClass = "bg-blue-200";
+                else if (isSelected) bgColorClass = "bg-indigo-200";
+                else if (isHintSquare) bgColorClass = "bg-amber-100";
+                if (isHoveredTarget) bgColorClass = "bg-indigo-100";
+
+                const isHiddenDuringAnimation = animatingPieces.some(p => p.from === algebraicSquare || p.to === algebraicSquare);
+
+                return (
+                  <div
+                    key={algebraicSquare}
+                    ref={el => {
+                      if (el) squareRefs.current.set(algebraicSquare, el);
+                      else squareRefs.current.delete(algebraicSquare);
+                    }}
+                    className={`relative flex items-center justify-center ${bgColorClass}`}
+                    style={{ width: currentSquareSize, height: currentSquareSize }}
+                    onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)}
+                    onClick={() => handleSquareClick(algebraicSquare)}
+                  >
+                    {isPossibleMoveTarget && (<div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>)}
+                    {piece && !isDragged && (<img src={getPieceImage(piece)} draggable={false} alt={`${piece?.color} ${piece?.type}`} style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: (canMoveAnyPiece || (piece?.color === userColor && isPlayerTurn)) ? 'grab' : 'default', userSelect: 'none', zIndex: 3, visibility: isHiddenDuringAnimation ? 'hidden' : 'visible' }} />)}
+                  </div>
+                );
+              })
+            )}
+
             {draggedPiece && draggedPosition && (<img src={getPieceImage(draggedPiece.piece) || ''} draggable={false} alt="" style={{ position: 'absolute', left: `${draggedPosition.x}px`, top: `${draggedPosition.y}px`, width: `${currentSquareSize}px`, height: `${currentSquareSize}px`, objectFit: 'contain', pointerEvents: 'none', zIndex: 1000, transform: 'scale(0.9)', filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))' }} />)}
-            
+
             {animatingPieces.length > 0 && animatingPieces.map(p => (
               <div
                 key={p.from}
