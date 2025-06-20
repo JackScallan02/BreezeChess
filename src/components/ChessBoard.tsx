@@ -346,8 +346,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
 
       const interpretedTo = getInterpretedMove(selectedSquare, clickedSquare);
       const isMoveLegal = game.moves({ verbose: true }).some(m => m.from === selectedSquare && m.to === interpretedTo);
-
-      if (isMoveLegal) {
+      
+      if (isMoveLegal || (!isPlayerTurn && !canMoveAnyPiece)) {
         executeMove(selectedSquare, interpretedTo, false);
       } else {
         const pieceOnClickedSquare = game.get(clickedSquare);
@@ -355,6 +355,8 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
           setSelectedSquare(clickedSquare);
           if (isPlayerTurn || canMoveAnyPiece) {
             setPossibleMoves(getEnhancedPossibleMoves(clickedSquare));
+          } else {
+            setPossibleMoves([]);
           }
         } else {
           setSelectedSquare(null);
@@ -522,13 +524,13 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
                       if (el) squareRefs.current.set(algebraicSquare, el);
                       else squareRefs.current.delete(algebraicSquare);
                     }}
-                    className={`relative flex items-center justify-center ${bgColorClass}`}
+                    className={`relative flex items-center justify-center ${bgColorClass} ${selectedSquare && 'cursor-pointer'}`}
                     style={{ width: currentSquareSize, height: currentSquareSize }}
                     onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)}
                     onClick={() => handleSquareClick(algebraicSquare)}
                   >
                     {isPossibleMoveTarget && (<div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>)}
-                    {piece && !isDragged && (<img src={getPieceImage(piece)} draggable={false} alt={`${piece?.color} ${piece?.type}`} style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: (canMoveAnyPiece || (piece?.color === userColor && isPlayerTurn)) ? 'grab' : 'default', userSelect: 'none', zIndex: 3, visibility: isHiddenDuringAnimation ? 'hidden' : 'visible' }} />)}
+                    {piece && !isDragged && (<img src={getPieceImage(piece)} draggable={false} alt={`${piece?.color} ${piece?.type}`} style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: (canMoveAnyPiece || (piece?.color === userColor)) ? 'grab' : selectedSquare ? 'pointer' : 'default', userSelect: 'none', zIndex: 3, visibility: isHiddenDuringAnimation ? 'hidden' : 'visible' }} />)}
                   </div>
                 );
               })
