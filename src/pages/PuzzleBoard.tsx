@@ -142,7 +142,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
                         setPuzzleStatus("playing");
                         setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`);
                     }
-                }, 700);
+                }, 3000);
             }
         } else {
             const originalFen = game.fen();
