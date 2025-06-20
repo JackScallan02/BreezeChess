@@ -1,8 +1,9 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { Chess, Square, Piece, Move } from 'chess.js';
 
 // --- TYPE DEFINITIONS ---
 
+// (No changes to ChessBoardProps or other interfaces)
 interface ChessBoardProps {
   showLabels: boolean;
   game: Chess;
@@ -21,26 +22,7 @@ interface DraggedPieceState {
   piece: Piece;
   fromSquare: Square;
 }
-
-interface InteractionState {
-  piece: Piece;
-  square: Square;
-  isDragging: boolean;
-  startX: number;
-  startY: number;
-}
-
-interface LastMove {
-  from: Square;
-  to: Square;
-}
-
-interface PreMove {
-  from: Square;
-  to: Square;
-  promotion?: 'q' | 'r' | 'b' | 'n';
-}
-
+// ... (other interfaces are unchanged) ...
 interface AnimatingPieceInfo {
   piece: Piece;
   from: Square;
@@ -51,10 +33,15 @@ interface AnimatingPieceInfo {
   endY: number;
 }
 
+// Add an export for the handle's type definition
+export interface ChessBoardHandle {
+  resetState: () => void;
+}
 
 // --- COMPONENT IMPLEMENTATION ---
 
-const ChessBoard: React.FC<ChessBoardProps> = ({
+// Wrap the component in forwardRef to receive a ref from its parent
+const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
   showLabels,
   game,
   onMoveAttempt,
@@ -66,7 +53,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
   canMoveAnyPiece,
   animationsEnabled = true,
   orientation = 'w'
-}) => {
+}, ref) => {
   const letters = orientation === 'w' ? ["a", "b", "c", "d", "e", "f", "g", "h"] : ["h", "g", "f", "e", "d", "c", "b", "a"];
   const numbers = orientation === 'w' ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -88,6 +75,25 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
   const gameRef = useRef<Chess | null>(null);
   const moveBeingAnimated = useRef<Move | null>(null);
 
+  // Expose a 'resetState' function to the parent component (PuzzleBoard)
+  useImperativeHandle(ref, () => ({
+    resetState() {
+      // Clear all user interaction state without causing a remount
+      setDraggedPiece(null);
+      setDraggedPosition(null);
+      setSelectedSquare(null);
+      setPossibleMoves([]);
+      setHoveredTargetSquare(null);
+      setLastMove(null);
+      setPreMoves([]);
+      setAnimatingPieces([]);
+      interactionState.current = null;
+      moveBeingAnimated.current = null;
+      document.body.style.cursor = 'default';
+    }
+  }));
+
+  // ... (the rest of the ChessBoard component's hooks and logic are unchanged) ...
   const currentSquareSize = boardWidth > 0 ? boardWidth / 8 : 0;
   const currentPieceVisualSize = currentSquareSize * 0.75;
 
@@ -413,7 +419,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
     }
   }, [game, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece, getInterpretedMove, executeMove, getEnhancedPossibleMoves, preMoves, letters, numbers]);
   
-const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     const currentInteraction = interactionState.current;
     if (!currentInteraction || !currentInteraction.piece) return;
 
@@ -457,7 +463,7 @@ const handleMouseMove = useCallback((e: MouseEvent) => {
     }
   }, [currentSquareSize, getEnhancedPossibleMoves, isPlayerTurn, canMoveAnyPiece, letters, numbers]);
 
-const handleMouseUp = useCallback((e: MouseEvent) => {
+  const handleMouseUp = useCallback((e: MouseEvent) => {
     const currentInteraction = interactionState.current;
     window.removeEventListener('mousemove', handleMouseMove);
     window.removeEventListener('mouseup', handleMouseUp);
@@ -485,16 +491,9 @@ const handleMouseUp = useCallback((e: MouseEvent) => {
                     setSelectedSquare(interpretedTo);
                     setPossibleMoves([]); // Clear moves, as turn is over or it's a new premove state.
                 }
-                // --- If move is illegal, do nothing ---
-                // The piece will snap back and remain selected on its 'fromSquare'
-                // because we set it in handleMouseMove. Possible moves are also already showing.
             }
-             // --- If dropped on the same square, also do nothing ---
-             // The piece is already selected and showing its moves.
         }
-        // --- If dropped off board, also do nothing ---
 
-        // Clean up state related to the visual drag effect.
         setDraggedPiece(null);
         setDraggedPosition(null);
         document.body.style.cursor = 'default';
@@ -503,7 +502,7 @@ const handleMouseUp = useCallback((e: MouseEvent) => {
   }, [currentSquareSize, handleMouseMove, isPlayerTurn, canMoveAnyPiece, getInterpretedMove, executeMove, letters, numbers, game]);
   
   const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
-    if (e.button === 2) { // Right-click, let handleRightClick handle it
+    if (e.button === 2) { 
         return;
     }
     e.preventDefault();
@@ -520,24 +519,22 @@ const handleMouseUp = useCallback((e: MouseEvent) => {
     window.addEventListener('mouseup', handleMouseUp);
   }, [handleMouseMove, handleMouseUp, userColor, canMoveAnyPiece]);
 
+
+  // ... (JSX is unchanged, just wrapped in the forwardRef) ...
   if (!game) {
     return <div className="flex justify-center items-center w-full h-full text-black dark:text-white">Loading...</div>;
   }
-
-  // --- PRE-MOVE RENDERING LOGIC ---
   const virtualBoard = new Map<Square, Piece | null>();
   const preMoveOrigins = new Set(preMoves.map(p => p.from));
   const preMoveDests = new Set(preMoves.map(p => p.to));
 
   if (preMoves.length > 0) {
-      // Initially, virtual board is same as real board
       for (const rank of numbers) {
           for (const file of letters) {
               const square = `${file}${rank}` as Square;
               virtualBoard.set(square, game.get(square));
           }
       }
-      // Apply moves sequentially to the virtual board
       for (const move of preMoves) {
           const pieceToMove = virtualBoard.get(move.from);
           if (pieceToMove) { 
@@ -546,7 +543,6 @@ const handleMouseUp = useCallback((e: MouseEvent) => {
           }
       }
   }
-
   return (
     <div className="flex justify-center items-center w-full h-full text-black dark:text-white overflow-hidden" style={{ boxSizing: "border-box" }}>
       <div className="flex flex-col items-center">
@@ -599,6 +595,6 @@ const handleMouseUp = useCallback((e: MouseEvent) => {
       </div>
     </div>
   );
-};
+});
 
 export default ChessBoard;
