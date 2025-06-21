@@ -8,7 +8,7 @@ interface PuzzleProps {
     themes: Array<string>;
 };
 
-const PuzzleType: React.FC<PuzzleProps>  = ({title, themes}) => {
+const PuzzleType: React.FC<PuzzleProps> = ({ title, themes }) => {
     const hasFetched = useRef(false); // <-- guard ref
     const [puzzleSolution, setPuzzleSolution] = useState({
         fen: '',
@@ -37,13 +37,17 @@ const PuzzleType: React.FC<PuzzleProps>  = ({title, themes}) => {
             fetchPuzzle();
         }
     }, []);
+return (
+  <div className="flex flex-col h-screen">
+    <MainToolBar />
+    <div className="flex-1 overflow-hidden min-h-0">
+      {puzzleSolution?.fen && (
+        <PuzzleBoard puzzleSolution={puzzleSolution} fetchPuzzle={fetchPuzzle} />
+      )}
+    </div>
+  </div>
+);
 
-    return (
-        <>
-            <MainToolBar />
-            {puzzleSolution  && puzzleSolution.fen && <PuzzleBoard puzzleSolution={puzzleSolution} fetchPuzzle={fetchPuzzle} />}
-        </>
-    );
 };
 
 export default PuzzleType;

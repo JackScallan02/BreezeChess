@@ -50,7 +50,7 @@ const MainToolBar = () => {
   }, [user])
 
   return (
-    <header key={key} className="h-16 flex justify-between items-center text-black dark:text-white py-6 px-8 md:px-32 bg-white bc-dark-bg-light bg-drop-shadow-md">
+<header key={key} className="h-16 flex items-center justify-between px-8 md:px-32 bg-white dark:bg-slate-900 shadow-md">
       <img
         src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52 hover:scale-105 hover:cursor-pointer transition-all"
         onClick={() => {

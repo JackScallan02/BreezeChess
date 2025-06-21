@@ -132,7 +132,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
             if (nextMoveIndex >= puzzleSolution.moves.length) {
                 setPuzzleStatus("solved");
                 setFeedbackMessage("Puzzle solved!");
-                // THIS IS THE FIX: Update currentMoveIndex to its final value
                 setCurrentMoveIndex(nextMoveIndex);
                 setMaxReachedMoveIndex(puzzleSolution.moves.length);
             } else {
@@ -193,90 +192,73 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     const handleGoBack = () => navigateMoves(currentMoveIndex - 1);
     const handleGoForward = () => navigateMoves(currentMoveIndex + 1);
 
-    return (
-        <div className="flex flex-col items-center h-full w-full overflow-hidden">
-            <h2 className="text-2xl font-bold mt-4 mb-2 text-slate-800 dark:text-white">
+// In PuzzleBoard.tsx
+
+return (
+    <div className="w-full max-w-7xl mx-auto p-4 flex flex-col lg:flex-row gap-4 lg:gap-6">
+        {/* Board Container: This div is now a simple flex item that centers the board. */}
+        <div className="w-full lg:flex-1 lg:min-w-0 flex justify-center items-center">
+            {/* The ChessBoard component itself will now handle its own aspect ratio.
+              This container simply gives it a flexible space to live in.
+            */}
+            <ChessBoard
+                ref={chessboardRef}
+                showLabels={showLabels}
+                game={game}
+                onMoveAttempt={handleMoveAttempt}
+                incorrectSquare={incorrectSquare}
+                isPlayerTurn={isPlayerTurn}
+                showLastMoveHighlight={showHighlights}
+                userColor={userColor}
+                hintSquare={hintSquare}
+                orientation={userColor || 'w'}
+            />
+        </div>
+
+        {/* Sidebar: Switches from full-width on mobile to a fixed-width panel on desktop. */}
+        <div className="w-full lg:w-72 lg:w-80 flex-shrink-0 flex flex-col items-center">
+            <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-white text-center">
                 {puzzleSolution.name || "Chess Puzzle"}
             </h2>
-            <div className="flex flex-row justify-between w-full max-w-5xl items-start ml-12">
-                <div className="w-full"></div>
-                <div className="flex justify-center w-full">
-                    <ChessBoard
-                        ref={chessboardRef}
-                        showLabels={showLabels}
-                        game={game}
-                        onMoveAttempt={handleMoveAttempt}
-                        incorrectSquare={incorrectSquare}
-                        isPlayerTurn={isPlayerTurn}
-                        showLastMoveHighlight={showHighlights}
-                        userColor={userColor}
-                        hintSquare={hintSquare}
-                        orientation={userColor || 'w'}
-                    />
-                </div>
-                <div className="ml-12 mt-36 flex flex-col items-center">
-                    <button
-                        onClick={resetPuzzle}
-                        className="cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none transition-colors w-48"
-                    >
-                        <span className="flex items-center justify-center">
-                            <RotateCcw className="mr-2" />
-                            Reset Puzzle
-                        </span>
-                    </button>
-                    <button
-                        onClick={nextPuzzle}
-                        className="mt-4 cursor-pointer px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none transition-colors w-48"
-                    >
-                        <span className="flex items-center justify-center">
-                            <ArrowRight className="mr-2" />
-                            Next Puzzle
-                        </span>
-                    </button>
-                    <button
-                        onClick={handleGetHint}
-                        disabled={!isPlayerTurn || puzzleStatus !== "playing"}
-                        className="mt-4 cursor-pointer px-6 py-3 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-500 bg-indigo-400 focus:outline-none transition-colors w-48 disabled:opacity-50 disabled:cursor-default"
-                    >
-                        <span className="flex items-center justify-center">
-                            <Lightbulb className="mr-2" />
-                            Get a Hint
-                        </span>
-                    </button>
-                    <p
-                        className={`pt-8 text-lg font-semibold text-center h-12 ${puzzleStatus === "correct" ? "text-green-600 dark:text-green-400"
-                            : puzzleStatus === "incorrect" ? "text-red-600 dark:text-red-400"
-                                : puzzleStatus === "solved" ? "text-purple-600 dark:text-purple-400"
-                                    : "text-gray-700 dark:text-slate-200"
-                            }`}
-                    >
-                        {feedbackMessage}
-                    </p>
-                    {/* Navigation Buttons */}
-                    <div className="flex items-center justify-center mt-8">
-                        <button
-                            onClick={handleGoBack}
-                            // Only disable if at the very beginning of the puzzle
-                            disabled={currentMoveIndex === 0}
-                            className="p-2 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:hover:bg-slate-200 dark:disabled:hover:bg-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-default transition-colors"
-                            aria-label="Previous move"
-                        >
-                            <ChevronLeft className="h-6 w-6 text-slate-800 dark:text-slate-200" />
-                        </button>
-                        <button
-                            onClick={handleGoForward}
-                            // Only disable if the user is at the last move they've seen or successfully played
-                            disabled={currentMoveIndex >= maxReachedMoveIndex}
-                            className="p-2 ml-4 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:hover:bg-slate-200 dark:disabled:hover:bg-slate-700 disabled:opacity-40 cursor-pointer disabled:cursor-default transition-colors"
-                            aria-label="Next move"
-                        >
-                            <ChevronRight className="h-6 w-6 text-slate-800 dark:text-slate-200" />
-                        </button>
-                    </div>
-                </div>
+            <button
+                onClick={resetPuzzle}
+                className="cursor-pointer px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-48 mb-2"
+            >
+                Reset Puzzle
+            </button>
+            <p
+                className={`pt-2 text-lg font-semibold text-center ${puzzleStatus === "correct"
+                    ? "text-green-600 dark:text-green-400"
+                    : puzzleStatus === "incorrect"
+                        ? "text-red-600 dark:text-red-400"
+                        : puzzleStatus === "solved"
+                            ? "text-purple-600 dark:text-purple-400"
+                            : "text-gray-700 dark:text-slate-200"
+                    }`}
+            >
+                {feedbackMessage}
+            </p>
+            <div className="flex items-center justify-center mt-4 mb-4">
+                <button
+                    onClick={handleGoBack}
+                    disabled={currentMoveIndex === 0}
+                    className="p-2 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
+                    aria-label="Previous move"
+                >
+                    <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                    onClick={handleGoForward}
+                    disabled={currentMoveIndex >= maxReachedMoveIndex}
+                    className="p-2 ml-4 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
+                    aria-label="Next move"
+                >
+                    <ChevronRight className="h-6 w-6" />
+                </button>
             </div>
         </div>
-    );
+    </div>
+);
 };
 
 export default PuzzleBoard;
