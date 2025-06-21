@@ -192,73 +192,79 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
     const handleGoBack = () => navigateMoves(currentMoveIndex - 1);
     const handleGoForward = () => navigateMoves(currentMoveIndex + 1);
 
-// In PuzzleBoard.tsx
+    // In PuzzleBoard.tsx
 
-return (
-    <div className="w-full max-w-7xl mx-auto p-4 flex flex-col lg:flex-row gap-4 lg:gap-6">
-        {/* Board Container: This div is now a simple flex item that centers the board. */}
-        <div className="w-full lg:flex-1 lg:min-w-0 flex justify-center items-center">
-            {/* The ChessBoard component itself will now handle its own aspect ratio.
-              This container simply gives it a flexible space to live in.
-            */}
-            <ChessBoard
-                ref={chessboardRef}
-                showLabels={showLabels}
-                game={game}
-                onMoveAttempt={handleMoveAttempt}
-                incorrectSquare={incorrectSquare}
-                isPlayerTurn={isPlayerTurn}
-                showLastMoveHighlight={showHighlights}
-                userColor={userColor}
-                hintSquare={hintSquare}
-                orientation={userColor || 'w'}
-            />
-        </div>
+    return (
+        // Main layout container
+        <div className="w-full max-w-7xl mx-auto p-4 flex flex-col lg:flex-row gap-4 lg:gap-6 justify-center items-center">
 
-        {/* Sidebar: Switches from full-width on mobile to a fixed-width panel on desktop. */}
-        <div className="w-full lg:w-72 lg:w-80 flex-shrink-0 flex flex-col items-center">
-            <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-white text-center">
-                {puzzleSolution.name || "Chess Puzzle"}
-            </h2>
-            <button
-                onClick={resetPuzzle}
-                className="cursor-pointer px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-48 mb-2"
-            >
-                Reset Puzzle
-            </button>
-            <p
-                className={`pt-2 text-lg font-semibold text-center ${puzzleStatus === "correct"
-                    ? "text-green-600 dark:text-green-400"
-                    : puzzleStatus === "incorrect"
-                        ? "text-red-600 dark:text-red-400"
-                        : puzzleStatus === "solved"
-                            ? "text-purple-600 dark:text-purple-400"
-                            : "text-gray-700 dark:text-slate-200"
-                    }`}
-            >
-                {feedbackMessage}
-            </p>
-            <div className="flex items-center justify-center mt-4 mb-4">
-                <button
-                    onClick={handleGoBack}
-                    disabled={currentMoveIndex === 0}
-                    className="p-2 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
-                    aria-label="Previous move"
+            {/* CHANGE: Board container now uses flex-1 again to claim space */}
+            <div className="w-full lg:flex-1 flex justify-center items-center">
+                {/* NEW: Wrapper div that enforces aspect ratio and size constraints */}
+                <div
+                    className="w-full aspect-square"
+                    // This calculation can be adjusted based on elements outside this component
+                    style={{ maxWidth: 'calc(100vh - 8rem)' }}
                 >
-                    <ChevronLeft className="h-6 w-6" />
-                </button>
+                    <ChessBoard
+                        ref={chessboardRef}
+                        showLabels={showLabels}
+                        game={game}
+                        onMoveAttempt={handleMoveAttempt}
+                        incorrectSquare={incorrectSquare}
+                        isPlayerTurn={isPlayerTurn}
+                        showLastMoveHighlight={showHighlights}
+                        userColor={userColor}
+                        hintSquare={hintSquare}
+                        orientation={userColor || 'w'}
+                    />
+                </div>
+            </div>
+
+            {/* Sidebar for controls remains the same */}
+            <div className="w-full lg:w-80 flex-shrink-0 flex flex-col items-center">
+                <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-white text-center">
+                    {puzzleSolution.name || "Chess Puzzle"}
+                </h2>
                 <button
-                    onClick={handleGoForward}
-                    disabled={currentMoveIndex >= maxReachedMoveIndex}
-                    className="p-2 ml-4 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
-                    aria-label="Next move"
+                    onClick={resetPuzzle}
+                    className="cursor-pointer px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-48 mb-2"
                 >
-                    <ChevronRight className="h-6 w-6" />
+                    Reset Puzzle
                 </button>
+                <p
+                    className={`pt-2 text-lg font-semibold text-center ${puzzleStatus === "correct"
+                        ? "text-green-600 dark:text-green-400"
+                        : puzzleStatus === "incorrect"
+                            ? "text-red-600 dark:text-red-400"
+                            : puzzleStatus === "solved"
+                                ? "text-purple-600 dark:text-purple-400"
+                                : "text-gray-700 dark:text-slate-200"
+                        }`}
+                >
+                    {feedbackMessage}
+                </p>
+                <div className="flex items-center justify-center mt-4 mb-4">
+                    <button
+                        onClick={handleGoBack}
+                        disabled={currentMoveIndex === 0}
+                        className="p-2 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
+                        aria-label="Previous move"
+                    >
+                        <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                        onClick={handleGoForward}
+                        disabled={currentMoveIndex >= maxReachedMoveIndex}
+                        className="p-2 ml-4 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
+                        aria-label="Next move"
+                    >
+                        <ChevronRight className="h-6 w-6" />
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
 };
 
 export default PuzzleBoard;

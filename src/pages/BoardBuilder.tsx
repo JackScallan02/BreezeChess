@@ -45,33 +45,40 @@ const BoardBuilder = () => {
 
   return (
     <div className="flex flex-col min-h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
-      <div className="h-16 shrink-0">
+      <div className="h-16 shrink-0"> {/* This is 4rem */}
         <MainToolBar />
       </div>
 
       <main className="flex-1 flex flex-col justify-center items-center p-4">
+        {/* Main layout container: Stays as a flex row on large screens */}
+        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 lg:gap-6 justify-center items-center">
+          
+          {/* CHANGE: Board container now uses flex-1 again to claim space */}
+          <div className="w-full lg:flex-1 flex justify-center items-center">
+            {/* NEW: Wrapper div that enforces aspect ratio and size constraints */}
+            <div 
+              className="w-full aspect-square" 
+              // This is the key: The board's max width is tied to the viewport height.
+              // 4rem for the toolbar, 2rem for p-4 (top/bottom), 2rem for safety.
+              style={{ maxWidth: 'calc(100vh - 8rem)' }}
+            >
+              <ChessBoard
+                showLabels
+                game={game}
+                onMoveAttempt={handleMoveAttempt}
+                isPlayerTurn={true}
+                userColor={'w'}
+                canMoveAnyPiece={true}
+                orientation={boardOrientation}
+              />
+            </div>
+          </div>
 
-        {/* New horizontal container for the board and side-button.
-          - flex-row: Aligns children (board and button) side-by-side.
-          - items-center: Vertically aligns the board and button to their center.
-        */}
-        <div className="flex flex-row items-center ml-46"> {/*Left margin of right div plus width*/}
-
-          <ChessBoard
-            showLabels
-            game={game}
-            onMoveAttempt={handleMoveAttempt}
-            isPlayerTurn={true}
-            userColor={'w'}
-            canMoveAnyPiece={true}
-            orientation={boardOrientation}
-          />
-
-          {/* Container for the button, positioned to the right of the board. */}
-          <div className="ml-16">
+          {/* Sidebar for controls remains the same */}
+          <div className="w-full lg:w-80 flex-shrink-0 flex flex-col items-center justify-center">
             <button
               onClick={handleFlipBoard}
-              className="w-30 cursor-pointer px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-md text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 shadow-md"
+className="cursor-pointer px-6 py-2 sm:px-5 sm:py-2 text-base sm:text-sm bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors mb-2"
             >
               Flip Board
             </button>

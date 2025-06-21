@@ -40,7 +40,7 @@ const PuzzleType: React.FC<PuzzleProps> = ({ title, themes }) => {
 return (
   <div className="flex flex-col h-screen">
     <MainToolBar />
-    <div className="flex-1 overflow-hidden min-h-0">
+    <div className="flex-1 overflow-scroll min-h-0">
       {puzzleSolution?.fen && (
         <PuzzleBoard puzzleSolution={puzzleSolution} fetchPuzzle={fetchPuzzle} />
       )}
