@@ -550,10 +550,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         <div
             ref={mainBoardOuterRef}
             className="w-full aspect-square relative"
-            style={{
-                maxHeight: 'calc(90vh - 64px)',
-                maxWidth: 'calc(90vh - 64px)'
-            }}
         >
             <div
                 className="absolute inset-0 grid"

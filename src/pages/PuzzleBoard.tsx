@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { Chess, Square } from 'chess.js';
-import { Lightbulb, RotateCcw, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
 
-// PuzzleBoard Component
 interface PuzzleBoardProps {
     puzzleSolution: {
         fen: string;
@@ -14,13 +13,14 @@ interface PuzzleBoardProps {
     showLabels?: boolean;
 }
 
-const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, showLabels = true }) => {
+const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = true }) => {
+    const { fetchPuzzle } = puzzleSolution;
+
     const [game, setGame] = useState(new Chess(puzzleSolution.fen));
     const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
-    // New state to track the user's max progress
     const [maxReachedMoveIndex, setMaxReachedMoveIndex] = useState(0);
-    const [puzzleStatus, setPuzzleStatus] = useState<"playing" | "correct" | "incorrect" | "solved">("playing");
-    const [feedbackMessage, setFeedbackMessage] = useState<string>("");
+    const [puzzleStatus, setPuzzleStatus] = useState<'playing' | 'correct' | 'incorrect' | 'solved'>('playing');
+    const [feedbackMessage, setFeedbackMessage] = useState('');
     const [userColor, setUserColor] = useState<'w' | 'b' | null>(null);
     const [resetKey, setResetKey] = useState(0);
     const [incorrectSquare, setIncorrectSquare] = useState<Square | null>(null);
@@ -30,6 +30,32 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
 
     const timeoutIds = useRef<NodeJS.Timeout[]>([]);
     const chessboardRef = useRef<ChessBoardHandle>(null);
+    const boardContainerRef = useRef<HTMLDivElement>(null);
+
+    const [boardWidth, setBoardWidth] = useState(0);
+    const [scale, setScale] = useState(1);
+
+    useLayoutEffect(() => {
+        const boardElement = boardContainerRef.current;
+        if (!boardElement) return;
+
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                if (entry.target === boardElement) {
+                    const newBoardWidth = entry.contentRect.width;
+                    setBoardWidth(newBoardWidth);
+                    setScale(newBoardWidth / 500);
+                }
+            }
+        });
+
+        resizeObserver.observe(boardElement);
+        const initialBoardWidth = boardElement.getBoundingClientRect().width;
+        setBoardWidth(initialBoardWidth);
+        setScale(initialBoardWidth / 500);
+
+        return () => resizeObserver.disconnect();
+    }, []);
 
     useEffect(() => {
         timeoutIds.current.forEach(clearTimeout);
@@ -39,17 +65,15 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
         const moves = puzzleSolution.moves;
         const fenTurn = initialGame.turn();
         const userPlaysFirst = moves.length % 2 !== 0;
-        const determinedUserColor = userPlaysFirst ? fenTurn : (fenTurn === 'w' ? 'b' : 'w');
-
-        // Determine initial max progress
+        const determinedUserColor = userPlaysFirst ? fenTurn : fenTurn === 'w' ? 'b' : 'w';
         const initialMaxReachedIndex = userPlaysFirst ? 0 : 1;
-        setMaxReachedMoveIndex(initialMaxReachedIndex);
 
+        setMaxReachedMoveIndex(initialMaxReachedIndex);
         setUserColor(determinedUserColor);
         setGame(new Chess(puzzleSolution.fen));
         setCurrentMoveIndex(0);
-        setPuzzleStatus("playing");
-        setFeedbackMessage("");
+        setPuzzleStatus('playing');
+        setFeedbackMessage('');
         setShowHighlights(true);
         setHintSquare(null);
 
@@ -58,26 +82,28 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
             setFeedbackMessage(`${determinedUserColor === 'w' ? 'White' : 'Black'} to move`);
         } else {
             setIsPlayerTurn(false);
-            const initialOpponentMoveTimeout = setTimeout(() => {
-                const gameAfterOpponentMove = new Chess(puzzleSolution.fen);
-                const move = gameAfterOpponentMove.move(moves[0]);
-
+            const timeout = setTimeout(() => {
+                const gameAfterMove = new Chess(puzzleSolution.fen);
+                const move = gameAfterMove.move(moves[0]);
                 if (move) {
-                    setShowHighlights(true);
-                    setGame(gameAfterOpponentMove);
-                    setIsPlayerTurn(true);
+                    setGame(gameAfterMove);
                     setCurrentMoveIndex(1);
+                    setIsPlayerTurn(true);
                     setFeedbackMessage(`${determinedUserColor === 'w' ? 'White' : 'Black'} to move`);
                 }
             }, 1000);
-            timeoutIds.current.push(initialOpponentMoveTimeout);
+            timeoutIds.current.push(timeout);
         }
 
-        return () => {
-            timeoutIds.current.forEach(clearTimeout);
-            timeoutIds.current = [];
-        };
+        return () => timeoutIds.current.forEach(clearTimeout);
     }, [puzzleSolution, resetKey]);
+
+    const nextPuzzle = useCallback(async () => {
+        await fetchPuzzle();
+        chessboardRef.current?.resetState();
+        setIncorrectSquare(null);
+        setHintSquare(null);
+    }, [fetchPuzzle]);
 
     const resetPuzzle = useCallback(() => {
         timeoutIds.current.forEach(clearTimeout);
@@ -88,13 +114,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
         setHintSquare(null);
     }, []);
 
-    const nextPuzzle = useCallback(async () => {
-        await fetchPuzzle();
-        chessboardRef.current?.resetState();
-        setIncorrectSquare(null);
-        setHintSquare(null);
-    }, [fetchPuzzle]);
-
     const handleGetHint = useCallback(() => {
         if (isPlayerTurn && puzzleStatus === "playing" && currentMoveIndex < puzzleSolution.moves.length) {
             const nextExpectedMove = puzzleSolution.moves[currentMoveIndex];
@@ -103,164 +122,223 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, fetchPuzzle, 
         }
     }, [isPlayerTurn, puzzleStatus, currentMoveIndex, puzzleSolution.moves]);
 
-    const handleMoveAttempt = useCallback((from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
-        if (puzzleStatus !== "playing" || game.turn() !== userColor) {
-            return;
-        }
+    const handleMoveAttempt = useCallback(
+        (from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
+            if (puzzleStatus !== 'playing' || game.turn() !== userColor) return;
 
-        setHintSquare(null);
+            setHintSquare(null);
+            const expectedMove = puzzleSolution.moves[currentMoveIndex];
+            const tempGame = new Chess(game.fen());
+            const moveResult = tempGame.move({ from, to, promotion });
 
-        const expectedMove = puzzleSolution.moves[currentMoveIndex];
-        const tempGame = new Chess(game.fen());
-        const moveOptions = { from, to, promotion };
+            if (!moveResult) return;
 
-        let moveResult;
-        try {
-            moveResult = tempGame.move(moveOptions);
-        } catch (e) { return; }
+            const userMoveAlgebraic = `${from}${to}${promotion || ''}`;
+            if (userMoveAlgebraic === expectedMove) {
+                setGame(tempGame);
+                const nextIndex = currentMoveIndex + 1;
+                setMaxReachedMoveIndex(prev => Math.max(prev, nextIndex));
+                setCurrentMoveIndex(nextIndex);
 
-        if (moveResult === null) return;
-
-        const userMoveFullAlgebraic = `${from}${to}${moveResult.promotion || ''}`;
-
-        if (userMoveFullAlgebraic === expectedMove) {
-            setShowHighlights(true);
-            setGame(tempGame);
-            const nextMoveIndex = currentMoveIndex + 1;
-            setMaxReachedMoveIndex(prev => Math.max(prev, nextMoveIndex));
-
-            if (nextMoveIndex >= puzzleSolution.moves.length) {
-                setPuzzleStatus("solved");
-                setFeedbackMessage("Puzzle solved!");
-                setCurrentMoveIndex(nextMoveIndex);
-                setMaxReachedMoveIndex(puzzleSolution.moves.length);
+                if (nextIndex >= puzzleSolution.moves.length) {
+                    setPuzzleStatus('solved');
+                    setFeedbackMessage('Puzzle solved!');
+                } else {
+                    setPuzzleStatus('correct');
+                    setFeedbackMessage('Correct! Opponent is thinking...');
+                    setIsPlayerTurn(false);
+                    const timeout = setTimeout(() => {
+                        const opponentGame = new Chess(tempGame.fen());
+                        const opponentMove = puzzleSolution.moves[nextIndex];
+                        if (opponentGame.move(opponentMove)) {
+                            setGame(opponentGame);
+                            setCurrentMoveIndex(nextIndex + 1);
+                            setMaxReachedMoveIndex(prev => Math.max(prev, nextIndex + 1));
+                            setPuzzleStatus('playing');
+                            setIsPlayerTurn(true);
+                            setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}`);
+                        } else {
+                            setFeedbackMessage('Error in puzzle data. Please reset.');
+                        }
+                    }, 1000);
+                    timeoutIds.current.push(timeout);
+                }
             } else {
-                setPuzzleStatus("correct");
-                setFeedbackMessage("Correct! Opponent is thinking...");
-                setCurrentMoveIndex(nextMoveIndex);
-                setIsPlayerTurn(false);
-
-                const opponentMoveTimeout = setTimeout(() => {
-                    const opponentGame = new Chess(tempGame.fen());
-                    const opponentMove = opponentGame.move(puzzleSolution.moves[nextMoveIndex]);
-                    if (opponentMove) {
-                        setShowHighlights(true);
-                        setGame(opponentGame);
-                        setIsPlayerTurn(true);
-                        const finalMoveIndex = nextMoveIndex + 1;
-                        setCurrentMoveIndex(finalMoveIndex);
-                        setMaxReachedMoveIndex(prev => Math.max(prev, finalMoveIndex));
-                        setPuzzleStatus("playing");
-                        setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`);
-                    }
-                }, 1000);
-                timeoutIds.current.push(opponentMoveTimeout);
+                const originalFen = game.fen();
+                setGame(tempGame);
+                setIncorrectSquare(to);
+                setPuzzleStatus('incorrect');
+                setFeedbackMessage('Incorrect move. Try again!');
+                const timeout = setTimeout(() => {
+                    setGame(new Chess(originalFen));
+                    setIncorrectSquare(null);
+                    setPuzzleStatus('playing');
+                    setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}`);
+                }, 500);
+                timeoutIds.current.push(timeout);
             }
-        } else {
-            const originalFen = game.fen();
+        },
+        [game, currentMoveIndex, puzzleSolution, userColor, puzzleStatus]
+    );
+
+    const navigateMoves = useCallback(
+        (newIndex: number) => {
+            if (newIndex < 0 || newIndex > maxReachedMoveIndex) return;
+            const tempGame = new Chess(puzzleSolution.fen);
+            for (let i = 0; i < newIndex; i++) {
+                if (!tempGame.move(puzzleSolution.moves[i])) break;
+            }
             setGame(tempGame);
-            setPuzzleStatus("incorrect");
-            setIncorrectSquare(to);
-            setFeedbackMessage("Incorrect move. Try again!");
-
-            const incorrectMoveTimeout = setTimeout(() => {
-                setGame(new Chess(originalFen));
-                setIncorrectSquare(null);
-                setPuzzleStatus("playing");
-                setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`);
-            }, 500);
-            timeoutIds.current.push(incorrectMoveTimeout);
-        }
-    }, [game, currentMoveIndex, puzzleSolution, userColor, puzzleStatus]);
-
-    const navigateMoves = useCallback((newIndex: number) => {
-        if (newIndex < 0 || newIndex > maxReachedMoveIndex) return;
-
-        const tempGame = new Chess(puzzleSolution.fen);
-        for (let i = 0; i < newIndex; i++) {
-            tempGame.move(puzzleSolution.moves[i]);
-        }
-
-        setGame(tempGame);
-        setCurrentMoveIndex(newIndex);
-        setPuzzleStatus(newIndex === puzzleSolution.moves.length ? "solved" : "playing");
-        setIsPlayerTurn(tempGame.turn() === userColor);
-        setShowHighlights(true);
-        setFeedbackMessage(newIndex === maxReachedMoveIndex && newIndex === puzzleSolution.moves.length ? "Puzzle solved!" : `Your turn as ${userColor === 'w' ? 'White' : 'Black'}.`);
-    }, [maxReachedMoveIndex, puzzleSolution, userColor]);
+            setCurrentMoveIndex(newIndex);
+            setPuzzleStatus(newIndex === puzzleSolution.moves.length ? 'solved' : 'playing');
+            setIsPlayerTurn(tempGame.turn() === userColor);
+            setFeedbackMessage(
+                newIndex === puzzleSolution.moves.length
+                    ? 'Puzzle solved!'
+                    : newIndex === maxReachedMoveIndex
+                        ? `Your turn as ${userColor === 'w' ? 'White' : 'Black'}`
+                        : 'Reviewing puzzle moves.'
+            );
+        },
+        [maxReachedMoveIndex, puzzleSolution, userColor]
+    );
 
     const handleGoBack = () => navigateMoves(currentMoveIndex - 1);
     const handleGoForward = () => navigateMoves(currentMoveIndex + 1);
 
-    // In PuzzleBoard.tsx
-
     return (
-        // Main layout container
-        <div className="w-full max-w-7xl mx-auto p-4 flex flex-col lg:flex-row gap-4 lg:gap-6 justify-center items-center">
+        <div className="w-full">
+            <div
+                className="w-full flex flex-col [@media(min-width:900px)]:flex-row items-stretch justify-center gap-4 p-4"
+                style={{ minHeight: 'calc(100vh - 64px)' }}
+            >
+                {/* Main Content: Board + Right */}
+                <div className="flex flex-col md:flex-row items-center justify-center gap-4 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
+                    {/* Chessboard */}
+                    <div
+                        ref={boardContainerRef}
+                        className="flex items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]  sm:min-w-[320px]"
+                        style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
+                    >
+                        <ChessBoard
+                            ref={chessboardRef}
+                            showLabels={showLabels}
+                            game={game}
+                            onMoveAttempt={handleMoveAttempt}
+                            incorrectSquare={incorrectSquare}
+                            isPlayerTurn={isPlayerTurn}
+                            showLastMoveHighlight={showHighlights}
+                            userColor={userColor}
+                            orientation={userColor || 'w'}
+                            hintSquare={hintSquare}
+                        />
+                    </div>
 
-            {/* CHANGE: Board container now uses flex-1 again to claim space */}
-            <div className="w-full lg:flex-1 flex justify-center items-center">
-                {/* NEW: Wrapper div that enforces aspect ratio and size constraints */}
-                <div
-                    className="w-full aspect-square"
-                    // This calculation can be adjusted based on elements outside this component
-                    style={{ maxWidth: 'calc(100vh - 8rem)' }}
-                >
-                    <ChessBoard
-                        ref={chessboardRef}
-                        showLabels={showLabels}
-                        game={game}
-                        onMoveAttempt={handleMoveAttempt}
-                        incorrectSquare={incorrectSquare}
-                        isPlayerTurn={isPlayerTurn}
-                        showLastMoveHighlight={showHighlights}
-                        userColor={userColor}
-                        hintSquare={hintSquare}
-                        orientation={userColor || 'w'}
-                    />
+                    {/* Right Sidebar */}
+                    <div className="order-2 [@media(min-width:900px)]:order-3 w-full [@media(min-width:900px)]:w-[20%] md:max-w-[30vw] flex items-stretch min-w-0">
+                        <div className="w-full flex flex-col items-center justify-center border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-slate-900 p-4">
+                            <div className="w-full h-full flex flex-col items-center justify-center">
+                                <h2
+                                    className="font-bold text-center text-slate-800 dark:text-white w-full leading-tight"
+                                    style={{
+                                        fontSize: `min(${scale * 1.5}rem, 6vw)`,
+                                        whiteSpace: 'nowrap',
+                                        marginTop: '0.2em'
+                                    }}
+                                >
+
+                                    {puzzleSolution.name || 'Chess Puzzle'}
+                                </h2>
+
+                                <button
+                                    onClick={resetPuzzle}
+                                    className="bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
+                                    style={{
+                                        fontSize: `${Math.max(0.8, scale * 1)}rem`,
+                                        padding: `${Math.max(0.4, scale * 0.625)}rem ${Math.max(0.8, scale * 1.25)}rem`,
+                                        lineHeight: '1',
+                                        marginTop: '1em'
+                                    }}
+                                >
+                                    Reset Puzzle
+                                </button>
+                                <button
+                                    onClick={nextPuzzle}
+                                    className="bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
+                                    style={{
+                                        fontSize: `${Math.max(0.8, scale * 1)}rem`,
+                                        padding: `${Math.max(0.4, scale * 0.625)}rem ${Math.max(0.8, scale * 1.25)}rem`,
+                                        lineHeight: '1',
+                                        marginTop: '1em'
+                                    }}
+                                >
+                                    Next Puzzle
+                                </button>
+                                <button
+                                    onClick={handleGetHint}
+                                    disabled={!isPlayerTurn || puzzleStatus !== "playing"}
+                                    className="cursor-pointer px-6 py-3 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-500 bg-indigo-400 focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-default"
+                                    style={{
+                                        fontSize: `${Math.max(0.7, scale * 0.7)}rem`,
+                                        padding: `${Math.max(0.4, scale * 0.4)}rem ${Math.max(0.8, scale * 1.25)}rem`,
+                                        lineHeight: '1',
+                                        marginTop: '2em'
+                                    }}
+                                >
+                                    <span className="flex items-center justify-center">
+                                        <Lightbulb
+                                            className="mr-1"
+                                            style={{
+                                                fontSize: `${Math.max(0.3, scale * 0.4)}rem`,
+                                            }} />
+                                        Get a Hint
+                                    </span>
+                                </button>
+                                <p
+                                    className={`text-center font-semibold w-full leading-tight ${puzzleStatus === 'correct'
+                                        ? 'text-green-600 dark:text-green-400'
+                                        : puzzleStatus === 'incorrect'
+                                            ? 'text-red-600 dark:text-red-400'
+                                            : puzzleStatus === 'solved'
+                                                ? 'text-purple-600 dark:text-purple-400'
+                                                : 'text-gray-700 dark:text-slate-200'
+                                        }`}
+                                    style={{
+                                        fontSize: `min(${scale}rem, 4.5vw)`,
+                                        whiteSpace: 'nowrap',
+                                        marginTop: '1em'
+                                    }}
+                                >
+
+                                    {feedbackMessage}
+                                </p>
+
+                                <div className="flex space-x-4 items-center justify-center mt-4 mb-1">
+                                    <button
+                                        onClick={handleGoBack}
+                                        disabled={currentMoveIndex === 0}
+                                        className="rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
+                                        style={{ padding: `${Math.max(0.3, scale * 0.5)}rem` }}
+                                    >
+                                        <ChevronLeft style={{ width: `${Math.max(1, scale * 1.5)}rem`, height: `${Math.max(1, scale * 1.5)}rem` }} />
+                                    </button>
+                                    <button
+                                        onClick={handleGoForward}
+                                        disabled={currentMoveIndex >= maxReachedMoveIndex}
+                                        className="rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
+                                        style={{ padding: `${Math.max(0.3, scale * 0.5)}rem` }}
+                                    >
+                                        <ChevronRight style={{ width: `${Math.max(1, scale * 1.5)}rem`, height: `${Math.max(1, scale * 1.5)}rem` }} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            {/* Sidebar for controls remains the same */}
-            <div className="w-full lg:w-80 flex-shrink-0 flex flex-col items-center">
-                <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-white text-center">
-                    {puzzleSolution.name || "Chess Puzzle"}
-                </h2>
-                <button
-                    onClick={resetPuzzle}
-                    className="cursor-pointer px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-48 mb-2"
-                >
-                    Reset Puzzle
-                </button>
-                <p
-                    className={`pt-2 text-lg font-semibold text-center ${puzzleStatus === "correct"
-                        ? "text-green-600 dark:text-green-400"
-                        : puzzleStatus === "incorrect"
-                            ? "text-red-600 dark:text-red-400"
-                            : puzzleStatus === "solved"
-                                ? "text-purple-600 dark:text-purple-400"
-                                : "text-gray-700 dark:text-slate-200"
-                        }`}
-                >
-                    {feedbackMessage}
-                </p>
-                <div className="flex items-center justify-center mt-4 mb-4">
-                    <button
-                        onClick={handleGoBack}
-                        disabled={currentMoveIndex === 0}
-                        className="p-2 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
-                        aria-label="Previous move"
-                    >
-                        <ChevronLeft className="h-6 w-6" />
-                    </button>
-                    <button
-                        onClick={handleGoForward}
-                        disabled={currentMoveIndex >= maxReachedMoveIndex}
-                        className="p-2 ml-4 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
-                        aria-label="Next move"
-                    >
-                        <ChevronRight className="h-6 w-6" />
-                    </button>
+                {/* Left Section */}
+                <div className="order-2 [@media(min-width:900px)]:order-1 [@media(min-width:900px)]:flex-none [@media(min-width:900px)]:w-full [@media(min-width:900px)]:basis-[20%] [@media(min-width:900px)]:max-w-[300px] flex items-center justify-center min-w-0">
+                    Left Section (Placeholder)
                 </div>
             </div>
         </div>
