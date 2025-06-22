@@ -217,7 +217,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                     {/* Chessboard */}
                     <div
                         ref={boardContainerRef}
-                        className="flex items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]  sm:min-w-[320px]"
+                        className="flex items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]"
                         style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
                     >
                         <ChessBoard
@@ -235,7 +235,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                     </div>
 
                     {/* Right Sidebar */}
-                    <div className="order-2 [@media(min-width:900px)]:order-3 w-full [@media(min-width:900px)]:w-[20%] md:max-w-[30vw] flex items-stretch min-w-0">
+                    <div className="order-2 [@media(min-width:900px)]:order-3 w-full md:w-[25%] flex items-stretch min-w-0"
+                        style={{
+                            maxWidth: boardWidth,
+                        }}
+                    >
                         <div className="w-full flex flex-col items-center justify-center border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-slate-900 p-4">
                             <div className="w-full h-full flex flex-col items-center justify-center">
                                 <h2
@@ -254,10 +258,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                     onClick={resetPuzzle}
                                     className="bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
                                     style={{
-                                        fontSize: `${Math.max(0.8, scale * 1)}rem`,
-                                        padding: `${Math.max(0.4, scale * 0.625)}rem ${Math.max(0.8, scale * 1.25)}rem`,
+                                        fontSize: `${scale * 1}rem`,
+                                        padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
                                         lineHeight: '1',
-                                        marginTop: '1em'
+                                        marginTop: '1em',
+                                        maxWidth: `${scale * 20}rem`
                                     }}
                                 >
                                     Reset Puzzle
@@ -266,10 +271,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                     onClick={nextPuzzle}
                                     className="bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
                                     style={{
-                                        fontSize: `${Math.max(0.8, scale * 1)}rem`,
-                                        padding: `${Math.max(0.4, scale * 0.625)}rem ${Math.max(0.8, scale * 1.25)}rem`,
+                                        fontSize: `${scale * 1}rem`,
+                                        padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
                                         lineHeight: '1',
-                                        marginTop: '1em'
+                                        marginTop: '1em',
+                                        maxWidth: `${scale * 20}rem`
                                     }}
                                 >
                                     Next Puzzle
@@ -279,17 +285,20 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                     disabled={!isPlayerTurn || puzzleStatus !== "playing"}
                                     className="cursor-pointer px-6 py-3 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-500 bg-indigo-400 focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-default"
                                     style={{
-                                        fontSize: `${Math.max(0.7, scale * 0.7)}rem`,
-                                        padding: `${Math.max(0.4, scale * 0.4)}rem ${Math.max(0.8, scale * 1.25)}rem`,
+                                        fontSize: `${scale * 0.7}rem`,
+                                        padding: `${scale * 0.4}rem ${scale * 1.25}rem`,
                                         lineHeight: '1',
                                         marginTop: '2em'
                                     }}
                                 >
                                     <span className="flex items-center justify-center">
                                         <Lightbulb
-                                            className="mr-1"
+                                            className=""
                                             style={{
-                                                fontSize: `${Math.max(0.3, scale * 0.4)}rem`,
+                                                marginRight: `${scale * 0.25}rem`,
+                                                fontSize: `${scale * 0.5}rem`,
+                                                width: `${scale * 1}rem`,
+                                                height: `${scale * 1}rem`
                                             }} />
                                         Get a Hint
                                     </span>
@@ -304,7 +313,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                                 : 'text-gray-700 dark:text-slate-200'
                                         }`}
                                     style={{
-                                        fontSize: `min(${scale}rem, 4.5vw)`,
+                                        fontSize: `${scale * 0.7}rem`,
                                         whiteSpace: 'nowrap',
                                         marginTop: '1em'
                                     }}
@@ -318,17 +327,17 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                         onClick={handleGoBack}
                                         disabled={currentMoveIndex === 0}
                                         className="rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
-                                        style={{ padding: `${Math.max(0.3, scale * 0.5)}rem` }}
+                                        style={{ padding: `${scale * 0.5}rem` }}
                                     >
-                                        <ChevronLeft style={{ width: `${Math.max(1, scale * 1.5)}rem`, height: `${Math.max(1, scale * 1.5)}rem` }} />
+                                        <ChevronLeft style={{ width: `${scale * 1.5}rem`, height: `${scale * 1.5}rem` }} />
                                     </button>
                                     <button
                                         onClick={handleGoForward}
                                         disabled={currentMoveIndex >= maxReachedMoveIndex}
                                         className="rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
-                                        style={{ padding: `${Math.max(0.3, scale * 0.5)}rem` }}
+                                        style={{ padding: `${scale * 0.5}rem` }}
                                     >
-                                        <ChevronRight style={{ width: `${Math.max(1, scale * 1.5)}rem`, height: `${Math.max(1, scale * 1.5)}rem` }} />
+                                        <ChevronRight style={{ width: `${scale * 1.5}rem`, height: `${scale * 1.5}rem` }} />
                                     </button>
                                 </div>
                             </div>
@@ -336,10 +345,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                     </div>
                 </div>
 
-                {/* Left Section */}
-                <div className="order-2 [@media(min-width:900px)]:order-1 [@media(min-width:900px)]:flex-none [@media(min-width:900px)]:w-full [@media(min-width:900px)]:basis-[20%] [@media(min-width:900px)]:max-w-[300px] flex items-center justify-center min-w-0">
-                    Left Section (Placeholder)
-                </div>
+
             </div>
         </div>
     );
