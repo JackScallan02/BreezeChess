@@ -89,8 +89,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     const [lastMove, setLastMove] = useState<LastMove | null>(null);
     const [preMoves, setPreMoves] = useState<PreMove[]>([]);
     const [animatingPieces, setAnimatingPieces] = useState<AnimatingPieceInfo[]>([]);
-    const [pinnedPieceSquare, setPinnedPieceSquare] = useState<Square | null>(null);
-    const [kingSquareUnderPin, setKingSquareUnderPin] = useState<Square | null>(null);
 
     const gameRef = useRef<Chess | null>(null);
     const moveBeingAnimated = useRef<Move | null>(null);
@@ -105,8 +103,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             setLastMove(null);
             setPreMoves([]);
             setAnimatingPieces([]);
-            setPinnedPieceSquare(null);
-            setKingSquareUnderPin(null);
             interactionState.current = null;
             moveBeingAnimated.current = null;
             document.body.style.cursor = 'default';
@@ -155,69 +151,36 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         return { startX, startY, endX, endY };
     }, [currentPieceVisualSize]);
 
-    // Helper function to check if a piece is pinned
-    const isPiecePinned = useCallback((board: Chess, square: Square, color: 'w' | 'b'): { isPinned: boolean, kingSquare: Square | null } => {
-        const tempGame = new Chess(board.fen());
-        const piece = tempGame.get(square);
-
-        if (!piece || piece.color !== color) {
-            console.log(`isPiecePinned: No piece or wrong color at ${square}`);
-            return { isPinned: false, kingSquare: null };
-        }
-
-        // Find the king's current position for the given color
-        const kingSquareCoord = tempGame.board().flat().find(p => p && p.type === 'k' && p.color === color)?.square;
-        if (!kingSquareCoord) {
-            console.log(`isPiecePinned: King not found for color ${color}`);
-            return { isPinned: false, kingSquare: null };
-        }
-
-        // Temporarily remove the piece to see if the king is attacked
-        const removedPiece = tempGame.remove(square);
-
-        // If for some reason the piece couldn't be removed, return false
-        if (!removedPiece) {
-            console.log(`isPiecePinned: Could not remove piece at ${square}`);
-            return { isPinned: false, kingSquare: null };
-        }
-
-        // Check if the king is attacked after removing the piece
-        const opponentColor = color === 'w' ? 'b' : 'w';
-        if (tempGame.isAttacked(kingSquareCoord, opponentColor)) {
-            console.log(`isPiecePinned: Piece at ${square} is pinned. King at ${kingSquareCoord} is attacked.`);
-            return { isPinned: true, kingSquare: kingSquareCoord };
-        }
-
-        console.log(`isPiecePinned: Piece at ${square} is NOT pinned.`);
-        return { isPinned: false, kingSquare: null };
-    }, []);
-
     const executeMove = useCallback((from: Square, to: Square, wasDragged = false, isPremove = false) => {
-        // Clear previous pin highlights immediately upon any new move attempt
-        setPinnedPieceSquare(null);
-        setKingSquareUnderPin(null);
+        let pieceToMove: Piece | null | undefined;
 
-        // --- Handle Pre-moves (Non-player turns or before player makes real move) ---
-        // This block is largely unchanged as pre-moves don't involve chess.js's
-        // strict legality checks at the moment of creation.
         if (!isPlayerTurn && !canMoveAnyPiece) {
-            let pieceToMove: Piece | null | undefined = game.get(from); // Get actual piece from current game state
-            // If premoves already exist, we need to deduce the piece's virtual position
+            const virtualBoard = new Map<Square, Piece | null>();
             if (preMoves.length > 0) {
-                const virtualGameForPreMove = new Chess(game.fen());
-                for (const pMove of preMoves) {
-                    const movedPiece = virtualGameForPreMove.get(pMove.from);
-                    if (movedPiece) {
-                        virtualGameForPreMove.remove(pMove.from);
-                        virtualGameForPreMove.put(movedPiece, pMove.to);
+                for (const rank of numbers) {
+                    for (const file of letters) {
+                        const square = `${file}${rank}` as Square;
+                        virtualBoard.set(square, game.get(square) || null);
                     }
                 }
-                pieceToMove = virtualGameForPreMove.get(from);
+                for (const move of preMoves) {
+                    const piece = virtualBoard.get(move.from);
+                    if (piece) {
+                        virtualBoard.set(move.from, null);
+                        virtualBoard.set(move.to, piece);
+                    }
+                }
+                pieceToMove = virtualBoard.get(from);
+            } else {
+                pieceToMove = game.get(from);
             }
+        } else {
+            pieceToMove = game.get(from);
+        }
 
+        if (!pieceToMove) return;
 
-            if (!pieceToMove) return; // Should not happen if interaction was valid
-
+        if (!isPlayerTurn && !canMoveAnyPiece) {
             let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
             if (pieceToMove.type === 'p' && ((pieceToMove.color === 'w' && to.endsWith('8')) || (pieceToMove.color === 'b' && to.endsWith('1')))) {
                 promotionPiece = 'q';
@@ -225,116 +188,50 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
             setPreMoves(prev => {
                 const newPreMove = { from, to, promotion: promotionPiece };
-                const updatedPreMoves = prev.filter(pm => pm.to !== to); // Replace if moving to same square
+                const updatedPreMoves = prev.filter(pm => pm.to !== to);
                 return [...updatedPreMoves, newPreMove];
             });
 
-            setSelectedSquare(to); // Select the square the piece moved to (for pre-moves)
+            setSelectedSquare(to);
             setPossibleMoves([]);
             return;
         }
 
-        // --- Handle Player's Actual Move Attempts ---
-        // Attempt the move using game.move() first. This is the authoritative legality check.
-        // If it's a promotion, we need to explicitly add the promotion type.
-        // For simplicity here, we assume queen promotion if not specified,
-        // or let chess.js pick default if only one is legal.
-        const pieceOnFrom = game.get(from);
-        let promotionCandidate: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
-        if (pieceOnFrom?.type === 'p' && ((pieceOnFrom.color === 'w' && to.endsWith('8')) || (pieceOnFrom.color === 'b' && to.endsWith('1')))) {
-            promotionCandidate = 'q'; // Default to queen promotion
-        }
+        const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to);
+        if (!move) return;
 
-        // Try the move. chess.js will return null if it's illegal (including if it's a pinned piece moving illegally)
-        try {
-            const moveAttemptResult = game.move({ from, to, promotion: promotionCandidate });
-            // --- Move was successful (moveAttemptResult is not null) ---
-            // At this point, the move is legal and has been applied to the 'game' object.
-            // We can now proceed with animation or direct call to onMoveAttempt.
-
-            const actualMove = moveAttemptResult; // moveAttemptResult is the verbose move object
-
-            if (!animationsEnabled || wasDragged || isPremove) {
-                // No animation, just inform parent and clear state
-                onMoveAttempt(actualMove.from, actualMove.to, actualMove.promotion as any);
-                setSelectedSquare(null);
-                setPossibleMoves([]);
-                return;
-            }
-
-            // Animation logic
-            moveBeingAnimated.current = actualMove;
-            const piecesToAnimate: AnimatingPieceInfo[] = [];
-
-            // For the main piece, we take its current position (which is now 'to' after game.move())
-            const mainPieceAfterMove = game.get(actualMove.to);
-            if (mainPieceAfterMove) {
-                const mainCoords = getCoordsFromRefs(actualMove.from, actualMove.to);
-                if (mainCoords) {
-                    piecesToAnimate.push({ piece: mainPieceAfterMove, from: actualMove.from, to: actualMove.to, ...mainCoords });
-                }
-            }
-
-            // Castling rook animation (need to deduce original rook position and its new position)
-            if (actualMove.flags.includes('k') || actualMove.flags.includes('q')) {
-                const isKingside = actualMove.flags.includes('k');
-                const rank = actualMove.color === 'w' ? '1' : '8';
-                const rookFromSq = (isKingside ? 'h' : 'a') + rank as Square;
-                const rookToSq = (isKingside ? 'f' : 'd') + rank as Square;
-                const rookPieceAfterMove = actualMove.color === 'w' ? game.get(rookToSq) : game.get(rookToSq); // Get rook from its NEW square
-
-                if (rookPieceAfterMove) {
-                    const rookCoords = getCoordsFromRefs(rookFromSq, rookToSq);
-                    if (rookCoords) {
-                        piecesToAnimate.push({ piece: rookPieceAfterMove, from: rookFromSq, to: rookToSq, ...rookCoords });
-                    }
-                }
-            }
-
-            if (piecesToAnimate.length > 0) {
-                setAnimatingPieces(piecesToAnimate);
-            } else {
-                // Fallback if no animation info could be gathered
-                onMoveAttempt(actualMove.from, actualMove.to, actualMove.promotion as any);
-            }
-
+        if (!animationsEnabled || wasDragged || isPremove) {
+            onMoveAttempt(from, to, move.promotion as any);
             setSelectedSquare(null);
             setPossibleMoves([]);
-        } catch (error) {
-            // The move is illegal according to chess.js
-            // Now, check if this illegality is due to a pin.
-            if (isPlayerTurn && userColor) { // Only check for the current player's turn
-                const { isPinned, kingSquare } = isPiecePinned(game, from, userColor);
-                if (isPinned) {
-                    // If the piece was pinned AND the move was illegal, then highlight.
-                    setPinnedPieceSquare(from);
-                    setKingSquareUnderPin(kingSquare);
-
-                    setTimeout(() => {
-                        setPinnedPieceSquare(null);
-                        setKingSquareUnderPin(null);
-                    }, 500);
-                } else {
-                    // If the move was illegal but not because of a pin, clear any old highlights
-                    setPinnedPieceSquare(null);
-                    setKingSquareUnderPin(null);
-                }
-            } else {
-                // Not player's turn or no userColor, so just clear highlights
-                setPinnedPieceSquare(null);
-                setKingSquareUnderPin(null);
-            }
-
-            // The move failed, so reset selection and possible moves.
-            setSelectedSquare(null);
-            setPossibleMoves([]);
-            return; // STOP execution as the move was invalid
+            return;
         }
 
+        moveBeingAnimated.current = move;
+        const piecesToAnimate: AnimatingPieceInfo[] = [];
+        const mainCoords = getCoordsFromRefs(move.from, move.to);
+        if (mainCoords) {
+            piecesToAnimate.push({ piece: pieceToMove, from: move.from, to: move.to, ...mainCoords });
+        }
 
+        if (move.flags.includes('k') || move.flags.includes('q')) {
+            const isKingside = move.flags.includes('k');
+            const rank = move.color === 'w' ? '1' : '8';
+            const rookFromSq = (isKingside ? 'h' : 'a') + rank as Square;
+            const rookToSq = (isKingside ? 'f' : 'd') + rank as Square;
+            const rookPiece = game.get(rookFromSq);
+            const rookCoords = getCoordsFromRefs(rookFromSq, rookToSq);
+            if (rookPiece && rookCoords) {
+                piecesToAnimate.push({ piece: rookPiece, from: rookFromSq, to: rookToSq, ...rookCoords });
+            }
+        }
 
+        if (piecesToAnimate.length > 0) setAnimatingPieces(piecesToAnimate);
+        else onMoveAttempt(from, to, move.promotion as any);
 
-    }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt, animationsEnabled, preMoves, userColor, isPiecePinned, letters, numbers]);
+        setSelectedSquare(null);
+        setPossibleMoves([]);
+    }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt, animationsEnabled, preMoves, letters, numbers]);
 
     useEffect(() => {
         gameRef.current = game;
@@ -343,8 +240,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     useEffect(() => {
         if (animatingPieces.length > 0) {
             const duration = 200;
-            // The primary element for transitionend should be the first piece being animated.
-            // If the piece was captured, it won't be in the DOM anymore, so ensure we have a valid ref.
             const primaryElement = animatedPieceElementsRef.current.get(animatingPieces[0].from);
 
             animatingPieces.forEach(p => {
@@ -376,13 +271,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 };
                 primaryElement.addEventListener('transitionend', handleTransitionEnd);
                 return () => primaryElement.removeEventListener('transitionend', handleTransitionEnd);
-            } else {
-                // Fallback if primaryElement is not found (e.g., captured piece)
-                const move = moveBeingAnimated.current;
-                if (move) onMoveAttempt(move.from, move.to, move.promotion as any);
-                setAnimatingPieces([]);
-                animatedPieceElementsRef.current.clear();
-                moveBeingAnimated.current = null;
             }
         }
     }, [animatingPieces, onMoveAttempt]);
@@ -407,7 +295,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 executeMove(nextPreMove.from, nextPreMove.to, false, true);
                 setPreMoves(prev => prev.slice(1));
             } else {
-                // If pre-move is illegal, clear all pre-moves and last move highlight
                 setLastMove(null);
                 setPreMoves([]);
             }
@@ -416,16 +303,12 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
     const handleRightClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
-        // Clear all interactive states on right-click
-        setPreMoves([]);
-        setSelectedSquare(null);
-        setPossibleMoves([]);
-        setPinnedPieceSquare(null);
-        setKingSquareUnderPin(null);
-        setDraggedPiece(null);
-        setDraggedPosition(null);
-        interactionState.current = null;
-    }, []);
+        if (preMoves.length > 0) {
+            setPreMoves([]);
+            setSelectedSquare(null);
+            setPossibleMoves([]);
+        }
+    }, [preMoves.length]);
 
     const getPieceImage = (piece: Piece | undefined): string | undefined => {
         if (piece) return `https://images.chesscomfiles.com/chess-themes/pieces/neo/150/${piece.color}${piece.type}.png`;
@@ -458,11 +341,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     const handleSquareClick = useCallback((clickedSquare: Square, e: React.MouseEvent) => {
         if (interactionState.current?.isDragging) return;
 
-        // Always clear pin highlights on any new click interaction
-        setPinnedPieceSquare(null);
-        setKingSquareUnderPin(null);
-
-        // --- Logic for Pre-moves (non-player turn, or before player makes actual move) ---
         if (selectedSquare && !isPlayerTurn && !canMoveAnyPiece) {
             if (selectedSquare === clickedSquare) {
                 setSelectedSquare(null);
@@ -470,32 +348,53 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 return;
             }
 
-            // Deduce piece on clickedSquare considering pre-moves
-            const virtualGameForClick = new Chess(game.fen());
-            for (const pMove of preMoves) {
-                const movedPiece = virtualGameForClick.get(pMove.from);
-                if (movedPiece) {
-                    virtualGameForClick.remove(pMove.from);
-                    virtualGameForClick.put(movedPiece, pMove.to);
+            const virtualBoard = new Map<Square, Piece | null>();
+            for (const rank of numbers) {
+                for (const file of letters) {
+                    const square = `${file}${rank}` as Square;
+                    virtualBoard.set(square, game.get(square) || null);
                 }
             }
-            const pieceOnClickedSquare = virtualGameForClick.get(clickedSquare);
-
+            for (const move of preMoves) {
+                const piece = virtualBoard.get(move.from);
+                if (piece) {
+                    virtualBoard.set(move.from, null);
+                    virtualBoard.set(move.to, piece);
+                }
+            }
+            const pieceOnClickedSquare = virtualBoard.get(clickedSquare);
 
             if (pieceOnClickedSquare && pieceOnClickedSquare.color === userColor && !e.shiftKey) {
-                // If clicked a new piece of user's color, select it
                 setSelectedSquare(clickedSquare);
-                setPossibleMoves([]); // No possible moves for premove selection
+                setPossibleMoves([]);
             } else {
-                // Attempt to make a pre-move
                 const interpretedTo = getInterpretedMove(selectedSquare, clickedSquare);
                 executeMove(selectedSquare, interpretedTo, false);
             }
             return;
         }
 
-        // --- Logic for Player's Turn ---
-        // If a square is already selected
+        const virtualBoard = new Map<Square, Piece | null>();
+        let pieceOnClickedSquare: Piece | null | undefined;
+        if (preMoves.length > 0) {
+            for (const rank of numbers) {
+                for (const file of letters) {
+                    const square = `${file}${rank}` as Square;
+                    virtualBoard.set(square, game.get(square) || null);
+                }
+            }
+            for (const move of preMoves) {
+                const piece = virtualBoard.get(move.from);
+                if (piece) {
+                    virtualBoard.set(move.from, null);
+                    virtualBoard.set(move.to, piece);
+                }
+            }
+            pieceOnClickedSquare = virtualBoard.get(clickedSquare);
+        } else {
+            pieceOnClickedSquare = game.get(clickedSquare);
+        }
+
         if (selectedSquare) {
             if (selectedSquare === clickedSquare) {
                 setSelectedSquare(null);
@@ -504,16 +403,22 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             }
 
             const interpretedTo = getInterpretedMove(selectedSquare, clickedSquare);
-            // Let executeMove handle all move validation (including pins)
-            executeMove(selectedSquare, interpretedTo, false);
+            const isMoveLegal = game.moves({ verbose: true }).some(m => m.from === selectedSquare && m.to === interpretedTo);
 
+            if (isMoveLegal) {
+                executeMove(selectedSquare, interpretedTo, false);
+            } else {
+                if (pieceOnClickedSquare && (canMoveAnyPiece || pieceOnClickedSquare.color === userColor)) {
+                    setSelectedSquare(clickedSquare);
+                    setPossibleMoves(getEnhancedPossibleMoves(clickedSquare));
+                } else {
+                    setSelectedSquare(null);
+                    setPossibleMoves([]);
+                }
+            }
         } else {
-            // No square selected, attempt to select a piece
-            const pieceOnClickedSquare = game.get(clickedSquare); // Get piece from actual game state
-
             if (pieceOnClickedSquare && (canMoveAnyPiece || pieceOnClickedSquare.color === userColor)) {
                 setSelectedSquare(clickedSquare);
-                // Only show possible moves if it's the player's turn or can move any piece
                 setPossibleMoves((isPlayerTurn || canMoveAnyPiece) ? getEnhancedPossibleMoves(clickedSquare) : []);
             }
         }
@@ -526,16 +431,16 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         if (!currentInteraction.isDragging) {
             const dx = Math.abs(e.clientX - currentInteraction.startX);
             const dy = Math.abs(e.clientY - currentInteraction.startY);
-            if (dx > 5 || dy > 5) { // Threshold for starting a drag
+            if (dx > 5 || dy > 5) {
                 if (interactionState.current !== null) {
-                    interactionState.current.isDragging = true;
+                interactionState.current.isDragging = true;
                 }
                 e.preventDefault();
                 setDraggedPiece({ piece: currentInteraction.piece, fromSquare: currentInteraction.square });
                 if (isPlayerTurn || canMoveAnyPiece) {
                     setPossibleMoves(getEnhancedPossibleMoves(currentInteraction.square));
                 }
-                setSelectedSquare(currentInteraction.square); // Select the dragged piece's origin
+                setSelectedSquare(currentInteraction.square);
                 document.body.style.cursor = 'grabbing';
             }
         }
@@ -549,7 +454,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
             const col = Math.floor(mouseX / currentSquareSize);
             const row = Math.floor(mouseY / currentSquareSize);
-            // Check if mouse is within board bounds
             if (col < 0 || col >= 8 || row < 0 || row >= 8) {
                 setHoveredTargetSquare(null);
                 return;
@@ -557,8 +461,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
             const currentSquareUnderMouse = (letters[col] + numbers[row]) as Square;
             const enhancedLegalMoves = getEnhancedPossibleMoves(currentInteraction.square);
-            // Highlight hovered square only if it's a legal move target or if it's a pre-move situation
-            if (enhancedLegalMoves.includes(currentSquareUnderMouse) || (!isPlayerTurn && !canMoveAnyPiece)) {
+            if (enhancedLegalMoves.includes(currentSquareUnderMouse) || !isPlayerTurn) {
                 setHoveredTargetSquare(currentSquareUnderMouse);
             } else {
                 setHoveredTargetSquare(null);
@@ -586,9 +489,13 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
                 if (fromSquare !== toSquare) {
                     const interpretedTo = getInterpretedMove(fromSquare, toSquare);
-                    executeMove(fromSquare, interpretedTo, true); // Let executeMove handle all validations
-                    // Note: setSelectedSquare is typically handled within executeMove or handleSquareClick for clarity.
-                    // This might be redundant depending on follow-up state.
+                    const isMoveLegal = game.moves({ verbose: true }).some(m => m.from === fromSquare && m.to === interpretedTo);
+
+                    if (isMoveLegal || (!isPlayerTurn && !canMoveAnyPiece)) {
+                        executeMove(fromSquare, interpretedTo, true);
+                        setSelectedSquare(interpretedTo);
+                        setPossibleMoves([]);
+                    }
                 }
             }
 
@@ -600,20 +507,12 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     }, [currentSquareSize, handleMouseMove, isPlayerTurn, canMoveAnyPiece, getInterpretedMove, executeMove, letters, numbers, game]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
-        if (e.button === 2) { // Right-click, let handleRightClick take over
+        if (e.button === 2) {
             return;
         }
         e.preventDefault();
-        // Clear any previous pin highlights when a new piece interaction begins
-        setPinnedPieceSquare(null);
-        setKingSquareUnderPin(null);
+        if (e.button !== 0 || !piece || (!canMoveAnyPiece && piece.color !== userColor)) return;
 
-        if (e.button !== 0 || !piece || (!canMoveAnyPiece && piece.color !== userColor)) {
-            // console.log("MouseDown rejected: Not left click, no piece, or not player's piece");
-            return;
-        }
-
-        // Initialize interaction state for potential drag or click
         interactionState.current = {
             piece,
             square,
@@ -621,7 +520,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             startX: e.clientX,
             startY: e.clientY,
         };
-        // Add listeners for dragging
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
     }, [handleMouseMove, handleMouseUp, userColor, canMoveAnyPiece]);
@@ -634,19 +532,18 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     const preMoveOrigins = new Set(preMoves.map(p => p.from));
     const preMoveDests = new Set(preMoves.map(p => p.to));
 
-    // Populate virtual board for displaying pre-moves
     if (preMoves.length > 0) {
         for (const rank of numbers) {
             for (const file of letters) {
                 const square = `${file}${rank}` as Square;
-                virtualBoard.set(square, game.get(square) || null); // Start with actual game state
+                virtualBoard.set(square, game.get(square) || null);
             }
         }
         for (const move of preMoves) {
             const pieceToMove = virtualBoard.get(move.from);
             if (pieceToMove) {
-                virtualBoard.set(move.from, null); // Remove from old square
-                virtualBoard.set(move.to, pieceToMove); // Place on new square
+                virtualBoard.set(move.from, null);
+                virtualBoard.set(move.to, pieceToMove);
             }
         }
     }
@@ -692,7 +589,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 >
                     {numbers.map((rank) => letters.map((file) => {
                         const algebraicSquare = `${file}${rank}` as Square;
-                        // Determine piece for display: prefer virtual board if pre-moves exist
                         const pieceToDisplay = preMoves.length > 0 ? virtualBoard.get(algebraicSquare) : game.get(algebraicSquare);
                         const piece = pieceToDisplay;
                         const isPreMoveOrigin = preMoveOrigins.has(algebraicSquare);
@@ -707,33 +603,15 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                         const isHintSquare = hintSquare === algebraicSquare;
 
                         let bgColorClass = isDark ? "bg-sky-700" : "bg-slate-100";
-
-                        // --- PIN HIGHLIGHTING LOGIC ---
-                        // This applies if the move attempt *failed* AND it was a pinned piece causing it.
-                        if (algebraicSquare === pinnedPieceSquare) {
-                            bgColorClass = "bg-red-200"; // Pinned piece
-                        } else if (algebraicSquare === kingSquareUnderPin) {
-                            bgColorClass = "bg-red-300"; // King related to pin
-                        }
-                        // --- END PIN HIGHLIGHTING ---
-
-                        // Other highlighting conditions, prioritized after pin highlights
-                        else if (algebraicSquare === incorrectSquare) bgColorClass = "bg-red-200";
-                        else if (isPreMoveOrigin && isPreMoveDestination) bgColorClass = "bg-red-300"; // Should be rare
-                        else if (isPreMoveDestination) bgColorClass = "bg-red-200"; // Pre-move destination
-                        else if (isPreMoveOrigin) bgColorClass = "bg-red-100"; // Pre-move origin
+                        if (algebraicSquare === incorrectSquare) bgColorClass = "bg-red-200";
+                        else if (isPreMoveOrigin && isPreMoveDestination) bgColorClass = "bg-red-300";
+                        else if (isPreMoveDestination) bgColorClass = "bg-red-200";
+                        else if (isPreMoveOrigin) bgColorClass = "bg-red-100";
                         else if (isLastMoveFrom) bgColorClass = "bg-blue-300";
                         else if (isLastMoveTo) bgColorClass = "bg-blue-200";
                         else if (isSelected) bgColorClass = "bg-indigo-200";
                         else if (isHintSquare) bgColorClass = "bg-amber-100";
-
-                        // Hovered target highlight
-                        if (isHoveredTarget) {
-                            // Ensure hover highlight doesn't override pin/incorrect colors unless intended
-                            if (algebraicSquare !== pinnedPieceSquare && algebraicSquare !== kingSquareUnderPin && algebraicSquare !== incorrectSquare) {
-                                bgColorClass = "bg-indigo-100";
-                            }
-                        }
+                        if (isHoveredTarget) bgColorClass = "bg-indigo-100";
 
                         const isHiddenDuringAnimation = animatingPieces.some(p => p.from === algebraicSquare || p.to === algebraicSquare);
 
