@@ -34,7 +34,6 @@ const rawRoutes: Array<Route> = [
   { path: "/train/board-builder", element: <BoardBuilder />, requiresAuth: true },
   { path: "/train/puzzle", element: <PuzzleHome />, requiresAuth: true },
 
-  // Add your PuzzleType-based routes
   ...[
     ["mateIn1"], ["mateIn2"], ["mateIn3"], ["mateIn4"], ["mateIn5"], ["mate"],
     ["anastasiaMate"], ["backRankMate"], ["doubleBishopMate"], ["hookMate"], ["vukovicMate"],
@@ -56,7 +55,6 @@ const rawRoutes: Array<Route> = [
   }))
 ];
 
-// Utility to format the puzzle titles (optional)
 function formatTitle(theme: string) {
   const map: Record<string, string> = {
     mate: "Mate in ?",
@@ -74,7 +72,6 @@ function capitalizeWords(text: string) {
   return text.replace(/\b\w/g, char => char.toUpperCase());
 }
 
-// Wrap routes requiring auth in <ProtectedRoute />
 export const ROUTES = rawRoutes.map(({ path, element, requiresAuth, allowNewUser }) => ({
   path,
   element: requiresAuth

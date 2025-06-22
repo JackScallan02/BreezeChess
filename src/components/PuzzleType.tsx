@@ -44,7 +44,7 @@ return (
     <MainToolBar />
     <div className="flex-1 overflow-y-scroll min-h-0 no-scrollbar">
       {puzzleSolution?.fen && (
-        <PuzzleBoard puzzleSolution={puzzleSolution} fetchPuzzle={fetchPuzzle} />
+        <PuzzleBoard puzzleSolution={puzzleSolution} />
       )}
     </div>
   </div>

@@ -160,7 +160,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 for (const rank of numbers) {
                     for (const file of letters) {
                         const square = `${file}${rank}` as Square;
-                        virtualBoard.set(square, game.get(square));
+                        virtualBoard.set(square, game.get(square) || null);
                     }
                 }
                 for (const move of preMoves) {
@@ -310,9 +310,9 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         }
     }, [preMoves.length]);
 
-    const getPieceImage = (piece: Piece | undefined): string | null => {
+    const getPieceImage = (piece: Piece | undefined): string | undefined => {
         if (piece) return `https://images.chesscomfiles.com/chess-themes/pieces/neo/150/${piece.color}${piece.type}.png`;
-        return null;
+        return undefined;
     };
 
     const getEnhancedPossibleMoves = useCallback((square: Square): Square[] => {
@@ -352,7 +352,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             for (const rank of numbers) {
                 for (const file of letters) {
                     const square = `${file}${rank}` as Square;
-                    virtualBoard.set(square, game.get(square));
+                    virtualBoard.set(square, game.get(square) || null);
                 }
             }
             for (const move of preMoves) {
@@ -380,7 +380,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             for (const rank of numbers) {
                 for (const file of letters) {
                     const square = `${file}${rank}` as Square;
-                    virtualBoard.set(square, game.get(square));
+                    virtualBoard.set(square, game.get(square) || null);
                 }
             }
             for (const move of preMoves) {
@@ -432,7 +432,9 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             const dx = Math.abs(e.clientX - currentInteraction.startX);
             const dy = Math.abs(e.clientY - currentInteraction.startY);
             if (dx > 5 || dy > 5) {
+                if (interactionState.current !== null) {
                 interactionState.current.isDragging = true;
+                }
                 e.preventDefault();
                 setDraggedPiece({ piece: currentInteraction.piece, fromSquare: currentInteraction.square });
                 if (isPlayerTurn || canMoveAnyPiece) {
@@ -534,7 +536,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         for (const rank of numbers) {
             for (const file of letters) {
                 const square = `${file}${rank}` as Square;
-                virtualBoard.set(square, game.get(square));
+                virtualBoard.set(square, game.get(square) || null);
             }
         }
         for (const move of preMoves) {
@@ -614,14 +616,36 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                         const isHiddenDuringAnimation = animatingPieces.some(p => p.from === algebraicSquare || p.to === algebraicSquare);
 
                         return (
-                            <div key={algebraicSquare} ref={el => el ? squareRefs.current.set(algebraicSquare, el) : squareRefs.current.delete(algebraicSquare)} className={`relative flex items-center justify-center ${bgColorClass} ${selectedSquare && 'cursor-pointer'}`} onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)} onClick={(e) => handleSquareClick(algebraicSquare, e)}>
+                            <div key={algebraicSquare} ref={el => { if (el) { squareRefs.current.set(algebraicSquare, el); } else { squareRefs.current.delete(algebraicSquare); } }} className={`relative flex items-center justify-center ${bgColorClass} ${selectedSquare && 'cursor-pointer'}`} onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)} onClick={(e) => handleSquareClick(algebraicSquare, e)}>
                                 {isPossibleMoveTarget && <div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>}
                                 {piece && !isDragged && <img src={getPieceImage(piece)} draggable={false} alt={`${piece?.color} ${piece?.type}`} style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: (canMoveAnyPiece || (piece?.color === userColor)) ? 'grab' : selectedSquare ? 'pointer' : 'default', userSelect: 'none', zIndex: 3, visibility: isHiddenDuringAnimation ? 'hidden' : 'visible' }} />}
                             </div>
                         );
                     }))}
-                    {draggedPiece && draggedPosition && <img src={getPieceImage(draggedPiece.piece) || ''} draggable={false} alt="" style={{ position: 'absolute', left: `${draggedPosition.x}px`, top: `${draggedPosition.y}px`, width: `${currentSquareSize}px`, height: `${currentSquareSize}px`, objectFit: 'contain', pointerEvents: 'none', zIndex: 1000, transform: 'scale(0.9)', filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))' }} />}
-                    {animatingPieces.map(p => <div key={p.from} ref={el => el ? animatedPieceElementsRef.current.set(p.from, el) : animatedPieceElementsRef.current.delete(p.from)} style={{ position: 'absolute', top: 0, left: 0, width: `${currentPieceVisualSize}px`, height: `${currentPieceVisualSize}px`, pointerEvents: 'none', zIndex: 999 }}><img src={getPieceImage(p.piece) || ''} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>)}
+                    {draggedPiece && draggedPosition && <img src={getPieceImage(draggedPiece.piece) || ''} draggable={false} alt={''} style={{ position: 'absolute', left: `${draggedPosition.x}px`, top: `${draggedPosition.y}px`, width: `${currentSquareSize}px`, height: `${currentSquareSize}px`, objectFit: 'contain', pointerEvents: 'none', zIndex: 1000, transform: 'scale(0.9)', filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.5))' }} />}
+                    {animatingPieces.map(p => (
+                        <div
+                            key={p.from}
+                            ref={el => {
+                                if (el) {
+                                    animatedPieceElementsRef.current.set(p.from, el);
+                                } else {
+                                    animatedPieceElementsRef.current.delete(p.from);
+                                }
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: `${currentPieceVisualSize}px`,
+                                height: `${currentPieceVisualSize}px`,
+                                pointerEvents: 'none',
+                                zIndex: 999
+                            }}
+                        >
+                            <img src={getPieceImage(p.piece) || ''} alt={''} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        </div>
+                    ))}
                 </div>
 
                 {showLabels && (
