@@ -30,8 +30,8 @@ const MainToolBar = () => {
   const { isDarkMode } = useDarkMode();
 
   const dropdownItems: Array<Object> = [
-    { label: 'Profile', icon: 'pi pi-user', command: () => handleNavigation('/profile') },
-    { label: 'Settings', icon: 'pi pi-cog', command: () => handleNavigation('/settings') },
+    { label: 'Profile', icon: 'pi pi-user', command: () => handleNavigation('/profile'), disabled: user?.is_new_user},
+    { label: 'Settings', icon: 'pi pi-cog', command: () => handleNavigation('/settings'), disabled: user?.is_new_user },
     { label: 'Logout', icon: 'pi pi-sign-out', command: () => user && handleLogout() }
   ];
 
