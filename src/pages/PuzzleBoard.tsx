@@ -256,7 +256,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
 
                                 <button
                                     onClick={resetPuzzle}
-                                    className="bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
+                                    className="cursor-pointer bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
                                     style={{
                                         fontSize: `${scale * 1}rem`,
                                         padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
@@ -269,7 +269,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                 </button>
                                 <button
                                     onClick={nextPuzzle}
-                                    className="bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
+                                    className="cursor-pointer bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
                                     style={{
                                         fontSize: `${scale * 1}rem`,
                                         padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
@@ -327,7 +327,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                         onClick={handleGoBack}
                                         disabled={currentMoveIndex === 0}
                                         className="rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-40"
-                                        style={{ padding: `${scale * 0.5}rem` }}
+                                        style={{ padding: `${scale * 0.5}rem`, }}
                                     >
                                         <ChevronLeft style={{ width: `${scale * 1.5}rem`, height: `${scale * 1.5}rem` }} />
                                     </button>

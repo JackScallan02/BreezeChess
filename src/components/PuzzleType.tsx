@@ -14,6 +14,7 @@ const PuzzleType: React.FC<PuzzleProps> = ({ title, themes }) => {
         fen: '',
         moves: [''],
         name: '',
+        fetchPuzzle: () => {},
     });
 
     const fetchPuzzle = async () => {
@@ -25,6 +26,7 @@ const PuzzleType: React.FC<PuzzleProps> = ({ title, themes }) => {
                 fen: puzzle.FEN,
                 moves: moveList,
                 name: title,
+                fetchPuzzle: fetchPuzzle,
             });
         } catch (error) {
             console.error(error);
