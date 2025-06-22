@@ -32,4 +32,4 @@ ui-debug.log
 yarn*.lock
 ./*/yarn*.lock
 
-*/__pychache__/*
+puzzle_service/__pycache__/
