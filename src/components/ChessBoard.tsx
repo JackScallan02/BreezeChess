@@ -610,7 +610,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                         else if (isLastMoveFrom) bgColorClass = "bg-blue-300";
                         else if (isLastMoveTo) bgColorClass = "bg-blue-200";
                         else if (isSelected) bgColorClass = "bg-indigo-200";
-                        else if (isHintSquare) bgColorClass = "bg-amber-100";
+                        else if (isHintSquare) bgColorClass = "bg-amber-200";
                         if (isHoveredTarget) bgColorClass = "bg-indigo-100";
 
                         const isHiddenDuringAnimation = animatingPieces.some(p => p.from === algebraicSquare || p.to === algebraicSquare);
