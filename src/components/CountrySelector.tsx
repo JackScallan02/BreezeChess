@@ -157,12 +157,12 @@ const CountrySelector: React.FC<props> = ({ openDialog, setOpenDialog, handleGet
     };
 
     const footerContent = () => (
-        <div className="flex lg:justify-end justify-center items-center h-[10vh] mt-4">
+        <div className="flex lg:justify-end justify-center items-center h-[10vh] mt-4 gap-4">
             <Button
                 label="Cancel"
                 icon="pi pi-times"
                 onClick={() => { setHoverId(''); setSelectedCountry(null); setOpenDialog(false); }}
-                className={`p-4 mr-4 w-[15%] h-[60%] min-w-[120px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all border-2
+                className={`p-4 w-[15%] h-[60%] min-w-[120px] active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all border-2
                     ${isDarkMode ? 'border-slate-700 text-white bg-slate-800 hover:bg-slate-700' : 'border-gray-200 bg-white hover:bg-gray-100'}`}
             />
             <Button
@@ -194,7 +194,7 @@ const CountrySelector: React.FC<props> = ({ openDialog, setOpenDialog, handleGet
             headerStyle={{ minWidth: '400px', background: isDarkMode ? '#1e293b' : undefined, color: isDarkMode ? 'white' : undefined }}
             onHide={() => { if (!openDialog) return; setOpenDialog(false); }}
         >
-            <div className={`flex flex-col justify-between h-full ${isDarkMode ? 'bg-slate-900 text-white' : ''}`}>
+            <div className={`flex flex-col justify-between h-full ${isDarkMode ? 'bg-slate-800 text-white' : ''}`}>
                 <div>
                     <InputText
                         value={query}
