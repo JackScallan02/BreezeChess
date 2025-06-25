@@ -16,10 +16,6 @@ const location = useLocation();
   const isLoggedIn = !!user && Object.keys(user).length > 0;
   const isNewUser = user?.is_new_user;
 
-    if (loading) {
-    return <LoadingScreen />; // Or `null` or a spinner
-  }
-
   if (requiresAuth && !isLoggedIn) {
     return <Navigate to="/" replace state={{ from: location }} />;
   }

@@ -99,6 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const handleUserUpdate = async () => {
     if (user) {
       const getResult = await getUserById(user.id);
+      console.log("getResult", getResult);
 
       setUser({
         id: getResult.id,
@@ -114,6 +115,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     auth.signOut()
         .then(() => {
           console.log("User signed out");
+          setLoading(false);
         })
         .catch((error) => {
           console.error("Sign-out error:", error);
