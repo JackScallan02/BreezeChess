@@ -43,9 +43,6 @@ const checkmatesData = {
       name: "Middlegame",
       items: [
         { id: "middlegame", name: "Middlegame Concepts", description: "The phase of the game with active tactics and strategy." },
-        //TODO
-        // { id: "pawnStructures", name: "Pawn Structures", description: "Learn about the arrangement of pawns and their strategic implications." },
-        // { id: "pieceCoordination", name: "Piece Coordination", description: "Develop skills in harmonizing the movement of your pieces." }
       ]
     },
     {
@@ -148,17 +145,15 @@ const tacticsData = {
  * It now manages state to show a description when an item button is clicked.
  */
 const TrainingMethodSection = ({ items }) => {
-    const [activeItem, setActiveItem] = useState(null); // State to track the currently active item's ID
+    const [activeItem, setActiveItem] = useState(null);
     const { handleNavigation } = useNavigation();
 
     const handleItemClick = (item) => {
-        // Toggle description: if clicked item is already active, close it; otherwise, open it.
         setActiveItem(prevActiveItem => (prevActiveItem === item.id ? null : item.id));
     };
 
     const handleStartTraining = () => {
         if (activeItem) {
-            // Find the full item object to get its name for the URL if needed, though 'id' is sufficient
             const selectedItem = items.find(item => item.id === activeItem);
             if (selectedItem) {
                 handleNavigation(selectedItem.id);
@@ -167,26 +162,25 @@ const TrainingMethodSection = ({ items }) => {
     };
 
     return (
-        <div className="flex flex-col"> {/* Use flex-col to stack buttons and description */}
+        <div className="flex flex-col">
             <div className="flex flex-wrap gap-2 pt-3">
                 {items.map(item => (
                     <button
-                        key={item.id} // Use item.id for key
+                        key={item.id}
                         onClick={() => handleItemClick(item)}
-                        className={`px-3 py-1.5 border rounded-md shadow-sm text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer
+                        className={`px-2.5 py-1.5 md:px-3 text-sm md:text-base border rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer
                             ${activeItem === item.id ? 'bg-blue-500 text-white border-blue-600' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400'}`}
                     >
                         {item.name}
                     </button>
                 ))}
             </div>
-            {/* Display the description and the "Start Training" button if an item is active */}
             {activeItem && (
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-slate-700 text-sm">
-                    <p className="text-[1rem]">{items.find(item => item.id === activeItem)?.description || "No description available."}</p>
+                <div className="mt-4 p-3 md:p-4 bg-blue-50 border border-blue-200 rounded-md text-slate-700">
+                    <p className="text-sm md:text-base">{items.find(item => item.id === activeItem)?.description || "No description available."}</p>
                     <button
                         onClick={handleStartTraining}
-                        className="mt-3 px-2.5 py-1.5 bg-purple-600 text-white rounded-md shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors cursor-pointer"
+                        className="mt-3 px-3 py-1.5 md:px-4 md:py-2 bg-purple-600 text-white text-sm md:text-base rounded-md shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors cursor-pointer"
                     >
                         Start Training
                     </button>
@@ -202,27 +196,20 @@ const TrainingMethodSection = ({ items }) => {
  */
 const TreeBranch = ({ category, subCategories, isOpen, onToggle }) => (
     <div className="relative pl-8">
-        {/* Horizontal line from trunk to content */}
-        {/* This line remains h-0.5 w-5 bg-purple-600 as its consistency is less affected */}
         <div className="absolute left-[18px] top-4 h-0.5 w-5 bg-purple-600"></div>
-
-        {/* The circular node on the main trunk */}
         <div className={`absolute left-3 top-4 -translate-y-1/3 w-3 h-3 rounded-full transition-colors ${isOpen ? 'bg-blue-500 border-white' : 'bg-slate-300 border-white'} border-2`}></div>
-
-        {/* The content container for the branch */}
         <div className="relative pl-8">
             <h3
                 onClick={onToggle}
-                className="text-xl font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 transition-colors select-none"
+                className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 transition-colors select-none"
             >
                 {category}
             </h3>
             {isOpen && (
-                <div className="mt-4 space-y-4">
+                <div className="mt-4 space-y-4 md:space-y-5">
                     {subCategories.map(sub => (
-                        <div key={sub.name} className="p-4 bg-slate-100/70 dark:bg-slate-800 rounded-lg border border-slate-200/80">
-                            <h4 className="font-semibold text-slate-700 dark:text-white">{sub.name}</h4>
-                            {/* Pass the items including their descriptions to TrainingMethodSection */}
+                        <div key={sub.name} className="p-3 md:p-4 bg-slate-100/70 dark:bg-slate-800 rounded-lg border border-slate-200/80">
+                            <h4 className="font-semibold text-base md:text-lg text-slate-700 dark:text-white">{sub.name}</h4>
                             <TrainingMethodSection items={sub.items} />
                         </div>
                     ))}
@@ -234,10 +221,8 @@ const TreeBranch = ({ category, subCategories, isOpen, onToggle }) => (
 
 /**
  * A reusable component for rendering a complete tree structure.
- * The 'title' prop has been removed from this component.
  */
 const Tree = ({ data }) => {
-    // Initialize openBranches to have all categories open by default
     const [openBranches, setOpenBranches] = useState(() => {
         const initialOpenState = {};
         Object.keys(data).forEach(category => {
@@ -257,14 +242,9 @@ const Tree = ({ data }) => {
 
     return (
         <div className="w-full">
-            <div className="relative pt-4"> {/* Added padding to align content */}
-                {/* The main vertical trunk of the tree.
-                  Changed from w-[2px] to a w-0 div with a right border-r-2.
-                  This ensures a consistent 2px thickness regardless of browser scaling,
-                  as borders are rendered more reliably.
-                */}
+            <div className="relative pt-4">
                 <div className="absolute left-4 top-0 bottom-0 w-0 border-r-2 border-purple-600"></div>
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                     {categories.map((category) => (
                         <TreeBranch
                             key={category}
@@ -285,9 +265,7 @@ const Tree = ({ data }) => {
  */
 const TrainingTree = () => {
     return (
-        // Replaced percentage-based max-width with a fixed max-width (max-w-7xl)
-        // to prevent browser sub-pixel rendering issues on resize.
-        <div className="w-full max-w-7xl mx-auto p-4 font-sans flex flex-col md:flex-row gap-x-32">
+        <div className="w-full max-w-7xl mx-auto p-4 font-sans flex flex-col md:flex-row gap-y-12 md:gap-x-12 lg:gap-x-16 xl:gap-x-24">
             <div className="w-full"><Tree data={checkmatesData} /></div>
             <div className="w-full"><Tree data={tacticsData} /></div>
         </div>
@@ -297,16 +275,14 @@ const TrainingTree = () => {
 
 /**
  * Main App component to render the TrainingTree.
- * Now includes the single, centralized title for the entire page.
  */
 export default function App() {
     return (
-        <div className="min-h-screen w-full flex flex-col items-center pt-8 md:pt-16">
-            {/* The single, centralized title and subtitle */}
-            <h1 className="text-4xl font-extrabold text-slate-800 mb-2 tracking-tight text-center dark:text-white">
+        <div className="min-h-screen w-full flex flex-col items-center pt-8 md:pt-12 lg:pt-16">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-800 mb-2 tracking-tight text-center dark:text-white">
                 Choose a training method
             </h1>
-            <p className="text-center text-slate-500 dark:text-slate-300 mb-10">Click on a training method to see its description.</p>
+            <p className="text-center text-slate-500 dark:text-slate-300 text-base lg:text-lg mb-8 md:mb-12 lg:mb-16">Click on a training method to see its description.</p>
 
             <TrainingTree/>
         </div>
