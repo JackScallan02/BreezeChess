@@ -2,6 +2,16 @@
 
 html, body {
     @apply min-h-screen;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: white; /* Light mode default */
+    transition: background-color 0.3s ease;
+}
+
+/* Dark mode */
+html.dark, body.dark {
+  background-color: #1f2937; /* or a dark color matching your theme */
 }
 
 #root {
