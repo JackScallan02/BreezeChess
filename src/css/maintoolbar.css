@@ -25,3 +25,11 @@
   background-color: white;
   transition: background-color 0.15s ease-in-out;
 }
+
+.p-skeleton {
+  background-color: #f3f4f6 !important; /* Light mode: Tailwind's bg-gray-100 */
+}
+
+.dark .p-skeleton {
+  background-color: #475569 !important; /* Tailwind's slate-500 */
+}

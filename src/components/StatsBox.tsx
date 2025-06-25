@@ -42,7 +42,11 @@ const StatsBox = () => {
                     <div className="card w-full">
                         {ratingCategories.length === 0 ? (
                             <>
-                                <Skeleton height="16rem" className="bg-gray-100 dark:bg-slate-500"></Skeleton>
+                                <div className="flex flex-col space-y-2">
+                                    {[...Array(4)].map((_, i) => (
+                                        <Skeleton key={i} height="5vh" />
+                                    ))}
+                                </div>
                             </>
                         ) : (
                             <DataTable
