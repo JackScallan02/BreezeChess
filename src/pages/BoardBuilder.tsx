@@ -222,7 +222,7 @@ const BoardBuilder = () => {
                     <button
                       onClick={handleGoBack}
                       disabled={currentMoveIndex === 0}
-                      className={`rounded-full bg-slate-200 dark:bg-slate-700 ${currentMoveIndex !== 0 && 'hover:bg-slate-300 dark:hover:bg-slate-600'} disabled:opacity-40`}
+                      className={`rounded-full bg-slate-200 dark:bg-slate-700 ${currentMoveIndex !== 0 && 'hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer'} disabled:opacity-40`}
                       style={{ padding: `${scale * 0.5}rem`, }}
                     >
                       <ChevronLeft style={{ width: `${scale * 1.5}rem`, height: `${scale * 1.5}rem` }} />
@@ -230,7 +230,7 @@ const BoardBuilder = () => {
                     <button
                       onClick={handleGoForward}
                       disabled={currentMoveIndex >= maxReachedMoveIndex}
-                      className={`rounded-full bg-slate-200 dark:bg-slate-700 ${currentMoveIndex < maxReachedMoveIndex && 'hover:bg-slate-300 dark:hover:bg-slate-600'} disabled:opacity-40`}
+                      className={`rounded-full bg-slate-200 dark:bg-slate-700 ${currentMoveIndex < maxReachedMoveIndex && 'hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer'} disabled:opacity-40`}
                       style={{ padding: `${scale * 0.5}rem` }}
                     >
                       <ChevronRight style={{ width: `${scale * 1.5}rem`, height: `${scale * 1.5}rem` }} />
