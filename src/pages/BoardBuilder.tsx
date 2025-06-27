@@ -122,20 +122,21 @@ const BoardBuilder = () => {
       <MainToolBar />
       <div className="w-full">
         <div
-          className="w-full flex flex-col [@media(min-width:900px)]:flex-row items-stretch justify-center gap-4 pt-4"
-          style={{ minHeight: 'calc(100vh - 64px)' }}
+          className="w-full flex flex-col [@media(min-width:900px)]:flex-row items-stretch gap-4 pt-4"
+          style={{ minHeight: 'calc(100vh - 64px)',                   paddingLeft: `${scale * 2}rem`,
+ }}
         >
           {/* Main Content: Board + Right */}
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
+          <div className="flex flex-col md:flex-row items-center justify-center w-full gap-4 md:gap-8 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
             <div
-              className="flex flex-row items-start justify-center gap-2  w-full [@media(min-width:900px)]:flex-[1_1_0%]"
+              className="flex flex-row justify-center gap-2  w-full [@media(min-width:900px)]:flex-[1_1_0%]"
               style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
             >
               {/* Eval Bar */}
               <div
                 className="flex items-center justify-center items-center"
                 style={{
-                  padding: boardWidth * 0.025,
+                  paddingLeft: `${scale * 2}rem`,
                 }}
               >
                 <EvalBar fen={game.fen()} height={boardWidth * 0.875} scale={scale} />
@@ -145,7 +146,7 @@ const BoardBuilder = () => {
               <div
                 ref={boardContainerRef}
                 className="flex items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]"
-                style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
+                style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)', paddingRight: `${scale * 2}rem` }}
               >
                 <ChessBoard
                   ref={chessboardRef}
@@ -164,6 +165,7 @@ const BoardBuilder = () => {
             <div className="order-2 [@media(min-width:900px)]:order-3 w-full md:w-[25%] flex items-stretch min-w-0"
               style={{
                 maxWidth: boardWidth,
+                paddingRight: `${scale * 2}rem`,
               }}
             >
               <div className="w-full flex flex-col items-center justify-center border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-slate-900 p-4">
@@ -172,7 +174,7 @@ const BoardBuilder = () => {
                     onClick={handleFlipBoard}
                     className="cursor-pointer bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
                     style={{
-                      fontSize: `${scale * 1}rem`,
+                      fontSize: `${scale * 0.625}rem`,
                       padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
                       lineHeight: '1',
                       marginTop: '1em',
@@ -184,7 +186,7 @@ const BoardBuilder = () => {
                     onClick={resetBoard}
                     className="cursor-pointer bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
                     style={{
-                      fontSize: `${scale * 1}rem`,
+                      fontSize: `${scale * 0.625}rem`,
                       padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
                       lineHeight: '1',
                       marginTop: '1em',
