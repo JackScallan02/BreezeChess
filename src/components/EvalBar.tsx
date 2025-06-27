@@ -72,16 +72,16 @@ const EvalBar: React.FC<EvalBarProps> = ({ fen, height, scale }) => {
   // --- UI Rendering Logic (Updated for proportionality) ---
   const maxEval = 1000;
   const normalizedScore = Math.max(-maxEval, Math.min(maxEval, evaluation));
-  const whiteHeight = 50 + (normalizedScore / maxEval) * 50;
+  const whiteHeight = (50 + (normalizedScore / maxEval) * 50).toFixed(2);
 
   // Calculate proportional styles based on props
-  const barWidth = Math.max(6, scale * 16); // e.g., 16px at scale 1, with a min of 6px
-  const fontSize = Math.max(8, scale * 14); // e.g., 14px at scale 1, with a min of 8px
+  const barWidth = Math.max(10, scale * 16); // e.g., 16px at scale 1, with a min of 10px
+  const fontSize = Math.max(6, scale * 10); // e.g., 10px at scale 1, with a min of 6px
   const marginTop = Math.max(8, scale * 16);
   const borderRadius = Math.max(2, scale * 4);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: `${barWidth * 1.5}px` }}>
       {/* The bar container's height is now controlled by the prop */}
       <div style={{
         height: `${height}px`, // Directly use the passed height
