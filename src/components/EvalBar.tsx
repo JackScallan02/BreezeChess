@@ -12,94 +12,87 @@ const EvalBar: React.FC<EvalBarProps> = ({ fen, height, scale }) => {
   const [evaluation, setEvaluation] = useState<number>(0);
   const [evalText, setEvalText] = useState<string>('+0.00');
   const isDarkMode = useDarkMode();
+
   const workerRef = useRef<Worker | null>(null);
-  const lastRequestedFenRef = useRef<string | null>(null);
-  const currentFenTurnRef = useRef<'w' | 'b' | null>(null); // To store the turn of the last requested FEN
+  const latestEvalRef = useRef<{ type: 'cp' | 'mate'; value: number } | null>(null);
+  const turnRef = useRef<'w' | 'b'>('w');
   const debounceTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Initialize worker if not already done
     if (!workerRef.current) {
       workerRef.current = new StockfishWorker();
       workerRef.current.postMessage('uci');
       workerRef.current.postMessage('isready');
+      workerRef.current.postMessage('setoption name Contempt value 0');
+      workerRef.current.postMessage('setoption name UCI_AnalyseMode value true');
     }
-    
+
     const worker = workerRef.current;
 
     const handleStockfishMessage = (event: MessageEvent) => {
       const message: string = event.data;
-      if (!message.startsWith('info')) return;
 
-      const expectedTurn = currentFenTurnRef.current;
-      if (!expectedTurn) {
-          // If we haven't requested a FEN yet, or it's been cleared, ignore messages
-          return;
+      if (message.startsWith('info') && message.includes('score')) {
+        const perspectiveMultiplier = turnRef.current === 'w' ? 1 : -1;
+
+        const mateMatch = message.match(/score mate (-?\d+)/);
+        const cpMatch = message.match(/score cp (-?\d+)/);
+
+        if (mateMatch) {
+          const mate = parseInt(mateMatch[1], 10);
+          latestEvalRef.current = { type: 'mate', value: mate * perspectiveMultiplier };
+        } else if (cpMatch) {
+          const cp = parseInt(cpMatch[1], 10);
+          latestEvalRef.current = { type: 'cp', value: cp * perspectiveMultiplier };
+        }
       }
 
-      // Calculate perspective based *only* on the turn of the FEN we requested
-      const perspective = expectedTurn === 'w' ? 1 : -1;
+      if (message.startsWith('bestmove')) {
+        const result = latestEvalRef.current;
+        if (!result) return;
 
-      const mateMatch = message.match(/score mate (-?\d+)/);
-      const cpMatch = message.match(/score cp (-?\d+)/);
-      
-      if (mateMatch) {
-        const mateInMoves = parseInt(mateMatch[1], 10);
-        // Mate scores are usually absolute, but applying perspective makes it consistent
-        // Mates are also usually not affected by the "flip" issue as much as CP
-        const absoluteEval = mateInMoves * perspective; 
-        setEvaluation(absoluteEval > 0 ? 10000 : -10000);
-        setEvalText(`M${Math.abs(mateInMoves)}`);
-      } else if (cpMatch) {
-        const scoreFromEngine = parseInt(cpMatch[1], 10);
-        
-        // Stockfish reports score relative to the side *to move* in the FEN it's evaluating.
-        // We want the score always from White's perspective.
-        const scoreForWhitesPerspective = scoreFromEngine * perspective;
+        if (result.type === 'mate') {
+          setEvaluation(result.value > 0 ? 10000 : -10000);
+          setEvalText(`M${Math.abs(result.value)}`);
+        } else if (result.type === 'cp') {
+          setEvaluation(result.value);
+          const pawns = (result.value / 100).toFixed(2);
+          setEvalText(`${result.value >= 0 ? '+' : ''}${pawns}`);
+        }
 
-
-        const scoreInPawns = (scoreForWhitesPerspective / 100).toFixed(2);
-        
-        setEvaluation(scoreForWhitesPerspective);
-        setEvalText(`${scoreForWhitesPerspective >= 0 ? '+' : ''}${scoreInPawns}`);
+        latestEvalRef.current = null;
       }
     };
 
     worker.addEventListener('message', handleStockfishMessage);
 
-    // Debounce the Stockfish commands
+    // Debounce FEN evaluation
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
 
     debounceTimeoutRef.current = window.setTimeout(() => {
-      // Set the FEN and its turn *after* the debounce, just before sending to Stockfish
-      lastRequestedFenRef.current = fen;
-      currentFenTurnRef.current = fen.split(' ')[1] as 'w' | 'b';
+      const turn = fen.split(' ')[1] as 'w' | 'b';
+      turnRef.current = turn;
+
+      latestEvalRef.current = null;
 
       worker.postMessage('stop');
       worker.postMessage(`position fen ${fen}`);
-      worker.postMessage('go movetime 3000');
-    }, 100); // Keep debounce time at 100ms for now, can adjust if needed
+      worker.postMessage('go movetime 1000');
+    }, 100);
 
     return () => {
       worker.removeEventListener('message', handleStockfishMessage);
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-      // Stop the worker explicitly on cleanup to prevent lingering evaluations
-      // if the component unmounts or FEN changes rapidly.
-      worker.postMessage('stop'); 
-      lastRequestedFenRef.current = null;
-      currentFenTurnRef.current = null;
+      if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+      worker.postMessage('stop');
     };
+  }, [fen]);
 
-  }, [fen]); // Effect depends only on `fen`
-
-  // --- UI Rendering Logic (No changes needed) ---
+  // --- UI ---
   const maxEval = 1000;
   const normalizedScore = Math.max(-maxEval, Math.min(maxEval, evaluation));
-  const whiteHeight = (50 + (normalizedScore / maxEval) * 50);
+  const whiteHeight = 50 + (normalizedScore / maxEval) * 50;
   const barWidth = Math.max(10, scale * 16);
   const fontSize = Math.max(8, scale * 12);
   const marginTop = Math.max(8, scale * 16);
@@ -117,16 +110,16 @@ const EvalBar: React.FC<EvalBarProps> = ({ fen, height, scale }) => {
         backgroundColor: '#404040',
         overflow: 'hidden'
       }}>
-        <div className="white-bar" style={{ 
-            marginTop: 'auto', 
-            height: `${whiteHeight}%`, 
-            backgroundColor: 'white', 
-            transition: 'height 0.3s ease-in-out'
+        <div className="white-bar" style={{
+          marginTop: 'auto',
+          height: `${whiteHeight}%`,
+          backgroundColor: 'white',
+          transition: 'height 0.3s ease-in-out'
         }}></div>
       </div>
-      <div style={{ 
+      <div style={{
         color: isDarkMode ? 'white' : 'black',
-        fontWeight: 'bold', 
+        fontWeight: 'bold',
         fontFamily: 'sans-serif',
         textAlign: 'center',
         whiteSpace: 'nowrap',
