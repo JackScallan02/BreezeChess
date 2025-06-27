@@ -57,10 +57,6 @@ const EvalBar: React.FC<EvalBarProps> = ({ fen, height, scale }) => {
         // We want the score always from White's perspective.
         const scoreForWhitesPerspective = scoreFromEngine * perspective;
 
-        // Small sanity check
-        if (Math.abs(scoreFromEngine) > 1000 && !mateMatch) { // Example: ignore very high CP scores if not mate
-          return; 
-        }
 
         const scoreInPawns = (scoreForWhitesPerspective / 100).toFixed(2);
         
