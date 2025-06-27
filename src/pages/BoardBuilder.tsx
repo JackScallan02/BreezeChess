@@ -5,17 +5,22 @@ import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
 import { useNavigation } from '../navigator/navigate';
 import { Chess, Square } from 'chess.js';
 import EvalBar from '../components/EvalBar';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const BoardBuilder = () => {
   const { handleNavigation } = useNavigation();
   const [game, setGame] = useState(new Chess());
   const [isBoardReady, setIsBoardReady] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<'w' | 'b'>('w');
+  const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
+  const [maxReachedMoveIndex, setMaxReachedMoveIndex] = useState(0);
+  const [fenMoves, setFenMoves] = useState<any[]>([new Chess().fen()]); // Initialize with the starting position
 
   const [boardWidth, setBoardWidth] = useState(0);
   const [scale, setScale] = useState(1);
   const chessboardRef = useRef<ChessBoardHandle>(null);
   const boardContainerRef = useRef<HTMLDivElement>(null);
+
 
   useDarkMode();
 
@@ -66,6 +71,18 @@ const BoardBuilder = () => {
     if (moveResult === null) {
       return;
     }
+    if (currentMoveIndex === maxReachedMoveIndex) {
+      setMaxReachedMoveIndex(currentMoveIndex + 1);
+    }
+
+    if (currentMoveIndex < maxReachedMoveIndex) {
+      // If we are in the middle of the game, truncate the future moves
+      setFenMoves([...fenMoves.slice(0, currentMoveIndex + 1),  tempGame.fen()]);
+    } else {
+      setFenMoves([...fenMoves, tempGame.fen()]);
+    }
+
+    setCurrentMoveIndex(currentMoveIndex + 1);
     setGame(tempGame);
 
   }, [game]);
@@ -81,11 +98,24 @@ const BoardBuilder = () => {
   const resetBoard = () => {
     const newGame = new Chess();
     setGame(newGame);
+    setFenMoves([newGame.fen()]);
+    setCurrentMoveIndex(0);
+    setMaxReachedMoveIndex(0);
     setBoardOrientation('w');
     if (chessboardRef.current) {
       chessboardRef.current?.resetState();
     }
   };
+
+  const navigateMoves = (newIndex: number) => {
+    setGame(new Chess(fenMoves[newIndex] || game.fen()));
+    setCurrentMoveIndex(newIndex);
+
+  };
+
+
+  const handleGoBack = () => navigateMoves(currentMoveIndex - 1);
+  const handleGoForward = () => navigateMoves(currentMoveIndex + 1);
 
   return (
     <div className="flex flex-col w-full">
@@ -99,7 +129,7 @@ const BoardBuilder = () => {
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
             <div
               className="flex flex-row items-start justify-center gap-2  w-full [@media(min-width:900px)]:flex-[1_1_0%]"
-                style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
+              style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
             >
               {/* Eval Bar */}
               <div
@@ -164,7 +194,7 @@ const BoardBuilder = () => {
                     Reset Board
                   </button>
 
-                  <div className="mt-4">
+                  <div style={{ marginTop: `${scale * 0.7}rem`}}>
                     {isBoardReady && (
                       <div className="text-center text-gray-700 dark:text-gray-300">
                         {game.isCheckmate() ? (
@@ -184,6 +214,24 @@ const BoardBuilder = () => {
                         )}
                       </div>
                     )}
+                  </div>
+                  <div className="flex space-x-4 items-center justify-center"  style={{ marginTop: `${scale * 0.7}rem`}}>
+                    <button
+                      onClick={handleGoBack}
+                      disabled={currentMoveIndex === 0}
+                      className={`rounded-full bg-slate-200 dark:bg-slate-700 ${currentMoveIndex !== 0 && 'hover:bg-slate-300 dark:hover:bg-slate-600'} disabled:opacity-40`}
+                      style={{ padding: `${scale * 0.5}rem`, }}
+                    >
+                      <ChevronLeft style={{ width: `${scale * 1.5}rem`, height: `${scale * 1.5}rem` }} />
+                    </button>
+                    <button
+                      onClick={handleGoForward}
+                      disabled={currentMoveIndex >= maxReachedMoveIndex}
+                      className={`rounded-full bg-slate-200 dark:bg-slate-700 ${currentMoveIndex < maxReachedMoveIndex && 'hover:bg-slate-300 dark:hover:bg-slate-600'} disabled:opacity-40`}
+                      style={{ padding: `${scale * 0.5}rem` }}
+                    >
+                      <ChevronRight style={{ width: `${scale * 1.5}rem`, height: `${scale * 1.5}rem` }} />
+                    </button>
                   </div>
                 </div>
               </div>
