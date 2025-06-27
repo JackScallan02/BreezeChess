@@ -77,7 +77,7 @@ const BoardBuilder = () => {
 
     if (currentMoveIndex < maxReachedMoveIndex) {
       // If we are in the middle of the game, truncate the future moves
-      setFenMoves([...fenMoves.slice(0, currentMoveIndex + 1),  tempGame.fen()]);
+      setFenMoves([...fenMoves.slice(0, currentMoveIndex + 1), tempGame.fen()]);
     } else {
       setFenMoves([...fenMoves, tempGame.fen()]);
     }
@@ -122,15 +122,16 @@ const BoardBuilder = () => {
       <MainToolBar />
       <div className="w-full">
         <div
-          className="w-full flex flex-col [@media(min-width:900px)]:flex-row items-stretch gap-4 pt-4"
-          style={{ minHeight: 'calc(100vh - 64px)',                   paddingLeft: `${scale * 2}rem`,
- }}
+          className="w-full flex flex-col [@media(min-width:900px)]:flex-row items-stretch"
+          style={{
+            minHeight: 'calc(100vh - 64px)', paddingLeft: `${scale * 2}rem`,
+          }}
         >
           {/* Main Content: Board + Right */}
-          <div className="flex flex-col md:flex-row items-center justify-center w-full gap-4 md:gap-8 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
+          <div className="flex flex-col md:flex-row items-center justify-center w-full gap-x-4 md:gap-x-8 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
             <div
               className="flex flex-row justify-center gap-2  w-full [@media(min-width:900px)]:flex-[1_1_0%]"
-              style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
+              style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 64px)' }}
             >
               {/* Eval Bar */}
               <div
@@ -146,7 +147,7 @@ const BoardBuilder = () => {
               <div
                 ref={boardContainerRef}
                 className="flex items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]"
-                style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)', paddingRight: `${scale * 2}rem` }}
+                style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 64px)', paddingRight: `${scale * 2}rem` }}
               >
                 <ChessBoard
                   ref={chessboardRef}
@@ -196,7 +197,7 @@ const BoardBuilder = () => {
                     Reset Board
                   </button>
 
-                  <div style={{ marginTop: `${scale * 0.7}rem`}}>
+                  <div style={{ marginTop: `${scale * 0.7}rem` }}>
                     {isBoardReady && (
                       <div className="text-center text-gray-700 dark:text-gray-300">
                         {game.isCheckmate() ? (
@@ -217,7 +218,7 @@ const BoardBuilder = () => {
                       </div>
                     )}
                   </div>
-                  <div className="flex space-x-4 items-center justify-center"  style={{ marginTop: `${scale * 0.7}rem`}}>
+                  <div className="flex space-x-4 items-center justify-center" style={{ marginTop: `${scale * 0.7}rem` }}>
                     <button
                       onClick={handleGoBack}
                       disabled={currentMoveIndex === 0}
