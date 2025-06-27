@@ -105,10 +105,10 @@ const BoardBuilder = () => {
               <div
                 className="flex items-center justify-center items-center"
                 style={{
-                  marginTop: boardWidth * 0.025
+                  padding: boardWidth * 0.025,
                 }}
               >
-                <EvalBar fen={game.fen()} height={boardWidth * 0.85} scale={scale} />
+                <EvalBar fen={game.fen()} height={boardWidth * 0.875} scale={scale} />
               </div>
 
               {/* Chessboard */}
