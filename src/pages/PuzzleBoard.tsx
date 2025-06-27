@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from
 import { Chess, Square } from 'chess.js';
 import { ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
+import stockfishWorker, { evaluateFen, onStockfishMessage } from '../stockfish/stockfish-worker.js';
 
 interface PuzzleBoardProps {
     puzzleSolution: {
@@ -34,6 +35,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
 
     const [boardWidth, setBoardWidth] = useState(0);
     const [scale, setScale] = useState(1);
+
+
 
     useLayoutEffect(() => {
         const boardElement = boardContainerRef.current;

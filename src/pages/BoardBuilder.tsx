@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useLayoutEffect } from 'react';
 import useDarkMode from '../darkmode/useDarkMode';
 import MainToolBar from '../components/MainToolBar';
-import ChessBoard from '../components/ChessBoard';
+import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
 import { useNavigation } from '../navigator/navigate';
 import { Chess, Square } from 'chess.js';
+import EvalBar from '../components/EvalBar';
 
 const BoardBuilder = () => {
   const { handleNavigation } = useNavigation();
@@ -11,7 +12,41 @@ const BoardBuilder = () => {
   const [isBoardReady, setIsBoardReady] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<'w' | 'b'>('w');
 
+  const [boardWidth, setBoardWidth] = useState(0);
+  const [scale, setScale] = useState(1);
+  const chessboardRef = useRef<ChessBoardHandle>(null);
+  const boardContainerRef = useRef<HTMLDivElement>(null);
+
   useDarkMode();
+
+  useLayoutEffect(() => {
+    const boardElement = boardContainerRef.current;
+    if (!boardElement) return;
+
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        if (entry.target === boardElement) {
+          const newBoardWidth = entry.contentRect.width;
+          // Set board width only if it's not zero to avoid flicker on initial load
+          if (newBoardWidth > 0) {
+            setBoardWidth(newBoardWidth);
+            // Base scale on a typical board size, e.g., 500px
+            setScale(newBoardWidth / 500);
+          }
+        }
+      }
+    });
+
+    resizeObserver.observe(boardElement);
+    // Also run once on mount
+    const initialBoardWidth = boardElement.getBoundingClientRect().width;
+    if (initialBoardWidth > 0) {
+      setBoardWidth(initialBoardWidth);
+      setScale(initialBoardWidth / 500);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const handleMoveAttempt = useCallback((from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
     const tempGame = new Chess(game.fen());
@@ -43,59 +78,119 @@ const BoardBuilder = () => {
     setBoardOrientation(prev => (prev === 'w' ? 'b' : 'w'));
   };
 
+  const resetBoard = () => {
+    const newGame = new Chess();
+    setGame(newGame);
+    setBoardOrientation('w');
+    if (chessboardRef.current) {
+      chessboardRef.current?.resetState();
+    }
+  };
+
   return (
-    <div className="flex flex-col min-h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-900">
-      <div className="h-16 shrink-0"> {/* This is 4rem */}
-        <MainToolBar />
-      </div>
-
-      <main className="flex-1 flex flex-col justify-center items-center p-4">
-        {/* Main layout container: Stays as a flex row on large screens */}
-        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 lg:gap-6 justify-center items-center">
-          
-          {/* CHANGE: Board container now uses flex-1 again to claim space */}
-          <div className="w-full lg:flex-1 flex justify-center items-center">
-            {/* NEW: Wrapper div that enforces aspect ratio and size constraints */}
-            <div 
-              className="w-full aspect-square" 
-              // This is the key: The board's max width is tied to the viewport height.
-              // 4rem for the toolbar, 2rem for p-4 (top/bottom), 2rem for safety.
-              style={{ maxWidth: 'calc(100vh - 8rem)' }}
+    <div className="flex flex-col w-full">
+      <MainToolBar />
+      <div className="w-full">
+        <div
+          className="w-full flex flex-col [@media(min-width:900px)]:flex-row items-stretch justify-center gap-4 pt-4"
+          style={{ minHeight: 'calc(100vh - 64px)' }}
+        >
+          {/* Main Content: Board + Right */}
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
+            <div
+              className="flex flex-row items-start justify-center gap-2  w-full [@media(min-width:900px)]:flex-[1_1_0%]"
+                style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
             >
-              <ChessBoard
-                showLabels
-                game={game}
-                onMoveAttempt={handleMoveAttempt}
-                isPlayerTurn={true}
-                userColor={'w'}
-                canMoveAnyPiece={true}
-                orientation={boardOrientation}
-              />
+              {/* Eval Bar */}
+              <div
+                className="flex items-center justify-center items-center"
+                style={{
+                  marginTop: boardWidth * 0.025
+                }}
+              >
+                <EvalBar fen={game.fen()} height={boardWidth * 0.85} scale={scale} />
+              </div>
+
+              {/* Chessboard */}
+              <div
+                ref={boardContainerRef}
+                className="flex items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]"
+                style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
+              >
+                <ChessBoard
+                  ref={chessboardRef}
+                  showLabels
+                  game={game}
+                  onMoveAttempt={handleMoveAttempt}
+                  isPlayerTurn={true}
+                  userColor={'w'}
+                  canMoveAnyPiece={true}
+                  orientation={boardOrientation}
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Sidebar for controls remains the same */}
-          <div className="w-full lg:w-80 flex-shrink-0 flex flex-col items-center justify-center">
-            <button
-              onClick={handleFlipBoard}
-className="cursor-pointer px-6 py-2 sm:px-5 sm:py-2 text-base sm:text-sm bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors mb-2"
+            {/* Right Sidebar */}
+            <div className="order-2 [@media(min-width:900px)]:order-3 w-full md:w-[25%] flex items-stretch min-w-0"
+              style={{
+                maxWidth: boardWidth,
+              }}
             >
-              Flip Board
-            </button>
-            <div className="mt-4">
-              {isBoardReady && (
-                <div className="text-center text-gray-700 dark:text-gray-300">
-                  {game.isCheckmate() ? (
-                    <span className="font-bold">{game.turn() === 'w' ? 'Black wins by checkmate' : 'White wins by checkmate'}</span>
-                  ) : (
-                    <span className="font-bold">{game.turn() === 'w' ? 'White to move' : 'Black to move'}</span>
-                  )}
+              <div className="w-full flex flex-col items-center justify-center border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-slate-900 p-4">
+                <div className="w-[75%] h-full flex flex-col items-center justify-center">
+                  <button
+                    onClick={handleFlipBoard}
+                    className="cursor-pointer bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
+                    style={{
+                      fontSize: `${scale * 1}rem`,
+                      padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
+                      lineHeight: '1',
+                      marginTop: '1em',
+                      maxWidth: `${scale * 20}rem`
+                    }}                >
+                    Flip Board
+                  </button>
+                  <button
+                    onClick={resetBoard}
+                    className="cursor-pointer bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
+                    style={{
+                      fontSize: `${scale * 1}rem`,
+                      padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
+                      lineHeight: '1',
+                      marginTop: '1em',
+                      maxWidth: `${scale * 20}rem`
+                    }}
+                  >
+                    Reset Board
+                  </button>
+
+                  <div className="mt-4">
+                    {isBoardReady && (
+                      <div className="text-center text-gray-700 dark:text-gray-300">
+                        {game.isCheckmate() ? (
+                          <p style={{
+                            fontSize: `${scale * 0.7}rem`,
+                            whiteSpace: 'nowrap',
+                            marginTop: '1em'
+                          }}
+                            className="font-bold">{game.turn() === 'w' ? 'Black wins by checkmate' : 'White wins by checkmate'}</p>
+                        ) : (
+                          <p style={{
+                            fontSize: `${scale * 0.7}rem`,
+                            whiteSpace: 'nowrap',
+                            marginTop: '1em'
+                          }}
+                            className="font-bold">{game.turn() === 'w' ? 'White to move' : 'Black to move'}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
