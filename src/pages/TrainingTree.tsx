@@ -168,7 +168,7 @@ const TrainingMethodSection = ({ items }) => {
                     <button
                         key={item.id}
                         onClick={() => handleItemClick(item)}
-                        className={`px-2.5 py-1.5 md:px-3 text-sm md:text-base border rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer
+                        className={`px-2.5 py-1.5 md:px-3 text-md md:text-xl border rounded-md shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer
                             ${activeItem === item.id ? 'bg-blue-500 text-white border-blue-600' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100 hover:border-slate-400'}`}
                     >
                         {item.name}
@@ -201,7 +201,7 @@ const TreeBranch = ({ category, subCategories, isOpen, onToggle }) => (
         <div className="relative pl-8">
             <h3
                 onClick={onToggle}
-                className="text-lg md:text-xl lg:text-2xl font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 transition-colors select-none"
+                className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white cursor-pointer hover:text-blue-600 transition-colors select-none"
             >
                 {category}
             </h3>
@@ -209,7 +209,7 @@ const TreeBranch = ({ category, subCategories, isOpen, onToggle }) => (
                 <div className="mt-4 space-y-4 md:space-y-5">
                     {subCategories.map(sub => (
                         <div key={sub.name} className="p-3 md:p-4 bg-slate-100/70 dark:bg-slate-800 rounded-lg border border-slate-200/80">
-                            <h4 className="font-semibold text-base md:text-lg text-slate-700 dark:text-white">{sub.name}</h4>
+                            <h4 className="font-semibold text-xl md:text-2xl text-slate-700 dark:text-white">{sub.name}</h4>
                             <TrainingMethodSection items={sub.items} />
                         </div>
                     ))}
@@ -278,11 +278,11 @@ const TrainingTree = () => {
  */
 export default function App() {
     return (
-        <div className="min-h-screen w-full flex flex-col items-center pt-8 md:pt-12 lg:pt-16">
+        <div className="min-h-screen w-full flex flex-col items-center pt-8 md:pt-4 lg:pt-8">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-800 mb-2 tracking-tight text-center dark:text-white">
                 Choose a training method
             </h1>
-            <p className="text-center text-slate-500 dark:text-slate-300 text-base lg:text-lg mb-8 md:mb-12 lg:mb-16">Click on a training method to see its description.</p>
+            <p className="text-center text-slate-500 dark:text-slate-300 text-base lg:text-xl mb-8 md:mb-4 lg:mb-8">Click on a training method to see its description.</p>
 
             <TrainingTree/>
         </div>
