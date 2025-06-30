@@ -7,6 +7,13 @@ interface MenuItems {
     [key: string]: string;
 }
 
+const FEATURED_ITEM = {
+    name: 'Featured Item',
+    price: 19.99,
+    description: 'This is a featured item description.',
+    image: 'https://picsum.photos/400'
+}
+
 const StoreToolBar = () => {
 
     const [_, setSearchParams] = useSearchParams();
@@ -30,7 +37,7 @@ const StoreToolBar = () => {
         setMenuOpen(false); // Close the mobile menu after selection
     };
     return (
-        <header className="w-full h-16 flex items-center md:justify-center px-16 bg-white dark:bg-slate-700 shadow-md">
+        <div className="w-full h-16 flex items-center md:justify-center px-16 bg-white dark:bg-slate-700 shadow-md">
             <ul className="hidden md:flex lg:max-w-[90%] justify-between items-center font-semibold text-base w-full">
                 {Object.keys(menuItems).map((menuItem, i) => (
                     <li
@@ -68,7 +75,7 @@ const StoreToolBar = () => {
                 </div>,
                 document.body
             )}
-        </header>
+        </div>
     )
 }
 
@@ -77,7 +84,7 @@ const Store = () => {
     const currentPage = searchParams.get('page') || 'featured';
 
     return (
-        <div className="flex flex-col w-screen h-screen">
+        <div className="flex flex-col w-full h-full">
             <MainToolBar />
             <div className="flex items-center w-full justify-center md:mt-8 mt-4 md:mb-8 mb-4 md:h-12 h-8">
                 <h1 className="md:text-4xl text-2xl font-bold mb-4">Item Shop</h1>
@@ -86,7 +93,7 @@ const Store = () => {
                 <StoreToolBar />
             </div>
             <div className="flex-grow p-4">
-                {currentPage === 'featured' && <div>Featured Items Content</div>}
+                {currentPage === 'featured' && <FeaturedPage />}
                 {currentPage === 'pieces' && <div>Chess Pieces Content</div>}
                 {currentPage === 'sets' && <div>Chess Sets Content</div>}
                 {currentPage === 'points' && <div>Points Content</div>}
@@ -96,5 +103,59 @@ const Store = () => {
         </div>
     );
 };
+const ItemBlock = ({ item }: { item: { name: string; price: number; description: string, image: string } }) => {
+    return (
+        <div className={`${FEATURED_ITEM.name === item.name && 'md:h-full md:max-h-[70vh]'} bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300`}>
+            <h2 className="text-xl font-semibold mb-2">{item.name}</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-2">{item.description}</p>
+            <div className={`${FEATURED_ITEM.name === item.name ? 'md:w-[80%] w-[40%]' : 'w-[60%]'}`}>
+                <img src={item.image} alt={item.name} className="object-contain rounded mt-2 mb-4" />
+            </div>
+            <p className="text-lg font-bold">${item.price.toFixed(2)}</p>
+            <button className="cursor-pointer mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors duration-200">
+                Buy Now
+            </button>
+        </div>
+    );
+}
+
+
+const FeaturedPage = () => {
+
+    return (
+        <>
+            {/* - flex-col: Stacks items vertically by default (on small screens).
+              - md:flex-row: Switches to a horizontal layout on medium screens and up.
+              - gap-8: Adds spacing that works for both vertical and horizontal layouts.
+            */}
+            <div className="flex flex-col md:flex-row gap-8">
+                {/* - w-full: Takes the full width by default.
+                  - md:w-[35%]: Takes 35% of the width on medium screens and up.
+                */}
+                <div className="w-full md:w-[35%]">
+                    <ItemBlock item={FEATURED_ITEM}
+                    />
+                </div>
+
+                {/* - grid-cols-1: Displays 1 item per row by default.
+                  - md:grid-cols-3: Switches to a 3-column grid on medium screens and up.
+                */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
+                    {Array.from({ length: 13 }, (_, i) => (
+                        <ItemBlock
+                            key={i}
+                            item={{
+                                name: `Featured Item ${i + 1}`,
+                                price: parseFloat((Math.random() * 100).toFixed(2)),
+                                description: 'This is a featured item description.',
+                                image: 'https://picsum.photos/400'
+                            }}
+                        />
+                    ))}
+                </div>
+            </div>
+        </>
+    )
+}
 
 export default Store;
