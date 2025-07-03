@@ -5,7 +5,7 @@ import path from 'path';
 import axios from 'axios';
 import { parse } from 'csv-parse';
 
-import { S3Client, CreateBucketCommand, ListBucketsCommand, HeadBucketCommand } from '@aws-sdk/client-s3';
+import { S3Client, CreateBucketCommand, ListBucketsCommand, HeadBucketCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 
 const port = 9001;
 
@@ -152,9 +152,50 @@ async function readRoutes() {
   console.log("Finished loading all routes");
 }
 
+async function insertTestImages() {
+  // Get images from https://picsum.photos/400
+  const imageFromPicsum = 'https://picsum.photos/400';
+  
+  const images = [
+    { name: 'image1.jpg', url: imageFromPicsum },
+    { name: 'image2.jpg', url: imageFromPicsum },
+    { name: 'image3.jpg', url: imageFromPicsum },
+  ];
+  const s3 = new S3Client({
+    endpoint: process.env.AWS_ENDPOINT || "http://localhost:4566",
+    forcePathStyle: true,
+    region: "us-east-2",
+    credentials: {
+      accessKeyId: "test",
+      secretAccessKey: "test",
+    },
+  });
+
+  const bucketName = 'breezechess-bucket';
+  // Inserts test images into the S3 bucket with prefix 'chess_piece/'
+  for (const image of images) {
+    try {
+      const response = await axios.get(image.url, { responseType: 'arraybuffer' });
+      const params = {
+        Bucket: bucketName,
+        Key: `chess_piece/${image.name}`,
+        Body: response.data,
+        ContentType: 'image/jpeg',
+      };
+      await s3.send(new PutObjectCommand(params));
+      console.log(`Inserted ${image.name} into S3 bucket.`);
+    } catch (error) {
+      console.error(`Failed to insert ${image.name}:`, error);
+    }
+  }
+  console.log("Test images inserted into S3 bucket.");
+  console.log("You can now access the images at http://localhost:4566/breezechess-bucket/");
+}
+
 export async function startServer() {
   await setupDatabase();
   await createS3Bucket();
+  await insertTestImages();
   await readRoutes();
 
   app.get('/', (req, res) => {

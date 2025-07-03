@@ -2,13 +2,11 @@ import React, { useState, useCallback, useEffect, useRef, useLayoutEffect } from
 import useDarkMode from '../darkmode/useDarkMode';
 import MainToolBar from '../components/MainToolBar';
 import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
-import { useNavigation } from '../navigator/navigate';
 import { Chess, Square } from 'chess.js';
 import EvalBar from '../components/EvalBar';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const BoardBuilder = () => {
-  const { handleNavigation } = useNavigation();
   const [game, setGame] = useState(new Chess());
   const [isBoardReady, setIsBoardReady] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<'w' | 'b'>('w');

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle, useLayoutEffect } from "react";
 import { Chess, Square, Piece, Move } from 'chess.js';
+import useMovePieceSound from '../util/MovePieceSound';
 
 // --- TYPE DEFINITIONS (No changes) ---
 
@@ -15,6 +16,7 @@ interface ChessBoardProps {
     canMoveAnyPiece?: boolean;
     animationsEnabled?: boolean;
     orientation?: 'w' | 'b';
+    soundEnabled: boolean;
 }
 
 interface DraggedPieceState {
@@ -68,6 +70,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     hintSquare,
     canMoveAnyPiece,
     animationsEnabled = true,
+    soundEnabled = true,
     orientation = 'w'
 }, ref) => {
     const letters = orientation === 'w' ? ["a", "b", "c", "d", "e", "f", "g", "h"] : ["h", "g", "f", "e", "d", "c", "b", "a"];
@@ -92,6 +95,8 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
     const gameRef = useRef<Chess | null>(null);
     const moveBeingAnimated = useRef<Move | null>(null);
+
+    const { handlePlaySound } = useMovePieceSound();
 
     useImperativeHandle(ref, () => ({
         resetState() {
@@ -200,8 +205,23 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to);
         if (!move) return;
 
+        // This is the function that will correctly play the sound
+        const playSoundForThisMove = (currentMove: Move) => {
+            if (!soundEnabled) return;
+
+            // 1. Create a temporary game instance from the current (pre-move) state.
+            const gameAfterMove = new Chess(game.fen());
+            // 2. Apply the move to get the correct post-move state.
+            const moveResult = gameAfterMove.move(currentMove);
+            // 3. Pass the correct move object and the NEW game state to the sound handler.
+            if (moveResult) {
+                handlePlaySound(moveResult, gameAfterMove);
+            }
+        };
+
         if (!animationsEnabled || wasDragged || isPremove) {
             onMoveAttempt(from, to, move.promotion as any);
+            playSoundForThisMove(move); // ✅ Corrected call
             setSelectedSquare(null);
             setPossibleMoves([]);
             return;
@@ -226,12 +246,17 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             }
         }
 
-        if (piecesToAnimate.length > 0) setAnimatingPieces(piecesToAnimate);
-        else onMoveAttempt(from, to, move.promotion as any);
+
+        if (piecesToAnimate.length > 0) {
+            setAnimatingPieces(piecesToAnimate);
+        } else {
+            onMoveAttempt(from, to, move.promotion as any);
+            playSoundForThisMove(move);
+        }
 
         setSelectedSquare(null);
         setPossibleMoves([]);
-    }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt, animationsEnabled, preMoves, letters, numbers]);
+    }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt, animationsEnabled, preMoves, letters, numbers, soundEnabled, handlePlaySound]);
 
     useEffect(() => {
         gameRef.current = game;
@@ -264,7 +289,19 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 const handleTransitionEnd = () => {
                     primaryElement.removeEventListener('transitionend', handleTransitionEnd);
                     const move = moveBeingAnimated.current;
-                    if (move) onMoveAttempt(move.from, move.to, move.promotion as any);
+                    if (move) {
+                        // This function now officially makes the move in the game state
+                        onMoveAttempt(move.from, move.to, move.promotion as any);
+
+                        // To play the correct sound, we must calculate the board state *after* the move
+                        if (soundEnabled) {
+                            const gameAfterMove = new Chess(game.fen()); // game.fen() is the state before this move
+                            const moveResult = gameAfterMove.move(move);   // moveResult is the state after
+                            if (moveResult) {
+                                handlePlaySound(moveResult, gameAfterMove); // ✅ Corrected call
+                            }
+                        }
+                    }
                     setAnimatingPieces([]);
                     animatedPieceElementsRef.current.clear();
                     moveBeingAnimated.current = null;
@@ -273,7 +310,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 return () => primaryElement.removeEventListener('transitionend', handleTransitionEnd);
             }
         }
-    }, [animatingPieces, onMoveAttempt]);
+    }, [animatingPieces, onMoveAttempt, game, soundEnabled, handlePlaySound]);
 
     useEffect(() => {
         if (isPlayerTurn && preMoves.length > 0) return;
@@ -433,7 +470,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             const dy = Math.abs(e.clientY - currentInteraction.startY);
             if (dx > 5 || dy > 5) {
                 if (interactionState.current !== null) {
-                interactionState.current.isDragging = true;
+                    interactionState.current.isDragging = true;
                 }
                 e.preventDefault();
                 setDraggedPiece({ piece: currentInteraction.piece, fromSquare: currentInteraction.square });

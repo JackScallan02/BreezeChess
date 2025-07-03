@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
-import { Chess, Square } from 'chess.js';
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect, use } from 'react';
+import { Chess, Square, Move } from 'chess.js';
 import { ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
-import stockfishWorker, { evaluateFen, onStockfishMessage } from '../stockfish/stockfish-worker.js';
+import useMovePieceSound from '../util/MovePieceSound';
 
 interface PuzzleBoardProps {
     puzzleSolution: {
@@ -36,7 +36,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
     const [boardWidth, setBoardWidth] = useState(0);
     const [scale, setScale] = useState(1);
 
-
+    const { handlePlaySound } = useMovePieceSound();
 
     useLayoutEffect(() => {
         const boardElement = boardContainerRef.current;
@@ -84,12 +84,14 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
             setIsPlayerTurn(true);
             setFeedbackMessage(`${determinedUserColor === 'w' ? 'White' : 'Black'} to move`);
         } else {
+            console.log("Here");
             setIsPlayerTurn(false);
             const timeout = setTimeout(() => {
                 const gameAfterMove = new Chess(puzzleSolution.fen);
                 const move = gameAfterMove.move(moves[0]);
                 if (move) {
                     setGame(gameAfterMove);
+                    handlePlaySound(move, gameAfterMove);
                     setCurrentMoveIndex(1);
                     setIsPlayerTurn(true);
                     setFeedbackMessage(`${determinedUserColor === 'w' ? 'White' : 'Black'} to move`);
@@ -153,8 +155,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                     const timeout = setTimeout(() => {
                         const opponentGame = new Chess(tempGame.fen());
                         const opponentMove = puzzleSolution.moves[nextIndex];
-                        if (opponentGame.move(opponentMove)) {
+                        const opponentMoveObj = opponentGame.move(opponentMove);
+                        const finalgame = new Chess(opponentGame.fen());
+                        if (opponentMoveObj) {
                             setGame(opponentGame);
+                            handlePlaySound(opponentMoveObj, finalgame);
                             setCurrentMoveIndex(nextIndex + 1);
                             setMaxReachedMoveIndex(prev => Math.max(prev, nextIndex + 1));
                             setPuzzleStatus('playing');
