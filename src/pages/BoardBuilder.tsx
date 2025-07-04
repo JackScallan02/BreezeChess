@@ -156,6 +156,7 @@ const BoardBuilder = () => {
                   userColor={'w'}
                   canMoveAnyPiece={true}
                   orientation={boardOrientation}
+                  soundEnabled
                 />
               </div>
             </div>

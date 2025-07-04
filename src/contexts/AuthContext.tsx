@@ -32,6 +32,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // If the user has made an account, but is still a "new" account, navigate to welcome.
       // Else, navigate to home.
       try {
+        if (!fbUser) {
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+        
         if (fbUser) {
           const params: UserParams = {
             uid: fbUser.uid,

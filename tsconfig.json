@@ -13,5 +13,5 @@
     "esModuleInterop": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"]
+  "include": ["src", "vite-env.d.ts"]
 }
