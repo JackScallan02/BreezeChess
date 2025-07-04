@@ -15,6 +15,12 @@ const FEATURED_ITEM = {
     description: 'This is a featured item description.',
     image: 'https://picsum.photos/400'
 }
+const CHESS_PIECE_ITEM = {
+    name: 'Chess Piece',
+    price: 19.99,
+    description: 'This is a chess piece item description.',
+    image: 'https://picsum.photos/400'
+}
 
 const StoreToolBar = () => {
 
@@ -27,7 +33,7 @@ const StoreToolBar = () => {
         'Chess sets': 'sets',
         'Points': 'points',
         'Loot Boxes': 'lootboxes',
-        'Checkmate Effects': 'cmeffects',
+        'Game Effects': 'gameeffects',
     });
     // Get the currently active page from the URL query parameters
     // This will update automatically when the URL changes due to the hook's internal state
@@ -96,17 +102,17 @@ const Store = () => {
             </div>
             <div className="flex-grow p-4">
                 {currentPage === 'featured' && <FeaturedPage />}
-                {currentPage === 'pieces' && <div>Chess Pieces Content</div>}
+                {currentPage === 'pieces' && <ChessPiecePage />}
                 {currentPage === 'sets' && <div>Chess Sets Content</div>}
-                {currentPage === 'points' && <div>Points Content</div>}
+                {currentPage === 'points' && <PointsPage />}
                 {currentPage === 'lootboxes' && <div>Loot Boxes Content</div>}
-                {currentPage === 'cmeffects' && <div>Checkmate Effects Content</div>}
+                {currentPage === 'gameeffects' && <div>Game Effects Content</div>}
             </div>
         </div>
     );
 };
 
-const ItemBlockSkeleton = ({ isFeatured = false }) => {
+const FeaturedItemBlockSkeleton = ({ isFeatured = false }) => {
     const imageContainerClass = isFeatured ? 'md:w-[80%] w-[40%]' : 'w-[60%]';
 
     return (
@@ -128,7 +134,7 @@ const ItemBlockSkeleton = ({ isFeatured = false }) => {
     );
 };
 
-const ItemBlock = ({ item, isFeatured }: { item: { name: string; price: number; description: string, image: string }; isFeatured?: boolean; }) => {
+const FeaturedItemBlock = ({ item, isFeatured }: { item: { name: string; price: number; description: string, image: string }; isFeatured?: boolean; }) => {
 
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -137,7 +143,7 @@ const ItemBlock = ({ item, isFeatured }: { item: { name: string; price: number; 
     const skeletonHeight = isFeatured ? '300px' : '150px';
     return (
         <div className={`${FEATURED_ITEM.name === item.name && 'md:h-full md:max-h-[70vh]'} bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center`}>
-            <h2 className="text-3xl font-semibold mb-2">{item.name}</h2>
+            <h2 className="md:text-3xl text-2xl font-semibold mb-2">{item.name}</h2>
             <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">{item.description}</p>
             <div className={imageContainerClass}>
             <img
@@ -151,7 +157,109 @@ const ItemBlock = ({ item, isFeatured }: { item: { name: string; price: number; 
                     <Skeleton height={skeletonHeight} className="rounded" />
                 )}
             </div>
-            <button className={`cursor-pointer mt-4 bg-blue-500 ${isFeatured ? 'w-[90%]' : 'w-[70%]'} text-white text-xl font-bold px-8 py-3 rounded hover:bg-blue-600 transition-colors duration-200`}>
+            <button className={`cursor-pointer mt-4 bg-blue-500 ${isFeatured ? 'w-[90%]' : 'w-[70%]'} text-white md:text-xl text-lg font-bold py-3 rounded hover:bg-blue-600 transition-colors duration-200`}>
+                ${item.price.toFixed(2)}
+            </button>
+        </div>
+    );
+}
+
+
+const ChessPiecePage = () => {
+    const [featuredItems, setFeaturedItems] = useState<Array<{ name: string; price: number; description: string; image: string }>>([]);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        // Simulate an API call with a timeout
+        setTimeout(() => {
+            // TODO: fetch our data here
+            const itemsFromApi = Array.from({ length: 12 }, (_, i) => (CHESS_PIECE_ITEM));
+            setFeaturedItems(itemsFromApi);
+            // Set loading to false after data is "fetched"
+            setLoading(false);
+        }, 1000); // Simulate a 2-second loading time
+    }, []);
+
+    return (
+        <>
+            <div className="flex flex-col md:flex-row gap-8">
+                {/* Main Featured Item */}
+                <div className="w-full md:w-[35%]">
+                    {/* 4. Conditionally render skeleton or item */}
+                    {loading ? (
+                        <ChessPieceBlockSkeleton isFeatured={true} />
+                    ) : (
+                        <ChessPieceBlock item={CHESS_PIECE_ITEM} isFeatured={true} />
+                    )}
+                </div>
+
+                {/* Grid of other items */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                    {loading ? (
+                        // 5. Render a list of skeletons while loading
+                        Array.from({ length: 12 }).map((_, i) => (
+                            <ChessPieceBlockSkeleton key={i} />
+                        ))
+                    ) : (
+                        // Render actual items when data is available
+                        featuredItems.map((item, i) => (
+                            <ChessPieceBlock
+                                key={i}
+                                item={item}
+                            />
+                        ))
+                    )}
+                </div>
+            </div>
+        </>
+    )
+};
+
+const ChessPieceBlockSkeleton = ({ isFeatured = false }) => {
+    const imageContainerClass = isFeatured ? 'md:w-[80%] w-[40%]' : 'w-[60%]';
+
+    return (
+        <div className={`${isFeatured ? 'md:h-full md:max-h-[70vh]' : ''} bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md flex flex-col items-center`}>
+            {/* Skeleton for the title */}
+            <Skeleton width="60%" height="1.75rem" className="mb-2" />
+
+            {/* Skeleton for the description */}
+            <Skeleton width="80%" height="1rem" className="mb-4" />
+
+            {/* Skeleton for the image, with different heights for featured vs. regular items */}
+            <div className={`${imageContainerClass}`}>
+                <Skeleton height={isFeatured ? "300px" : "150px"} className="mb-4" />
+            </div>
+
+            {/* Skeleton for the button */}
+            <Skeleton width={isFeatured ? "90%" : "70%"} height="50px" />
+        </div>
+    );
+};
+
+const ChessPieceBlock = ({ item, isFeatured }: { item: { name: string; price: number; description: string, image: string }; isFeatured?: boolean; }) => {
+
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+    // Define styles that change based on whether the item is featured
+    const imageContainerClass = isFeatured ? 'md:w-[80%] w-[40%]' : 'w-[60%]';
+    const skeletonHeight = isFeatured ? '300px' : '150px';
+    return (
+        <div className={`${FEATURED_ITEM.name === item.name && 'md:h-full md:max-h-[70vh]'} bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center`}>
+            <h2 className="md:text-3xl text-2xl font-semibold mb-2">{item.name}</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4 text-lg">{item.description}</p>
+            <div className={imageContainerClass}>
+            <img
+                src={item.image}
+                alt={item.name}
+                className="object-contain rounded mt-2 mb-4"
+                style={{ display: isImageLoaded ? 'block' : 'none' }}
+                onLoad={() => setIsImageLoaded(true)}
+            />
+                {!isImageLoaded && (
+                    <Skeleton height={skeletonHeight} className="rounded" />
+                )}
+            </div>
+            <button className={`cursor-pointer mt-4 bg-blue-500 ${isFeatured ? 'w-[90%]' : 'w-[70%]'} text-white md:text-xl text-lg font-bold py-3 rounded hover:bg-blue-600 transition-colors duration-200`}>
                 ${item.price.toFixed(2)}
             </button>
         </div>
@@ -180,23 +288,23 @@ const FeaturedPage = () => {
                 <div className="w-full md:w-[35%]">
                     {/* 4. Conditionally render skeleton or item */}
                     {loading ? (
-                        <ItemBlockSkeleton isFeatured={true} />
+                        <FeaturedItemBlockSkeleton isFeatured={true} />
                     ) : (
-                        <ItemBlock item={FEATURED_ITEM} isFeatured={true} />
+                        <FeaturedItemBlock item={FEATURED_ITEM} isFeatured={true} />
                     )}
                 </div>
 
                 {/* Grid of other items */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                     {loading ? (
                         // 5. Render a list of skeletons while loading
                         Array.from({ length: 12 }).map((_, i) => (
-                            <ItemBlockSkeleton key={i} />
+                            <FeaturedItemBlockSkeleton key={i} />
                         ))
                     ) : (
                         // Render actual items when data is available
                         featuredItems.map((item, i) => (
-                            <ItemBlock
+                            <FeaturedItemBlock
                                 key={i}
                                 item={item}
                             />
@@ -206,6 +314,85 @@ const FeaturedPage = () => {
             </div>
         </>
     )
-}
+};
+
+const PointsItemBlockSkeleton = () => {
+    return (
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md flex flex-col items-center">
+            <Skeleton width="60%" height="1.75rem" className="mb-2" />
+            <Skeleton height="150px" className="mb-4 w-[70%]" />
+            <Skeleton width="70%" height="50px" />
+        </div>
+    );
+};
+
+const PointsItemBlock = ({ item }: { item: { amount: number; price: number; image: string } }) => {
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+    return (
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center">
+            <h2 className="md:text-2xl text-xl font-semibold mb-2">Points: {item.amount}</h2>
+            <img
+                src={item.image}
+                alt={`Points Item ${item.amount}`}
+                className="object-contain rounded mt-2 mb-4 w-full h-[150px]"
+                style={{ display: isImageLoaded ? 'block' : 'none' }}
+                onLoad={() => setIsImageLoaded(true)}
+            />
+            {!isImageLoaded && (
+                <Skeleton height="150px" className="rounded w-full" />
+            )}
+            <button className={`cursor-pointer mt-4 bg-blue-500 text-white md:text-xl text-lg font-bold py-3 rounded hover:bg-blue-600 transition-colors duration-200 w-[60%]`}>
+                ${item.price.toFixed(2)}
+            </button>
+        </div>
+    );
+};
+
+const PointsPage = () => {
+    const [pointItems, setPointItems] = useState<Array<{ amount: number; price: number; image: string }>>([]);
+    const [loading, setLoading] = useState(true);
+    useEffect(() => {
+        // Simulate an API call with a timeout
+        setTimeout(() => {
+            // TODO: fetch our data here
+            const itemsFromApi = Array.from({ length: 12 }, (_, i) => ({
+                amount: (i + 1) * 100,
+                price: (i + 1) * 9.99,
+                image: 'https://picsum.photos/200'
+            }));
+            setPointItems(itemsFromApi);
+            // Set loading to false after data is "fetched"
+            setLoading(false);
+        }, 1000); // Simulate a 2-second loading time
+    }, []);
+
+    return (
+        <>
+            <div className="flex flex-col md:flex-row gap-8">
+                {/* Main Featured Item */}
+                {/* Grid of other items */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+                    {loading ? (
+                        // 5. Render a list of skeletons while loading
+                        Array.from({ length: 12 }).map((_, i) => (
+                            <PointsItemBlockSkeleton key={i} />
+                        ))
+                    ) : (
+                        // Render actual items when data is available
+                        pointItems.map((item, i) => (
+                            <PointsItemBlock
+                                key={i}
+                                item={item}
+                            />
+                        ))
+                    )}
+                </div>
+            </div>
+        </>
+    )
+};
+
+
 
 export default Store;
