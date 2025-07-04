@@ -40,7 +40,7 @@
   },
   "scripts": {
     "start": "vite --host",
-    "dc:dev": "docker-compose down && docker-compose up",
+    "dc:dev": "docker compose down && docker compose up",
     "dev": "concurrently \"yarn start\" \"yarn firebase\"",
     "firebase": "firebase emulators:start --only auth",
     "build": "vite build",
