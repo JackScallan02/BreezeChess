@@ -7,7 +7,7 @@ import Register from "../../pages/Register";
 import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
 import Profile from "../../pages/Profile";
-import Store from '../../pages/Store';
+import Store from '../../pages/Store/Store';
 import Contact from "../../pages/Contact";
 import Train from "../../pages/Train";
 import BoardBuilder from "../../pages/BoardBuilder";

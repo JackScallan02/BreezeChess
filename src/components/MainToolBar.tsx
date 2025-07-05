@@ -30,7 +30,7 @@ const MainToolBar = () => {
   const { isDarkMode } = useDarkMode();
 
   const dropdownItems: Array<Object> = [
-    { label: 'Profile', icon: 'pi pi-user', command: () => handleNavigation('/profile'), disabled: user?.is_new_user},
+    { label: 'Profile', icon: 'pi pi-user', command: () => handleNavigation('/profile'), disabled: user?.is_new_user },
     { label: 'Settings', icon: 'pi pi-cog', command: () => handleNavigation('/settings'), disabled: user?.is_new_user },
     { label: 'Logout', icon: 'pi pi-sign-out', command: () => user && handleLogout() }
   ];
@@ -50,7 +50,7 @@ const MainToolBar = () => {
   }, [user])
 
   return (
-<header key={key} className="h-16 flex items-center justify-between px-8 md:px-32 bg-white dark:bg-slate-900 shadow-md">
+    <header key={key} className="h-16 flex items-center justify-between px-8 md:px-32 bg-white dark:bg-slate-900 shadow-md">
       <img
         src={isDarkMode ? breezechesslogowhite : breezechesslogoblack} alt="" className="w-52 hover:scale-105 hover:cursor-pointer transition-all"
         onClick={() => {
@@ -61,7 +61,7 @@ const MainToolBar = () => {
             handleNavigation(nextPage)
           }
         }
-      }
+        }
       />
       <ul className="xl:flex hidden items-center gap-12 font-semibold text-base">
         {Object.keys(menuItems).map((menuItem, i) => (
@@ -137,9 +137,18 @@ const MainToolBar = () => {
                 handleNavigation(nextPage);
               }
             }}
-            >
+          >
             {!user ? 'Login' : 'Profile'}
           </li>
+            {user && (
+          <li
+            className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+            onClick={() => { handleLogout(); setMenuOpen(false); }}
+          >
+            Logout
+          </li>
+            )}
+
         </div>,
         document.body
       )}
