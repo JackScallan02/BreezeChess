@@ -7,6 +7,7 @@ import Register from "../../pages/Register";
 import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
 import Profile from "../../pages/Profile";
+import SettingsPage from "../../pages/Settings";
 import Store from '../../pages/Store/Store';
 import Contact from "../../pages/Contact";
 import Train from "../../pages/Train";
@@ -30,6 +31,7 @@ const rawRoutes: Array<Route> = [
   { path: "/home", element: <Home />, requiresAuth: true },
   { path: "/welcome", element: <Welcome />, requiresAuth: true, allowNewUser: true },
   { path: "/profile", element: <Profile />, requiresAuth: true },
+  { path: "/settings", element: <SettingsPage />, requiresAuth: true },
   { path: "/store", element: <Store />, requiresAuth: false, allowNewUser: true},
   { path: "/contact", element: <Contact />, requiresAuth: false, allowNewUser: true },
   { path: "/train", element: <Train />, requiresAuth: true },
