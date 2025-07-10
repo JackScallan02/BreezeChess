@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle, useLayoutEffect } from "react";
 import { Chess, Square, Piece, Move } from 'chess.js';
 import useMovePieceSound from '../util/MovePieceSound';
+import PromotionDialog from "./PromotionDialog";
 
 // --- TYPE DEFINITIONS (No changes) ---
 
@@ -53,6 +54,12 @@ interface AnimatingPieceInfo {
     endY: number;
 }
 
+interface PromotionState {
+    from: Square;
+    to: Square;
+    color: 'w' | 'b';
+}
+
 export interface ChessBoardHandle {
     resetState: () => void;
 }
@@ -92,6 +99,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     const [lastMove, setLastMove] = useState<LastMove | null>(null);
     const [preMoves, setPreMoves] = useState<PreMove[]>([]);
     const [animatingPieces, setAnimatingPieces] = useState<AnimatingPieceInfo[]>([]);
+    const [promotionState, setPromotionState] = useState<PromotionState | null>(null);
 
     const gameRef = useRef<Chess | null>(null);
     const moveBeingAnimated = useRef<Move | null>(null);
@@ -156,11 +164,35 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         return { startX, startY, endX, endY };
     }, [currentPieceVisualSize]);
 
+
+    const handlePromotionSelect = (promotion: 'q' | 'r' | 'b' | 'n') => {
+        if (!promotionState) return;
+
+        const { from, to } = promotionState;
+        const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to && m.promotion === promotion);
+        
+        if (move) {
+            onMoveAttempt(from, to, promotion);
+            // We need to play the sound after the move is confirmed
+             if (soundEnabled) {
+                const gameAfterMove = new Chess(game.fen());
+                const moveResult = gameAfterMove.move(move);
+                if (moveResult) {
+                    handlePlaySound(moveResult, gameAfterMove);
+                }
+            }
+        }
+        
+        setPromotionState(null); // Close the dialog
+        setSelectedSquare(null);
+        setPossibleMoves([]);
+    };
+
     const executeMove = useCallback((from: Square, to: Square, wasDragged = false, isPremove = false) => {
         let pieceToMove: Piece | null | undefined;
 
         if (!isPlayerTurn && !canMoveAnyPiece) {
-            const virtualBoard = new Map<Square, Piece | null>();
+                        const virtualBoard = new Map<Square, Piece | null>();
             if (preMoves.length > 0) {
                 for (const rank of numbers) {
                     for (const file of letters) {
@@ -182,8 +214,20 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         } else {
             pieceToMove = game.get(from);
         }
-
+    
         if (!pieceToMove) return;
+    
+        // Check for promotion
+        const isPromotion = pieceToMove.type === 'p' && 
+                            ((pieceToMove.color === 'w' && to.endsWith('8')) || 
+                             (pieceToMove.color === 'b' && to.endsWith('1')));
+    
+        if (isPromotion && !isPremove) {
+            // If it's a promotion, open the dialog instead of executing the move
+            setPromotionState({ from, to, color: pieceToMove.color });
+            return;
+        }
+
 
         if (!isPlayerTurn && !canMoveAnyPiece) {
             let promotionPiece: 'q' | 'r' | 'b' | 'n' | undefined = undefined;
@@ -201,39 +245,35 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             setPossibleMoves([]);
             return;
         }
-
+    
+        // Find a move. For premoves, we'll just pick the first one (queen promotion).
         const move = game.moves({ verbose: true }).find(m => m.from === from && m.to === to);
         if (!move) return;
-
-        // This is the function that will correctly play the sound
+    
         const playSoundForThisMove = (currentMove: Move) => {
             if (!soundEnabled) return;
-
-            // 1. Create a temporary game instance from the current (pre-move) state.
             const gameAfterMove = new Chess(game.fen());
-            // 2. Apply the move to get the correct post-move state.
             const moveResult = gameAfterMove.move(currentMove);
-            // 3. Pass the correct move object and the NEW game state to the sound handler.
             if (moveResult) {
                 handlePlaySound(moveResult, gameAfterMove);
             }
         };
-
+    
         if (!animationsEnabled || wasDragged || isPremove) {
             onMoveAttempt(from, to, move.promotion as any);
-            playSoundForThisMove(move); // ✅ Corrected call
+            playSoundForThisMove(move);
             setSelectedSquare(null);
             setPossibleMoves([]);
             return;
         }
-
+    
         moveBeingAnimated.current = move;
         const piecesToAnimate: AnimatingPieceInfo[] = [];
         const mainCoords = getCoordsFromRefs(move.from, move.to);
         if (mainCoords) {
             piecesToAnimate.push({ piece: pieceToMove, from: move.from, to: move.to, ...mainCoords });
         }
-
+    
         if (move.flags.includes('k') || move.flags.includes('q')) {
             const isKingside = move.flags.includes('k');
             const rank = move.color === 'w' ? '1' : '8';
@@ -245,15 +285,14 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 piecesToAnimate.push({ piece: rookPiece, from: rookFromSq, to: rookToSq, ...rookCoords });
             }
         }
-
-
+    
         if (piecesToAnimate.length > 0) {
             setAnimatingPieces(piecesToAnimate);
         } else {
             onMoveAttempt(from, to, move.promotion as any);
             playSoundForThisMove(move);
         }
-
+    
         setSelectedSquare(null);
         setPossibleMoves([]);
     }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt, animationsEnabled, preMoves, letters, numbers, soundEnabled, handlePlaySound]);
@@ -562,6 +601,35 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     }, [handleMouseMove, handleMouseUp, userColor, canMoveAnyPiece]);
 
 
+    const getPromotionDialogStyle = (): React.CSSProperties => {
+        if (!promotionState || !boardGridRef.current) return { display: 'none' };
+    
+        const { to } = promotionState;
+        const squareElement = squareRefs.current.get(to);
+    
+        if (!squareElement) return { display: 'none' };
+    
+        const boardRect = boardGridRef.current.getBoundingClientRect();
+        const squareRect = squareElement.getBoundingClientRect();
+    
+        // Position the dialog over the target square
+        const top = squareRect.top - boardRect.top - 4;
+        const left = squareRect.left - boardRect.left - 4;
+    
+        // Adjust if the dialog would go off-screen
+        let finalLeft = left;
+        // This is a simple adjustment, you might want more sophisticated logic
+
+    
+        return {
+            position: 'absolute',
+            top: `${top}px`,
+            left: `${finalLeft}px`,
+            width: `${currentSquareSize}px`,
+            height: `${currentSquareSize * 3.25}px`,
+        };
+    };
+
     if (!game) {
         return <div className="flex justify-center items-center w-full h-full text-black dark:text-white">Loading...</div>;
     }
@@ -624,9 +692,20 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                     className="grid grid-cols-8 grid-rows-8 border-2 border-gray-800 dark:border-gray-600 overflow-hidden relative"
                     style={{ gridArea: 'board' }}
                 >
+                    {/* Render the Promotion Dialog when needed */}
+                    {promotionState && (
+                        <PromotionDialog
+                            color={promotionState.color}
+                            onSelect={handlePromotionSelect}
+                            style={getPromotionDialogStyle()}
+                            pieceSize={currentPieceVisualSize}
+                            squareSize={currentSquareSize}
+                        />
+                    )}
                     {numbers.map((rank) => letters.map((file) => {
                         const algebraicSquare = `${file}${rank}` as Square;
                         const pieceToDisplay = preMoves.length > 0 ? virtualBoard.get(algebraicSquare) : game.get(algebraicSquare);
+                        console.log(pieceToDisplay);
                         const piece = pieceToDisplay;
                         const isPreMoveOrigin = preMoveOrigins.has(algebraicSquare);
                         const isPreMoveDestination = preMoveDests.has(algebraicSquare);
