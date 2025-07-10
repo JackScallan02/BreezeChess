@@ -1,6 +1,13 @@
-import MainToolBar from "../components/MainToolBar";
+import MainToolBar from "../../components/MainToolBar";
 import { Settings, Gamepad2, UserRoundCog, Tv, UsersRound, BellRing, KeyRound, PersonStanding, LucideProps, ArrowLeft } from 'lucide-react';
 import { FC, useState, useEffect } from "react";
+import GameplayTab from "./GameplayTab/GameplayTab";
+import DisplayTab from "./DisplayTab";
+import SocialTab from "./SocialTab";
+import NotificationsTab from "./NotificationsTab";
+import AccountTab from "./AccountTab";
+import AccessibilityTab from "./AccessibilityTab";
+import { useNavigation } from "../../navigator/navigate";
 
 // Interface for the tab data
 interface SettingsTab {
@@ -21,6 +28,8 @@ const SettingsPage = () => {
         'Account': { url: 'account', icon: KeyRound, displayName: 'Account Settings' },
         'Accessibility': { url: 'accessibility', icon: PersonStanding, displayName: 'Accessibility Settings' }
     };
+    
+    const { handleNavigation } = useNavigation();
 
     const [activeTab, setActiveTab] = useState<string>('');
     // State to manage visibility on mobile. True = show list, False = show content.
@@ -56,17 +65,36 @@ const SettingsPage = () => {
         setMobileListVisible(false);
     };
 
+const getTab = (activeTab: string) => {
+    switch (activeTab) {
+        case 'gameplay':
+            return <GameplayTab />;
+        case 'display':
+            return <DisplayTab />;
+        case 'social':
+            return <SocialTab />;
+        case 'notifications':
+            return <NotificationsTab />;
+        case 'account':
+            return <AccountTab />;
+        case 'accessibility':
+            return <AccessibilityTab />;
+        default:
+            return <></>;
+    }
+};
+
     if (!activeTab) {
         return null;
     }
 
     return (
-        <div className="w-full h-screen text-white bg-slate-900">
+        <div className="w-full min-h-screen text-white bg-gray-900">
             <MainToolBar />
-            <div className="flex md:flex-row flex-col h-[calc(100vh-64px)]">
+            <div className="flex md:flex-row flex-col">
                 {/* --- Sidebar --- */}
                 {/* Always shows on medium screens and up. On smaller screens, visibility is controlled by state. */}
-                <div className={`bg-slate-800 md:w-[15%] md:min-w-60 w-full md:h-full md:border-r md:border-slate-700 md:block ${isMobileListVisible ? 'block' : 'hidden'}`}>
+                <div className={`bg-slate-800 md:w-[15%] md:min-w-60 w-full h-screen md:border-r md:border-slate-700 md:block ${isMobileListVisible ? 'block' : 'hidden'}`}>
                     <div className="flex flex-col h-full w-full">
                         <div className="flex flex-row md:p-8 p-4 gap-x-4 items-center border-b border-slate-700 w-full">
                             <Settings className="md:w-6 md:h-6 w-5 h-5" />
@@ -106,7 +134,7 @@ const SettingsPage = () => {
                         </h1>
                     </div>
                     <hr className="my-4 border-slate-700" />
-                    <p>Content for the <span className="font-semibold">{activeTab}</span> tab goes here.</p>
+                    {getTab(activeTab)}
                 </div>
             </div>
         </div>

@@ -6,4 +6,5 @@ export interface UserInfo {
     country_name: string;
     created_at: string;
     updated_at: string;
+    premove: string;
 }

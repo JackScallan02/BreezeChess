@@ -8,6 +8,7 @@ export function up(knex) {
         table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
         table.integer('country_id').unsigned().references('id').inTable('countries');
         table.jsonb('ratings')
+        table.string('premove').defaultTo('shift')
         table.timestamps(true, true);
     });
 };
