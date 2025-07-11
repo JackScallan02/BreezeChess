@@ -176,4 +176,22 @@ export const getUserInfo = async (id: number, queryParams: string) => {
       throw new Error('Failed to connect to the server. Please try again later.');
     }
   }
-}
+};
+
+export const deleteUser = async(id: number) => {
+  if (!id || typeof id !== 'number') {
+    throw new Error('Invalid user ID. Please provide a valid number.');
+  }
+  try {
+    const response = await apiClient.delete(`/users/${id}`);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      console.error(`API Error: ${error.response.status} - ${error.response.data.error}`);
+      throw new Error(error.response.data.error || 'An error occurred when deleting the user.');
+    } else {
+      console.error('Network or server error:', error.message);
+      throw new Error('Failed to connect to the server. Please try again later.');
+    }
+  }
+};

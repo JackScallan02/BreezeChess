@@ -37,7 +37,7 @@ router.get('/exists', async (req, res) => {
             return res.status(200).json({ exists: false });
         }
         return res.status(200).json({ exists: true });
-        
+
     } catch (error) {
         console.error('Error checking username existence:', error.message);
         return res.status(500).json({ error: `Failed to check username existence: ${error.message}` });
@@ -89,31 +89,31 @@ router.get('/', async (req, res) => {
 router.get('/:id/info', async (req, res) => {
     const userId = req.params.id;
     const includeCountry = req.query.include && req.query.include.includes('country'); // Check if country is requested
-  
+
     try {
-      let query = db('user_info')
-        .join('users', 'user_info.user_id', 'users.id')
-        .where('users.id', userId);
-  
-      // Conditionally join the countries table if requested
-      if (includeCountry) {
-        query = query.join('countries', 'user_info.country_id', 'countries.id')
-                     .select('user_info.*', 'countries.name as country_name', 'countries.iso_code as country_code');
-      } else {
-        query = query.select('user_info.*');
-      }
-  
-      const userInfo = await query.first();
-  
-      if (!userInfo || Object.keys(userInfo).length === 0) {
-        return res.status(404).json({ error: 'User info not found' });
-      }
-  
-      return res.status(200).json(userInfo);
+        let query = db('user_info')
+            .join('users', 'user_info.user_id', 'users.id')
+            .where('users.id', userId);
+
+        // Conditionally join the countries table if requested
+        if (includeCountry) {
+            query = query.join('countries', 'user_info.country_id', 'countries.id')
+                .select('user_info.*', 'countries.name as country_name', 'countries.iso_code as country_code');
+        } else {
+            query = query.select('user_info.*');
+        }
+
+        const userInfo = await query.first();
+
+        if (!userInfo || Object.keys(userInfo).length === 0) {
+            return res.status(404).json({ error: 'User info not found' });
+        }
+
+        return res.status(200).json(userInfo);
 
     } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: `Failed to get user info: ${error.message}` });
+        console.error(error);
+        return res.status(500).json({ error: `Failed to get user info: ${error.message}` });
     }
 });
 
@@ -175,6 +175,12 @@ router.patch('/:id', async (req, res) => {
         const { id } = req.params;
         const updates = req.body;
 
+        if (updates.password) {
+            // Hash the password, if provided
+            const hashedPassword = await bcryptjs.hash(updates.password, saltRounds);
+            updates.password = hashedPassword;
+        }
+
         if (!updates || Object.keys(updates).length === 0) {
             return res.status(400).json({ error: 'Update params object is required' });
         }
@@ -209,5 +215,19 @@ router.patch('/:id/info', async (req, res) => {
         return res.status(500).json({ error: `Failed to update user info: ${error.message}` });
     }
 });
+
+router.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db('users').where({ id }).del();
+        if (!result) {
+            return res.status(404).json({ error: 'User was not found' });
+        }
+        return res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting user:', error.message);
+        return res.status(500).json({ error: `Failed to delete user: ${error.message}` });
+    }
+})
 
 export default router;

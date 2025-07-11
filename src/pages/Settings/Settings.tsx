@@ -5,7 +5,7 @@ import GameplayTab from "./GameplayTab/GameplayTab";
 import DisplayTab from "./DisplayTab";
 import SocialTab from "./SocialTab";
 import NotificationsTab from "./NotificationsTab";
-import AccountTab from "./AccountTab";
+import AccountTab from "./AccountTab/AccountTab";
 import AccessibilityTab from "./AccessibilityTab";
 import { useNavigation } from "../../navigator/navigate";
 
