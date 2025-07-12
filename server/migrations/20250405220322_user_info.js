@@ -11,6 +11,10 @@ export function up(knex) {
         table.string('premove').defaultTo('shift')
         table.boolean('alwaysPromoteQueen').defaultTo(false)
         table.boolean('showLegalMoves').defaultTo(true)
+        table.boolean('showBoardBuilderEvalBar').defaultTo(true)
+        table.boolean('showBoardBuilderEngineEval').defaultTo(true)
+        table.boolean('showMoveTypeLabels').defaultTo(true)
+        table.boolean('showPuzzleTimer').defaultTo(true)
         table.timestamps(true, true);
     });
 };

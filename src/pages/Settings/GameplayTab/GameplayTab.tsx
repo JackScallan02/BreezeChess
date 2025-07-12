@@ -10,8 +10,16 @@ import SectionHeader from "../Elements/SectionHeader";
 interface UserDataContextType {
     alwaysPromoteQueen: boolean;
     showLegalMoves: boolean;
+    showBoardBuilderEvalBar: boolean;
+    showBoardBuilderEngineEval: boolean;
+    showMoveTypeLabels: boolean;
+    showPuzzleTimer: boolean;
     setAlwaysPromoteQueen: (updater: (prev: boolean) => boolean) => void;
     setShowLegalMoves: (updater: (prev: boolean) => boolean) => void;
+    setShowBoardBuilderEvalBar: (updater: (prev: boolean) => boolean) => void;
+    setShowBoardBuilderEngineEval: (updater: (prev: boolean) => boolean) => void;
+    setShowMoveTypeLabels: (updater: (prev: boolean) => boolean) => void;
+    setShowPuzzleTimer: (updater: (prev: boolean) => boolean) => void;
     dataFetched: boolean;
 }
 
@@ -72,13 +80,37 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                 </div>
                 <div className="flex flex-col gap-y-8">
                     <div>
-                        <ToggleButton defaultChecked label="Evaluation bar" bottomLabel="Show evaluation bar next to the chess board" />
+                        <ToggleButton
+                            label="Evaluation bar"
+                            bottomLabel="Show evaluation bar next to the chess board"
+                            onChange={() => {
+                                handleUpdateUserInfo({ showBoardBuilderEvalBar: !userDataContext.showBoardBuilderEvalBar });
+                                userDataContext.setShowBoardBuilderEvalBar((prev: boolean) => !prev);
+                            }}
+                            defaultChecked={userDataContext.showBoardBuilderEvalBar}
+                        />
                     </div>
                     <div>
-                        <ToggleButton defaultChecked label="Engine evaluation" bottomLabel="Show game evaluation next to the chess board" />
+                        <ToggleButton
+                            label="Engine evaluation"
+                            bottomLabel="Show game evaluation next to the chess board"
+                            onChange={() => {
+                                handleUpdateUserInfo({ showBoardBuilderEngineEval: !userDataContext.showBoardBuilderEngineEval });
+                                userDataContext.setShowBoardBuilderEngineEval((prev: boolean) => !prev);
+                            }}
+                            defaultChecked={userDataContext.showBoardBuilderEngineEval}
+                        />
                     </div>
                     <div>
-                        <ToggleButton defaultChecked label="Move type labels" bottomLabel="Show labels indicating blunders, crushing moves, etc." />
+                        <ToggleButton
+                            label="Move type labels"
+                            bottomLabel="Show labels indicating blunders, crushing moves, etc."
+                            onChange={() => {
+                                handleUpdateUserInfo({ showMoveTypeLabels: !userDataContext.showMoveTypeLabels });
+                                userDataContext.setShowMoveTypeLabels((prev: boolean) => !prev);
+                            }}
+                            defaultChecked={userDataContext.showMoveTypeLabels}
+                        />
                     </div>
                 </div>
             </div>
@@ -88,7 +120,15 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                 </div>
                 <div className="flex flex-col gap-y-8">
                     <div>
-                        <ToggleButton defaultChecked label="Show timer" bottomLabel="Show a timer as you solve puzzles" />
+                        <ToggleButton
+                            label="Show timer"
+                            bottomLabel="Show a timer as you solve puzzles"
+                            onChange={() => {
+                                handleUpdateUserInfo({ showPuzzleTimer: !userDataContext.showPuzzleTimer });
+                                userDataContext.setShowPuzzleTimer((prev: boolean) => !prev);
+                            }}
+                            defaultChecked={userDataContext.showPuzzleTimer}
+                        />
                     </div>
                 </div>
             </div>

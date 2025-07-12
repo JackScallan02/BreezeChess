@@ -4,6 +4,7 @@ import MainToolBar from '../components/MainToolBar';
 import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
 import { Chess, Square } from 'chess.js';
 import EvalBar from '../components/EvalBar';
+import { useUserData } from '../contexts/UserDataContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const BoardBuilder = () => {
@@ -19,6 +20,7 @@ const BoardBuilder = () => {
   const chessboardRef = useRef<ChessBoardHandle>(null);
   const boardContainerRef = useRef<HTMLDivElement>(null);
 
+  const { showBoardBuilderEvalBar, showBoardBuilderEngineEval } = useUserData();
 
   useDarkMode();
 
@@ -132,15 +134,16 @@ const BoardBuilder = () => {
               style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 64px)' }}
             >
               {/* Eval Bar */}
-              <div
-                className="flex items-center justify-center items-center"
-                style={{
-                  paddingLeft: `${scale * 2}rem`,
-                }}
-              >
-                <EvalBar fen={game.fen()} height={boardWidth * 0.875} scale={scale} />
-              </div>
-
+              {showBoardBuilderEvalBar && (
+                <div
+                  className="flex items-center justify-center items-center"
+                  style={{
+                    paddingLeft: `${scale * 2}rem`,
+                  }}
+                >
+                  <EvalBar fen={game.fen()} height={boardWidth * 0.875} scale={scale} />
+                </div>
+              )}
               {/* Chessboard */}
               <div
                 ref={boardContainerRef}

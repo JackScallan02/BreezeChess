@@ -17,11 +17,19 @@ type UserSettings = {
   countryID: number;
   alwaysPromoteQueen: boolean;
   showLegalMoves: boolean;
+  showBoardBuilderEvalBar: boolean;
+  showBoardBuilderEngineEval: boolean;
+  showMoveTypeLabels: boolean;
+  showPuzzleTimer: boolean;
   setTheme: (theme: ThemeSetting) => void;
   setPreMoveKey: (value: string | undefined) => void;
   setCountryID: (value: number) => void;
   setAlwaysPromoteQueen: (value: boolean) => void;
   setShowLegalMoves: (value: boolean) => void;
+  setShowBoardBuilderEvalBar: (value: boolean) => void;
+  setShowBoardBuilderEngineEval: (value: boolean) => void;
+  setShowMoveTypeLabels: (value: boolean) => void;
+  setShowPuzzleTimer: (value: boolean) => void;
 
   dataFetched: boolean;
 };
@@ -34,7 +42,11 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [countryID, setCountryID] = useState<number>(-1);
   const [alwaysPromoteQueen, setAlwaysPromoteQueen] = useState(false);
   const [showLegalMoves, setShowLegalMoves] = useState(true);
-  
+  const [showBoardBuilderEvalBar, setShowBoardBuilderEvalBar] = useState(true);
+  const [showBoardBuilderEngineEval, setShowBoardBuilderEngineEval] = useState(true);
+  const [showMoveTypeLabels, setShowMoveTypeLabels] = useState(true);
+  const [showPuzzleTimer, setShowPuzzleTimer] = useState(true);
+
   const [dataFetched, setDataFetched] = useState(false);
 
   const { user } = useAuth();
@@ -49,6 +61,10 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
           setPreMoveKey(data.premove ?? undefined);
           setAlwaysPromoteQueen(data.alwaysPromoteQueen);
           setShowLegalMoves(data.showLegalMoves);
+          setShowBoardBuilderEvalBar(data.showBoardBuilderEvalBar);
+          setShowBoardBuilderEngineEval(data.showBoardBuilderEngineEval);
+          setShowMoveTypeLabels(data.showMoveTypeLabels);
+          setShowPuzzleTimer(data.showPuzzleTimer);
 
           setDataFetched(true);
         })
@@ -69,11 +85,19 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     countryID,
     alwaysPromoteQueen,
     showLegalMoves,
+    showBoardBuilderEvalBar,
+    showBoardBuilderEngineEval,
+    showMoveTypeLabels,
+    showPuzzleTimer,
     setTheme,
     setPreMoveKey,
     setCountryID,
     setAlwaysPromoteQueen,
     setShowLegalMoves,
+    setShowBoardBuilderEvalBar,
+    setShowBoardBuilderEngineEval,
+    setShowMoveTypeLabels,
+    setShowPuzzleTimer,
     dataFetched
   };
 
