@@ -3,6 +3,8 @@ import { Chess, Square, Move } from 'chess.js';
 import { ChevronLeft, ChevronRight, Lightbulb } from 'lucide-react';
 import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
 import useMovePieceSound from '../util/MovePieceSound';
+import PuzzleTimer from '../components/PuzzleTimer';
+import { useUserData } from '../contexts/UserDataContext';
 
 interface PuzzleBoardProps {
     puzzleSolution: {
@@ -16,7 +18,7 @@ interface PuzzleBoardProps {
 
 const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = true }) => {
     const { fetchPuzzle } = puzzleSolution;
-
+    const { showPuzzleTimer } = useUserData();
     const [game, setGame] = useState(new Chess(puzzleSolution.fen));
     const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
     const [maxReachedMoveIndex, setMaxReachedMoveIndex] = useState(0);
@@ -47,7 +49,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                 if (entry.target === boardElement) {
                     const newBoardWidth = entry.contentRect.width;
                     setBoardWidth(newBoardWidth);
-                    setScale(newBoardWidth / 700);
+                    setScale(newBoardWidth / 600);
                 }
             }
         });
@@ -55,7 +57,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         resizeObserver.observe(boardElement);
         const initialBoardWidth = boardElement.getBoundingClientRect().width;
         setBoardWidth(initialBoardWidth);
-        setScale(initialBoardWidth / 700);
+        setScale(initialBoardWidth / 600);
 
         return () => resizeObserver.disconnect();
     }, []);
@@ -107,6 +109,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         chessboardRef.current?.resetState();
         setIncorrectSquare(null);
         setHintSquare(null);
+        setResetKey(prev => prev + 1);
     }, [fetchPuzzle]);
 
     const resetPuzzle = useCallback(() => {
@@ -116,6 +119,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         setResetKey(prevKey => prevKey + 1);
         setIncorrectSquare(null);
         setHintSquare(null);
+        setResetKey(prev => prev + 1);
     }, []);
 
     const handleGetHint = useCallback(() => {
@@ -248,13 +252,19 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                         />
                     </div>
 
-                    {/* Right Sidebar */}
+                    {/* Right Side */}
                     <div className="order-2 [@media(min-width:900px)]:order-3 w-full md:w-[25%] flex items-stretch min-w-0"
                         style={{
                             maxWidth: boardWidth,
                         }}
                     >
-                        <div className="w-full flex flex-col items-center justify-center border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-slate-900 p-4">
+                        <div className="flex flex-row md:flex-col items-center justify-center w-full">
+                            {showPuzzleTimer && (
+                                <div className="p-4 order-2 md:order-1">
+                                    <PuzzleTimer fontSize={scale * 2} key={resetKey} running={puzzleStatus !== 'solved'}></PuzzleTimer>
+                                </div>
+                            )}
+                            <div className="order-1 md:order-2 w-full flex flex-col items-center justify-center border border-gray-300 dark:border-gray-700 rounded-lg shadow-md bg-white dark:bg-slate-900 p-4">
                             <div className="w-full h-full flex flex-col items-center justify-center">
                                 <h2
                                     className="font-bold text-center text-slate-800 dark:text-white w-full leading-tight"
@@ -356,6 +366,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                 </div>
                             </div>
                         </div>
+                        </div>
+                        
                     </div>
                 </div>
 

@@ -36,7 +36,7 @@ const BoardBuilder = () => {
           const newBoardWidth = entry.contentRect.width;
           if (newBoardWidth > 0) {
             setBoardWidth(newBoardWidth);
-            setScale(newBoardWidth / 700);
+            setScale(newBoardWidth / 600);
           }
         }
       }
@@ -46,7 +46,7 @@ const BoardBuilder = () => {
     const initialBoardWidth = boardElement.getBoundingClientRect().width;
     if (initialBoardWidth > 0) {
       setBoardWidth(initialBoardWidth);
-      setScale(initialBoardWidth / 700);
+      setScale(initialBoardWidth / 600);
     }
 
     return () => resizeObserver.disconnect();
