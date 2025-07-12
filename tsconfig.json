@@ -13,5 +13,9 @@
     "esModuleInterop": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "vite-env.d.ts"]
+  "include": ["src", "vite-env.d.ts"],
+  "exclude": [
+    "src/stockfish/stockfish.js",
+    "src/stockfish/stockfish.wasm.js"
+  ]
 }

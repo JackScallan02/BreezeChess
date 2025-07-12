@@ -14,12 +14,14 @@ interface UserDataContextType {
     showBoardBuilderEngineEval: boolean;
     showMoveTypeLabels: boolean;
     showPuzzleTimer: boolean;
-    setAlwaysPromoteQueen: (updater: (prev: boolean) => boolean) => void;
-    setShowLegalMoves: (updater: (prev: boolean) => boolean) => void;
-    setShowBoardBuilderEvalBar: (updater: (prev: boolean) => boolean) => void;
-    setShowBoardBuilderEngineEval: (updater: (prev: boolean) => boolean) => void;
-    setShowMoveTypeLabels: (updater: (prev: boolean) => boolean) => void;
-    setShowPuzzleTimer: (updater: (prev: boolean) => boolean) => void;
+    preMoveKey?: string | undefined;
+    setAlwaysPromoteQueen: (prev: boolean) => void;
+    setShowLegalMoves: (prev: boolean) => void;
+    setShowBoardBuilderEvalBar: (prev: boolean) => void;
+    setShowBoardBuilderEngineEval: (prev: boolean) => void;
+    setShowMoveTypeLabels: (prev: boolean) => void;
+    setShowPuzzleTimer: (prev: boolean) => void;
+    setPreMoveKey: (prev: string | undefined) => void;
     dataFetched: boolean;
 }
 
@@ -57,7 +59,7 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                         bottomLabel="If this setting is enabled, hold the ALT key when promoting to choose a different piece"
                         onChange={() => {
                             handleUpdateUserInfo({ alwaysPromoteQueen: !userDataContext.alwaysPromoteQueen })
-                            userDataContext.setAlwaysPromoteQueen((prev: boolean) => !prev);
+                            userDataContext.setAlwaysPromoteQueen(!userDataContext.alwaysPromoteQueen);
                         }}
                         defaultChecked={userDataContext.alwaysPromoteQueen}
                     />
@@ -68,7 +70,7 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                         bottomLabel="If a piece is selected, legal moves will be denoted on the board"
                         onChange={() => {
                             handleUpdateUserInfo({ showLegalMoves: !userDataContext.showLegalMoves });
-                            userDataContext.setShowLegalMoves((prev: boolean) => !prev);
+                            userDataContext.setShowLegalMoves(!userDataContext.showLegalMoves);
                         }}
                         defaultChecked={userDataContext.showLegalMoves}
                     />
@@ -85,7 +87,7 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                             bottomLabel="Show evaluation bar next to the chess board"
                             onChange={() => {
                                 handleUpdateUserInfo({ showBoardBuilderEvalBar: !userDataContext.showBoardBuilderEvalBar });
-                                userDataContext.setShowBoardBuilderEvalBar((prev: boolean) => !prev);
+                                userDataContext.setShowBoardBuilderEvalBar(!userDataContext.showBoardBuilderEvalBar);
                             }}
                             defaultChecked={userDataContext.showBoardBuilderEvalBar}
                         />
@@ -96,7 +98,7 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                             bottomLabel="Show game evaluation next to the chess board"
                             onChange={() => {
                                 handleUpdateUserInfo({ showBoardBuilderEngineEval: !userDataContext.showBoardBuilderEngineEval });
-                                userDataContext.setShowBoardBuilderEngineEval((prev: boolean) => !prev);
+                                userDataContext.setShowBoardBuilderEngineEval(!userDataContext.showBoardBuilderEngineEval);
                             }}
                             defaultChecked={userDataContext.showBoardBuilderEngineEval}
                         />
@@ -107,7 +109,7 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                             bottomLabel="Show labels indicating blunders, crushing moves, etc."
                             onChange={() => {
                                 handleUpdateUserInfo({ showMoveTypeLabels: !userDataContext.showMoveTypeLabels });
-                                userDataContext.setShowMoveTypeLabels((prev: boolean) => !prev);
+                                userDataContext.setShowMoveTypeLabels(!userDataContext.showMoveTypeLabels);
                             }}
                             defaultChecked={userDataContext.showMoveTypeLabels}
                         />
@@ -125,7 +127,7 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                             bottomLabel="Show a timer as you solve puzzles"
                             onChange={() => {
                                 handleUpdateUserInfo({ showPuzzleTimer: !userDataContext.showPuzzleTimer });
-                                userDataContext.setShowPuzzleTimer((prev: boolean) => !prev);
+                                userDataContext.setShowPuzzleTimer(!userDataContext.showPuzzleTimer);
                             }}
                             defaultChecked={userDataContext.showPuzzleTimer}
                         />

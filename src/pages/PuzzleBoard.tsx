@@ -238,6 +238,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                             userColor={userColor}
                             orientation={userColor || 'w'}
                             hintSquare={hintSquare}
+                            soundEnabled={true}
                         />
                     </div>
 

@@ -10,7 +10,7 @@ interface TextFieldProps {
     onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     value: string;
     readOnly?: boolean;
-    inputRef?: React.RefObject<HTMLInputElement> | null;
+    inputRef?: React.RefObject<HTMLInputElement | null>;
     onClick?: () => void;
     eyeToggle?: boolean;
 }
