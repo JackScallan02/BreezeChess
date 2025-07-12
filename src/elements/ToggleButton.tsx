@@ -1,5 +1,6 @@
 interface ToggleButtonProps {
     defaultChecked?: boolean; // Whether or not it is checked by default
+    checked?: boolean;
     onChange?: () => void; // Optional function for when the toggle button is changed
     label?: string; // Optional label placed to the right of the toggle button
     bottomLabel?: string; // Optional label placed underneath the toggle button

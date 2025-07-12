@@ -15,9 +15,13 @@ type UserSettings = {
   theme: ThemeSetting;
   preMoveKey?: string | undefined;
   countryID: number;
+  alwaysPromoteQueen: boolean;
   setTheme: (theme: ThemeSetting) => void;
   setPreMoveKey: (value: string | undefined) => void;
   setCountryID: (value: number) => void;
+  setAlwaysPromoteQueen: (value: boolean) => void;
+
+  dataFetched: boolean;
 };
 
 const UserDataContext = createContext<UserSettings | undefined>(undefined);
@@ -26,6 +30,9 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<ThemeSetting>("systemDefault");
   const [preMoveKey, setPreMoveKey] = useState<string | undefined>(undefined);
   const [countryID, setCountryID] = useState<number>(-1);
+  const [alwaysPromoteQueen, setAlwaysPromoteQueen] = useState(false);
+  
+  const [dataFetched, setDataFetched] = useState(false);
 
   const { user } = useAuth();
 
@@ -37,6 +44,9 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
           setTheme(data.theme ?? "systemDefault");
           setCountryID(data.country_id ?? -1);
           setPreMoveKey(data.premove ?? undefined);
+          setAlwaysPromoteQueen(data.alwaysPromoteQueen);
+
+          setDataFetched(true);
         })
         .catch((err) => {
           console.error("Failed to fetch user settings:", err);
@@ -53,9 +63,12 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     theme,
     preMoveKey,
     countryID,
+    alwaysPromoteQueen,
     setTheme,
     setPreMoveKey,
     setCountryID,
+    setAlwaysPromoteQueen,
+    dataFetched
   };
 
   return (
@@ -67,10 +80,8 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
 
 export const useUserData = () => {
   const context = useContext(UserDataContext);
-  
-  useEffect(() => {
-    console.log("Context: ", context);
-  }, []);
+
+  console.log("Context: ", context);
 
   if (!context) {
     throw new Error("useUserData must be used within a UserSettingsProvider");

@@ -9,6 +9,7 @@ export function up(knex) {
         table.integer('country_id').unsigned().references('id').inTable('countries');
         table.jsonb('ratings')
         table.string('premove').defaultTo('shift')
+        table.boolean('alwaysPromoteQueen').defaultTo(false)
         table.timestamps(true, true);
     });
 };
