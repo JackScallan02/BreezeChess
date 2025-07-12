@@ -84,7 +84,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
             setIsPlayerTurn(true);
             setFeedbackMessage(`${determinedUserColor === 'w' ? 'White' : 'Black'} to move`);
         } else {
-            console.log("Here");
             setIsPlayerTurn(false);
             const timeout = setTimeout(() => {
                 const gameAfterMove = new Chess(puzzleSolution.fen);

@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle, useLayoutEffect } from "react";
 import { Chess, Square, Piece, Move } from 'chess.js';
+import { useUserData } from "../contexts/UserDataContext";
 import useMovePieceSound from '../util/MovePieceSound';
 import PromotionDialog from "./PromotionDialog";
+import { useHeldKeys } from "../helpers/useHeldKeys";
 
 // --- TYPE DEFINITIONS (No changes) ---
 
@@ -103,6 +105,9 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
     const gameRef = useRef<Chess | null>(null);
     const moveBeingAnimated = useRef<Move | null>(null);
+
+    const { preMoveKey } = useUserData();
+    const heldKeys = useHeldKeys();
 
     const { handlePlaySound } = useMovePieceSound();
 
@@ -439,8 +444,19 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 }
             }
             const pieceOnClickedSquare = virtualBoard.get(clickedSquare);
+            const preMoveKeys = preMoveKey?.split('+') || [];
+            let userPressedPreMoveKey = true;
+            if (heldKeys.size === 0 || preMoveKeys.length === 0) {
+                userPressedPreMoveKey = false;
+            }
+            for (const key of preMoveKeys) {
+                if (!heldKeys.has(key.toLowerCase())) {
+                    userPressedPreMoveKey = false;
+                    break;
+                }
+            }
 
-            if (pieceOnClickedSquare && pieceOnClickedSquare.color === userColor && !e.shiftKey) {
+            if (pieceOnClickedSquare && pieceOnClickedSquare.color === userColor && !userPressedPreMoveKey) {
                 setSelectedSquare(clickedSquare);
                 setPossibleMoves([]);
             } else {
@@ -498,7 +514,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 setPossibleMoves((isPlayerTurn || canMoveAnyPiece) ? getEnhancedPossibleMoves(clickedSquare) : []);
             }
         }
-    }, [game, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece, getInterpretedMove, executeMove, getEnhancedPossibleMoves, preMoves, letters, numbers]);
+    }, [heldKeys, game, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece, getInterpretedMove, executeMove, getEnhancedPossibleMoves, preMoves, letters, numbers]);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         const currentInteraction = interactionState.current;
@@ -705,7 +721,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                     {numbers.map((rank) => letters.map((file) => {
                         const algebraicSquare = `${file}${rank}` as Square;
                         const pieceToDisplay = preMoves.length > 0 ? virtualBoard.get(algebraicSquare) : game.get(algebraicSquare);
-                        console.log(pieceToDisplay);
                         const piece = pieceToDisplay;
                         const isPreMoveOrigin = preMoveOrigins.has(algebraicSquare);
                         const isPreMoveDestination = preMoveDests.has(algebraicSquare);

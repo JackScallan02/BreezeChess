@@ -6,29 +6,11 @@ import PremoveSetting from "./PreMoveSetting";
 import ToggleButton from "../../../elements/ToggleButton";
 import SectionHeader from "../Elements/SectionHeader";
 
-const GameplayTab = () => {
+interface GameplayProps {
+    userDataContext: Object;
+}
+const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
 
-    const { user } = useAuth();
-    const [userInfo, setUserInfo] = useState<null | UserInfo>(null);
-
-    const fetchUserData = async () => {
-        if (user) {
-            const res = await getUserInfo(user.id, '');
-            setUserInfo(res);
-        }
-    };
-
-    useEffect(() => {
-        try {
-            fetchUserData();
-        } catch (err) {
-            console.error(err);
-        }
-    }, [user]);
-
-    if (!userInfo) {
-        return <></>; // TODO: Skeleton loading
-    }
 
     return (
         <div className="mt-4">
@@ -37,7 +19,7 @@ const GameplayTab = () => {
             </div>
             <div className="flex flex-col gap-y-8">
                 <div>
-                    <PremoveSetting userInfo={userInfo} setUserInfo={setUserInfo} />
+                    <PremoveSetting userDataContext={userDataContext} />
                 </div>
                 <div>
                     <ToggleButton label="Always promote to queen" bottomLabel="If this setting is enabled, hold the ALT key when promoting to choose a different piece" />
