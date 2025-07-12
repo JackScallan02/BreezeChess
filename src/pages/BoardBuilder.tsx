@@ -13,12 +13,14 @@ const BoardBuilder = () => {
   const [boardOrientation, setBoardOrientation] = useState<'w' | 'b'>('w');
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
   const [maxReachedMoveIndex, setMaxReachedMoveIndex] = useState(0);
-  const [fenMoves, setFenMoves] = useState<any[]>([new Chess().fen()]); // Initialize with the starting position
+  const [fenMoves, setFenMoves] = useState<any[]>([new Chess().fen()]);
 
   const [boardWidth, setBoardWidth] = useState(0);
+  const [evalBarWidth, setEvalBarWidth] = useState(0); // State for EvalBar width
   const [scale, setScale] = useState(1);
   const chessboardRef = useRef<ChessBoardHandle>(null);
   const boardContainerRef = useRef<HTMLDivElement>(null);
+  const evalBarRef = useRef<HTMLDivElement>(null);
 
   const { showBoardBuilderEvalBar, showBoardBuilderEngineEval } = useUserData();
 
@@ -32,26 +34,39 @@ const BoardBuilder = () => {
       for (let entry of entries) {
         if (entry.target === boardElement) {
           const newBoardWidth = entry.contentRect.width;
-          // Set board width only if it's not zero to avoid flicker on initial load
           if (newBoardWidth > 0) {
             setBoardWidth(newBoardWidth);
-            // Base scale on a typical board size, e.g., 500px
-            setScale(newBoardWidth / 500);
+            setScale(newBoardWidth / 700);
           }
         }
       }
     });
 
     resizeObserver.observe(boardElement);
-    // Also run once on mount
     const initialBoardWidth = boardElement.getBoundingClientRect().width;
     if (initialBoardWidth > 0) {
       setBoardWidth(initialBoardWidth);
-      setScale(initialBoardWidth / 500);
+      setScale(initialBoardWidth / 700);
     }
 
     return () => resizeObserver.disconnect();
   }, []);
+
+  // Effect to measure the EvalBar width
+  useLayoutEffect(() => {
+    if (showBoardBuilderEvalBar && evalBarRef.current) {
+      const observer = new ResizeObserver(entries => {
+        for (let entry of entries) {
+          setEvalBarWidth(entry.contentRect.width);
+        }
+      });
+      observer.observe(evalBarRef.current);
+      return () => observer.disconnect();
+    } else {
+      setEvalBarWidth(0);
+    }
+  }, [showBoardBuilderEvalBar]);
+
 
   const handleMoveAttempt = useCallback((from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
     const tempGame = new Chess(game.fen());
@@ -71,21 +86,21 @@ const BoardBuilder = () => {
     if (moveResult === null) {
       return;
     }
-    if (currentMoveIndex === maxReachedMoveIndex) {
-      setMaxReachedMoveIndex(currentMoveIndex + 1);
-    }
-
-    if (currentMoveIndex < maxReachedMoveIndex) {
-      // If we are in the middle of the game, truncate the future moves
-      setFenMoves([...fenMoves.slice(0, currentMoveIndex + 1), tempGame.fen()]);
+    
+    const newIndex = currentMoveIndex + 1;
+    if (newIndex > maxReachedMoveIndex) {
+      setMaxReachedMoveIndex(newIndex);
+      setFenMoves(prev => [...prev, tempGame.fen()]);
     } else {
-      setFenMoves([...fenMoves, tempGame.fen()]);
+       // If we are in the middle of the game, truncate future moves
+      setFenMoves(prev => [...prev.slice(0, newIndex), tempGame.fen()]);
+      setMaxReachedMoveIndex(newIndex);
     }
-
-    setCurrentMoveIndex(currentMoveIndex + 1);
+    
+    setCurrentMoveIndex(newIndex);
     setGame(tempGame);
 
-  }, [game]);
+  }, [game, currentMoveIndex, maxReachedMoveIndex]);
 
   useEffect(() => {
     setIsBoardReady(true);
@@ -108,9 +123,10 @@ const BoardBuilder = () => {
   };
 
   const navigateMoves = (newIndex: number) => {
-    setGame(new Chess(fenMoves[newIndex] || game.fen()));
-    setCurrentMoveIndex(newIndex);
-
+    if (newIndex >= 0 && newIndex <= maxReachedMoveIndex) {
+        setGame(new Chess(fenMoves[newIndex]));
+        setCurrentMoveIndex(newIndex);
+    }
   };
 
 
@@ -129,17 +145,21 @@ const BoardBuilder = () => {
         >
           {/* Main Content: Board + Right */}
           <div className="flex flex-col md:flex-row items-center justify-center w-full gap-x-4 md:gap-x-8 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
+            {/* Invisible left div so that the board is centered */}
+            <div className="hidden xl:inline [@media(min-width:900px)]:order-1 w-full md:w-[25%] flex items-stretch min-w-0"
+              style={{
+                maxWidth: boardWidth - evalBarWidth, // Adjusted width
+              }}
+            />
             <div
-              className="flex flex-row justify-center gap-2  w-full [@media(min-width:900px)]:flex-[1_1_0%]"
+              className="flex order-2 flex-row justify-center gap-2  w-full [@media(min-width:900px)]:flex-[1_1_0%]"
               style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 64px)' }}
             >
               {/* Eval Bar */}
               {showBoardBuilderEvalBar && (
                 <div
-                  className="flex items-center justify-center items-center"
-                  style={{
-                    paddingLeft: `${scale * 2}rem`,
-                  }}
+                  className="flex items-center justify-center"
+                  ref={evalBarRef}
                 >
                   <EvalBar fen={game.fen()} height={boardWidth * 0.875} scale={scale} />
                 </div>

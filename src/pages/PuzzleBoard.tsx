@@ -47,7 +47,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                 if (entry.target === boardElement) {
                     const newBoardWidth = entry.contentRect.width;
                     setBoardWidth(newBoardWidth);
-                    setScale(newBoardWidth / 500);
+                    setScale(newBoardWidth / 700);
                 }
             }
         });
@@ -55,7 +55,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         resizeObserver.observe(boardElement);
         const initialBoardWidth = boardElement.getBoundingClientRect().width;
         setBoardWidth(initialBoardWidth);
-        setScale(initialBoardWidth / 500);
+        setScale(initialBoardWidth / 700);
 
         return () => resizeObserver.disconnect();
     }, []);
@@ -221,10 +221,16 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
             >
                 {/* Main Content: Board + Right */}
                 <div className="flex flex-col md:flex-row items-center justify-center gap-4 order-1 [@media(min-width:900px)]:order-2 [@media(min-width:900px)]:flex-1 min-w-0">
+                    {/* Invisible left div so that the board is centered */}
+                    <div className="hidden xl:inline [@media(min-width:900px)]:order-1 w-full md:w-[25%] flex items-stretch min-w-0"
+                        style={{
+                            maxWidth: boardWidth,
+                        }}
+                    />
                     {/* Chessboard */}
                     <div
                         ref={boardContainerRef}
-                        className="flex items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]"
+                        className="flex order-2 items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]"
                         style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
                     >
                         <ChessBoard
