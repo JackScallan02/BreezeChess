@@ -16,10 +16,12 @@ type UserSettings = {
   preMoveKey?: string | undefined;
   countryID: number;
   alwaysPromoteQueen: boolean;
+  showLegalMoves: boolean;
   setTheme: (theme: ThemeSetting) => void;
   setPreMoveKey: (value: string | undefined) => void;
   setCountryID: (value: number) => void;
   setAlwaysPromoteQueen: (value: boolean) => void;
+  setShowLegalMoves: (value: boolean) => void;
 
   dataFetched: boolean;
 };
@@ -31,6 +33,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [preMoveKey, setPreMoveKey] = useState<string | undefined>(undefined);
   const [countryID, setCountryID] = useState<number>(-1);
   const [alwaysPromoteQueen, setAlwaysPromoteQueen] = useState(false);
+  const [showLegalMoves, setShowLegalMoves] = useState(true);
   
   const [dataFetched, setDataFetched] = useState(false);
 
@@ -45,6 +48,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
           setCountryID(data.country_id ?? -1);
           setPreMoveKey(data.premove ?? undefined);
           setAlwaysPromoteQueen(data.alwaysPromoteQueen);
+          setShowLegalMoves(data.showLegalMoves);
 
           setDataFetched(true);
         })
@@ -64,10 +68,12 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     preMoveKey,
     countryID,
     alwaysPromoteQueen,
+    showLegalMoves,
     setTheme,
     setPreMoveKey,
     setCountryID,
     setAlwaysPromoteQueen,
+    setShowLegalMoves,
     dataFetched
   };
 

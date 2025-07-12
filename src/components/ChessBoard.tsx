@@ -106,7 +106,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     const gameRef = useRef<Chess | null>(null);
     const moveBeingAnimated = useRef<Move | null>(null);
 
-    const { preMoveKey, alwaysPromoteQueen } = useUserData();
+    const { preMoveKey, alwaysPromoteQueen, showLegalMoves } = useUserData();
     const heldKeys = useHeldKeys();
 
     const { handlePlaySound } = useMovePieceSound();
@@ -755,7 +755,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
                         return (
                             <div key={algebraicSquare} ref={el => { if (el) { squareRefs.current.set(algebraicSquare, el); } else { squareRefs.current.delete(algebraicSquare); } }} className={`relative flex items-center justify-center ${bgColorClass} ${selectedSquare && 'cursor-pointer'}`} onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)} onClick={(e) => handleSquareClick(algebraicSquare, e)}>
-                                {isPossibleMoveTarget && <div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>}
+                                {isPossibleMoveTarget && showLegalMoves && <div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>}
                                 {piece && !isDragged && <img src={getPieceImage(piece)} draggable={false} alt={`${piece?.color} ${piece?.type}`} style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: (canMoveAnyPiece || (piece?.color === userColor)) ? 'grab' : selectedSquare ? 'pointer' : 'default', userSelect: 'none', zIndex: 3, visibility: isHiddenDuringAnimation ? 'hidden' : 'visible' }} />}
                             </div>
                         );

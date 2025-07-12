@@ -9,7 +9,9 @@ import SectionHeader from "../Elements/SectionHeader";
 
 interface UserDataContextType {
     alwaysPromoteQueen: boolean;
+    showLegalMoves: boolean;
     setAlwaysPromoteQueen: (updater: (prev: boolean) => boolean) => void;
+    setShowLegalMoves: (updater: (prev: boolean) => boolean) => void;
     dataFetched: boolean;
 }
 
@@ -53,7 +55,15 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                     />
                 </div>
                 <div>
-                    <ToggleButton defaultChecked label="Show legal moves for selected piece" bottomLabel="If a piece is selected, legal moves will be denoted on the board" />
+                    <ToggleButton
+                        label="Show legal moves for selected piece"
+                        bottomLabel="If a piece is selected, legal moves will be denoted on the board"
+                        onChange={() => {
+                            handleUpdateUserInfo({ showLegalMoves: !userDataContext.showLegalMoves });
+                            userDataContext.setShowLegalMoves((prev: boolean) => !prev);
+                        }}
+                        defaultChecked={userDataContext.showLegalMoves}
+                    />
                 </div>
             </div>
             <div className="mt-12">

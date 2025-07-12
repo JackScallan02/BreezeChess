@@ -79,11 +79,10 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
 
     const handlePreMoveToggled = async () => {
         const isCurrentlyEnabled = userDataContext.preMoveKey !== undefined;
-
+        setPremoveToggled((prev) => !prev);
         if (isCurrentlyEnabled) {
             const newVal = undefined;
 
-            setPremoveToggled(false);
             setPreMoveVal(newVal);
             userDataContext.setPreMoveKey(newVal);
 
@@ -109,12 +108,8 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
                     setIsSaving(false);
                 }, 1000);
             }
-        } else {
-            setPremoveToggled(true);
         }
     };
-
-
     return (
         <>
             <div className="mb-2">

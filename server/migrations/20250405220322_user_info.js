@@ -10,6 +10,7 @@ export function up(knex) {
         table.jsonb('ratings')
         table.string('premove').defaultTo('shift')
         table.boolean('alwaysPromoteQueen').defaultTo(false)
+        table.boolean('showLegalMoves').defaultTo(true)
         table.timestamps(true, true);
     });
 };
