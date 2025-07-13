@@ -41,10 +41,76 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
     const [lastMoveTo, setLastMoveTo] = useState<Square | null>(null);
     const [awardedPoints, setAwardedPoints] = useState(0);
 
+    const [animationStart, setAnimationStart] = useState<{ x: number, y: number } | null>(null);
+    const [animationEnd, setAnimationEnd] = useState<{ x: number, y: number } | null>(null);
+
+    // --- Start of New Changes ---
+
+    // State to hold the points value displayed on the screen for animation
+    const [displayPoints, setDisplayPoints] = useState(points);
+    // State to trigger the style change (color, size) on the points text
+    const [isUpdatingPoints, setIsUpdatingPoints] = useState(false);
+    const animationFrameId = useRef<number | null>(null);
+
+    // Effect to keep displayPoints in sync with the context points, especially on reset.
+    useEffect(() => {
+        setDisplayPoints(points);
+    }, [points, resetKey]);
+
+
+    // Effect for the count-up animation
+    useEffect(() => {
+        const startValue = displayPoints;
+        const endValue = points;
+        const duration = 1200; // Animation duration in ms
+
+        // Only animate if there's a change
+        if (startValue === endValue) {
+            return;
+        }
+
+        let startTime: number | null = null;
+
+        // Ease-in-out cubic function for smooth acceleration and deceleration
+        const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+        const animate = (timestamp: number) => {
+            if (!startTime) {
+                startTime = timestamp;
+            }
+
+            const elapsed = timestamp - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easedProgress = easeInOutCubic(progress);
+
+            const currentValue = Math.round(startValue + (endValue - startValue) * easedProgress);
+            setDisplayPoints(currentValue);
+
+            if (progress < 1) {
+                animationFrameId.current = requestAnimationFrame(animate);
+            } else {
+                // Ensure the final value is exactly the target
+                setDisplayPoints(endValue);
+            }
+        };
+
+        animationFrameId.current = requestAnimationFrame(animate);
+
+        return () => {
+            if (animationFrameId.current) {
+                cancelAnimationFrame(animationFrameId.current);
+            }
+        };
+    }, [points]); // Rerun this effect when the target 'points' value changes
+
+
+    // --- End of New Changes ---
+
 
     const timeoutIds = useRef<NodeJS.Timeout[]>([]);
     const chessboardRef = useRef<ChessBoardHandle>(null);
     const boardContainerRef = useRef<HTMLDivElement>(null);
+    const pointsDisplayRef = useRef<HTMLDivElement>(null);
 
     const [boardWidth, setBoardWidth] = useState(0);
     const [scale, setScale] = useState(1);
@@ -164,12 +230,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         const totalBonus = Math.min(bonusCap, bonusCap * weightedBonus);
         const noneIncorrectBonus = !incorrectMovePlayed ? 0.5 * m : 0;
 
-        console.log({
-            points: Math.round(m * 100),
-            speedBonus: Math.round(totalBonus * 100),
-            noneIncorrectBonus: Math.round(noneIncorrectBonus * 100)
-        })
-
         return {
             points: Math.round(m * 100),
             speedBonus: Math.round(totalBonus * 100),
@@ -185,11 +245,48 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
             setAwardedPoints(totalPoints);
             setLastMoveTo(lastMove);
             setShowPointsAnimation(true);
-            setTimeout(() => {
+
+            const start = getSquarePosition(lastMove);
+            const endRect = pointsDisplayRef.current?.getBoundingClientRect();
+            const containerRect = boardContainerRef.current?.getBoundingClientRect();
+
+            if (endRect && containerRect) {
+                const endX = endRect.left + endRect.width / 2 - containerRect.left;
+                const endY = endRect.top + endRect.height / 2 - containerRect.top;
+
+                setAnimationStart({
+                    x: parseFloat(start.left),
+                    y: parseFloat(start.top),
+                });
+
+                setAnimationEnd({
+                    x: endX,
+                    y: endY,
+                });
+            }
+            // Chain the animations
+            const timeout1 = setTimeout(async () => {
                 setShowPointsAnimation(false);
-            }, 2000);
-            await updateUserInfo(user.id, { points: totalPoints });
-            setPoints(points + totalPoints);
+                setAnimationStart(null);
+                setAnimationEnd(null);
+
+                // --- Start of New Changes ---
+                // 1. Trigger the text style animation
+                setIsUpdatingPoints(true);
+                // 2. Update the backend and context, which will trigger the count-up animation
+                await updateUserInfo(user.id, { points: totalPoints });
+                setPoints(points + totalPoints);
+
+
+                // 3. Reset the style after the animation completes
+                const timeout2 = setTimeout(() => {
+                    setIsUpdatingPoints(false);
+                }, 1500); // This duration should be slightly longer than the count-up
+                timeoutIds.current.push(timeout2);
+                // --- End of New Changes ---
+
+            }, 1000); // This is the duration of the flying points animation
+            timeoutIds.current.push(timeout1);
         }
     }
 
@@ -285,29 +382,29 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         [maxReachedMoveIndex, puzzleSolution, userColor]
     );
 
-const getSquarePosition = (square: Square) => {
-    if (!boardContainerRef.current) return { top: '0px', left: '0px' };
+    const getSquarePosition = (square: Square) => {
+        if (!boardContainerRef.current) return { top: '0px', left: '0px' };
 
-    const container = boardContainerRef.current;
-    const rect = container.getBoundingClientRect();
+        const container = boardContainerRef.current;
+        const rect = container.getBoundingClientRect();
 
-    const col = square.charCodeAt(0) - 'a'.charCodeAt(0);
-    const row = 8 - parseInt(square.charAt(1), 10);
-    const isFlipped = userColor === 'b';
+        const col = square.charCodeAt(0) - 'a'.charCodeAt(0);
+        const row = 8 - parseInt(square.charAt(1), 10);
+        const isFlipped = userColor === 'b';
 
-    const finalRow = isFlipped ? 7 - row : row;
-    const finalCol = isFlipped ? 7 - col : col;
+        const finalRow = isFlipped ? 7 - row : row;
+        const finalCol = isFlipped ? 7 - col : col;
 
-    const squareSize = rect.width / 8;
+        const squareSize = rect.width / 8;
 
-    const x = finalCol * squareSize + squareSize / 2;
-    const y = finalRow * squareSize + squareSize / 2;
+        const x = finalCol * squareSize + squareSize / 2;
+        const y = finalRow * squareSize;
 
-    return {
-        left: `${x}px`,
-        top: `${y}px`,
+        return {
+            left: `${x}px`,
+            top: `${y}px`,
+        };
     };
-};
 
 
     const handleGoBack = () => navigateMoves(currentMoveIndex - 1);
@@ -347,22 +444,24 @@ const getSquarePosition = (square: Square) => {
                             soundEnabled={true}
                         />
                         {/* The points animation */}
-                        {showPointsAnimation && lastMoveTo && (
+                        {showPointsAnimation && animationStart && animationEnd && (
                             <div
-                                className="absolute drop-shadow-[0_1.7px_1.7px_rgba(40,40,40,1)] text-green-500 font-bold text-2xl flex items-center justify-center pointer-events-none"
+                                className="absolute text-green-500 font-bold md:text-3xl text-xl pointer-events-none drop-shadow-[0_1.2px_1.2px_rgba(0.4,0.4,0.4,0.8)]"
                                 style={{
-                                    ...getSquarePosition(lastMoveTo),
-                                    width: '12.5%',
-                                    height: '12.5%',
-                                    transform: 'translateY(-100%)',
-                                    transition: 'opacity 1s, transform 1s',
-                                    opacity: 1,
-                                    zIndex: 100, // Note: the chess board has a zIndex of 3 for the pieces
-                                }}
+                                    left: animationStart.x,
+                                    top: animationStart.y,
+                                    position: 'absolute',
+                                    zIndex: 100,
+                                    animation: 'arcMove 1s cubic-bezier(0.2, 0.0, 0.8, 1.0) forwards',
+                                    willChange: 'transform, opacity',
+                                    '--dx': `${animationEnd.x - animationStart.x}px`,
+                                    '--dy': `${animationEnd.y - animationStart.y}px`,
+                                } as React.CSSProperties}
                             >
                                 +{awardedPoints}
                             </div>
                         )}
+
                     </div>
 
                     {/* Right Side */}
@@ -480,21 +579,30 @@ const getSquarePosition = (square: Square) => {
                                 </div>
 
                             </div>
-                            <div className={`order-4 w-full flex items-center justify-center`} style={{ marginTop: `${scale * 1.5}rem` }}>
-                                <div className="flex flex-row items-center" style={{ gap: `${scale * 0.25}rem` }}>
-                                    <Sparkles style={{ width: `${scale * 1}rem`, height: `${scale * 1}rem` }} />
-                                    <div className="flex flex-row" style={{ gap: `${scale * 0.25}rem` }}>
-                                        <p style={{ fontSize: `${scale * 1}rem` }}>{points}</p>
-                                        <p style={{ fontSize: `${scale * 1}rem` }}>points</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                            <div
+    ref={pointsDisplayRef}
+    // 1. This outer container is now just for stable centering. No animations here.
+    className={`order-4 w-full flex items-center justify-center`} style={{ marginTop: `${scale * 1.5}rem` }}>
 
+    {/* 2. This new inner container handles the animation and content layout */}
+    <div
+        className={`flex flex-row items-center transition-all duration-500 ease-in-out ${isUpdatingPoints ? 'text-green-500' : ''}`}
+        style={{
+            gap: `${scale * 0.25}rem`,
+            transform: isUpdatingPoints ? 'scale(1.25)' : 'scale(1)',
+            transformOrigin: 'center'
+        }}
+    >
+        <Sparkles style={{ width: `${scale * 1}rem`, height: `${scale * 1}rem` }} />
+        <div className="flex flex-row" style={{ gap: `${scale * 0.25}rem` }}>
+            <p style={{ fontSize: `${scale * 1}rem` }}>{displayPoints}</p>
+            <p style={{ fontSize: `${scale * 1}rem` }}>points</p>
+        </div>
+    </div>
+</div>
+                        </div>
                     </div>
                 </div>
-
-
             </div>
         </div>
     );

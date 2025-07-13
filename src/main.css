@@ -82,3 +82,36 @@ html.dark, body.dark {
       scrollbar-width: none; /* Firefox */
     }
 }
+
+@keyframes arcMove {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+    opacity: 1;
+  }
+  69.9% {
+    transform: translate(0px, 0px) scale(1.05);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(calc(var(--dx) * 0.1), calc(var(--dy) * 0.1 - 40px)) scale(1.15);
+    opacity: 1;
+  }
+  90% {
+    transform: translate(calc(var(--dx) * 0.5), calc(var(--dy) * 0.5 - 60px)) scale(1.2);
+    opacity: 1;
+  }
+  98% {
+    transform: translate(calc(var(--dx) * 0.95), calc(var(--dy) * 0.95 - 10px)) scale(0.75);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.7);
+    opacity: 0;
+  }
+}
+
+
+
+
+
+
