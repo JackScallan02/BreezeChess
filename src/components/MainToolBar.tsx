@@ -140,14 +140,22 @@ const MainToolBar = () => {
           >
             {!user ? 'Login' : 'Profile'}
           </li>
-            {user && (
-          <li
-            className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-            onClick={() => { handleLogout(); setMenuOpen(false); }}
-          >
-            Logout
-          </li>
-            )}
+          {user && (
+            <>
+              <li
+                className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+                onClick={() => { handleNavigation('/settings'); setMenuOpen(false); }}
+              >
+                Settings
+              </li>
+              <li
+                className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+                onClick={() => { handleLogout(); setMenuOpen(false); }}
+              >
+                Logout
+              </li>
+            </>
+          )}
 
         </div>,
         document.body

@@ -21,6 +21,7 @@ type UserSettings = {
   showBoardBuilderEngineEval: boolean;
   showMoveTypeLabels: boolean;
   showPuzzleTimer: boolean;
+  points: number;
   setTheme: (theme: ThemeSetting) => void;
   setPreMoveKey: (value: string | undefined) => void;
   setCountryID: (value: number) => void;
@@ -30,6 +31,7 @@ type UserSettings = {
   setShowBoardBuilderEngineEval: (value: boolean) => void;
   setShowMoveTypeLabels: (value: boolean) => void;
   setShowPuzzleTimer: (value: boolean) => void;
+  setPoints: (value: number) => void;
 
   dataFetched: boolean;
 };
@@ -46,6 +48,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [showBoardBuilderEngineEval, setShowBoardBuilderEngineEval] = useState(true);
   const [showMoveTypeLabels, setShowMoveTypeLabels] = useState(true);
   const [showPuzzleTimer, setShowPuzzleTimer] = useState(true);
+  const [points, setPoints] = useState(0);
 
   const [dataFetched, setDataFetched] = useState(false);
 
@@ -65,6 +68,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
           setShowBoardBuilderEngineEval(data.showBoardBuilderEngineEval);
           setShowMoveTypeLabels(data.showMoveTypeLabels);
           setShowPuzzleTimer(data.showPuzzleTimer);
+          setPoints(data.points);
 
           setDataFetched(true);
         })
@@ -89,6 +93,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     showBoardBuilderEngineEval,
     showMoveTypeLabels,
     showPuzzleTimer,
+    points,
     setTheme,
     setPreMoveKey,
     setCountryID,
@@ -98,6 +103,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     setShowBoardBuilderEngineEval,
     setShowMoveTypeLabels,
     setShowPuzzleTimer,
+    setPoints,
     dataFetched
   };
 
@@ -110,8 +116,6 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
 
 export const useUserData = () => {
   const context = useContext(UserDataContext);
-
-  console.log("Context: ", context);
 
   if (!context) {
     throw new Error("useUserData must be used within a UserSettingsProvider");

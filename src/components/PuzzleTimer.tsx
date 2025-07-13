@@ -30,7 +30,7 @@ const PuzzleTimer: React.FC<PuzzleTimerProps> = ({ running, fontSize }) => {
             }
         };
     }, [running]);
-    console.log("fontSize: ", fontSize);
+
     return (
         <div className={`text-[${parseInt(fontSize.toString())}rem] font-mono`}>
             {formatTime(timer)}
