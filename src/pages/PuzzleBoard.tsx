@@ -41,6 +41,12 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
     const [lastMoveTo, setLastMoveTo] = useState<Square | null>(null);
     const [awardedPoints, setAwardedPoints] = useState(0);
 
+    // State for bonus points and their animations
+    const [speedBonus, setSpeedBonus] = useState(0);
+    const [accuracyBonus, setAccuracyBonus] = useState(0);
+    const [showBonuses, setShowBonuses] = useState(false);
+    const [absorbBonuses, setAbsorbBonuses] = useState(false);
+
     const [animationStart, setAnimationStart] = useState<{ x: number, y: number } | null>(null);
     const [animationEnd, setAnimationEnd] = useState<{ x: number, y: number } | null>(null);
 
@@ -241,6 +247,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         if (user && !pointsAwarded) {
             let puzzlePoints = computePuzzleScore(finalMoveTimes);
             setPointsAwarded(true);
+
+            // Set the state for the bonus points to be displayed
+            setSpeedBonus(puzzlePoints.speedBonus);
+            setAccuracyBonus(puzzlePoints.noneIncorrectBonus);
+
             const totalPoints = puzzlePoints.points + puzzlePoints.speedBonus + puzzlePoints.noneIncorrectBonus;
             setAwardedPoints(totalPoints);
             setLastMoveTo(lastMove);
@@ -264,30 +275,38 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                     y: endY,
                 });
             }
+
+            // Trigger the bonus labels to slide up from the bottom
+            if (puzzlePoints.speedBonus > 0 || puzzlePoints.noneIncorrectBonus > 0) {
+                setShowBonuses(true);
+            }
+
             // Chain the animations
             const timeout1 = setTimeout(async () => {
                 setShowPointsAnimation(false);
                 setAnimationStart(null);
                 setAnimationEnd(null);
 
-                // --- Start of New Changes ---
-                // 1. Trigger the text style animation
+                // Trigger the "absorption" animation for the bonus labels
+                setAbsorbBonuses(true);
+                
+                // Trigger the text style animation and update points
                 setIsUpdatingPoints(true);
                 await updateUserInfo(user.id, { points: points + totalPoints });
                 setPoints(points + totalPoints);
 
-
-                // 3. Reset the style after the animation completes
+                // Reset all animation states after they've finished
                 const timeout2 = setTimeout(() => {
                     setIsUpdatingPoints(false);
+                    setShowBonuses(false);
+                    setAbsorbBonuses(false);
                 }, 1500); // This duration should be slightly longer than the count-up
                 timeoutIds.current.push(timeout2);
-                // --- End of New Changes ---
 
             }, 1000); // This is the duration of the flying points animation
             timeoutIds.current.push(timeout1);
         }
-    }
+    };
 
     const handleMoveAttempt = useCallback(
         (from: Square, to: Square, promotion?: 'q' | 'r' | 'b' | 'n') => {
@@ -457,7 +476,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                     '--dy': `${animationEnd.y - animationStart.y}px`,
                                 } as React.CSSProperties}
                             >
-                                +{awardedPoints}
+                                +{awardedPoints - speedBonus - accuracyBonus}
                             </div>
                         )}
 
@@ -581,19 +600,52 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                             <div
                                 ref={pointsDisplayRef}
                                 className={`order-4 w-full flex items-center justify-center`} style={{ marginTop: `${scale * 1.5}rem` }}>
+                                {/* Relative wrapper for positioning bonus labels */}
+                                <div className="relative">
+                                    {/* Main points display */}
+                                    <div
+                                        className={`flex flex-row items-center transition-all duration-500 ease-in-out ${isUpdatingPoints ? 'text-green-500' : ''}`}
+                                        style={{
+                                            gap: `${scale * 0.25}rem`,
+                                            transform: isUpdatingPoints ? 'scale(1.25)' : 'scale(1)',
+                                            transformOrigin: 'center'
+                                        }}
+                                    >
+                                        <Sparkles style={{ width: `${scale * 1}rem`, height: `${scale * 1}rem` }} />
+                                        <div className="flex flex-row" style={{ gap: `${scale * 0.25}rem` }}>
+                                            <p style={{ fontSize: `${scale * 1}rem` }}>{displayPoints}</p>
+                                            <p style={{ fontSize: `${scale * 1}rem` }}>points</p>
+                                        </div>
+                                    </div>
 
-                                <div
-                                    className={`flex flex-row items-center transition-all duration-500 ease-in-out ${isUpdatingPoints ? 'text-green-500' : ''}`}
-                                    style={{
-                                        gap: `${scale * 0.25}rem`,
-                                        transform: isUpdatingPoints ? 'scale(1.25)' : 'scale(1)',
-                                        transformOrigin: 'center'
-                                    }}
-                                >
-                                    <Sparkles style={{ width: `${scale * 1}rem`, height: `${scale * 1}rem` }} />
-                                    <div className="flex flex-row" style={{ gap: `${scale * 0.25}rem` }}>
-                                        <p style={{ fontSize: `${scale * 1}rem` }}>{displayPoints}</p>
-                                        <p style={{ fontSize: `${scale * 1}rem` }}>points</p>
+                                    {/* Absolutely positioned container for bonus labels */}
+                                    <div className="absolute top-full left-0 right-0 mt-1 flex flex-col items-center gap-1 pointer-events-none">
+                                        {/* Speed Bonus Label */}
+                                        {speedBonus > 0 && (
+                                            <div className={`text-sm font-semibold text-green-500 transition-all duration-700 
+                                                ${absorbBonuses
+                                                    ? '-translate-y-4 opacity-0 scale-75' // State 2: Absorb
+                                                    : showBonuses
+                                                        ? 'translate-y-0 opacity-100'   // State 1: Visible
+                                                        : 'translate-y-16 opacity-0'    // State 0: Hidden
+                                                }`}
+                                            >
+                                                +{speedBonus} Speed
+                                            </div>
+                                        )}
+                                        {/* Accuracy Bonus Label */}
+                                        {accuracyBonus > 0 && (
+                                            <div className={`text-sm font-semibold text-green-500 transition-all duration-700 delay-100 
+                                                ${absorbBonuses
+                                                    ? '-translate-y-4 opacity-0 scale-75' // State 2: Absorb
+                                                    : showBonuses
+                                                        ? 'translate-y-0 opacity-100'   // State 1: Visible
+                                                        : 'translate-y-16 opacity-0'    // State 0: Hidden
+                                                }`}
+                                            >
+                                                +{accuracyBonus} None Incorrect
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
