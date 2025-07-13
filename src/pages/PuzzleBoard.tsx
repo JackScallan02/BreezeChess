@@ -273,8 +273,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                 // --- Start of New Changes ---
                 // 1. Trigger the text style animation
                 setIsUpdatingPoints(true);
-                // 2. Update the backend and context, which will trigger the count-up animation
-                await updateUserInfo(user.id, { points: totalPoints });
+                await updateUserInfo(user.id, { points: points + totalPoints });
                 setPoints(points + totalPoints);
 
 
@@ -446,7 +445,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                         {/* The points animation */}
                         {showPointsAnimation && animationStart && animationEnd && (
                             <div
-                                className="absolute text-green-500 font-bold md:text-3xl text-xl pointer-events-none drop-shadow-[0_1.2px_1.2px_rgba(0.4,0.4,0.4,0.8)]"
+                                className="absolute text-green-500 font-bold md:text-3xl text-xl pointer-events-none drop-shadow-[0_1.4px_1.4px_rgba(0,0,0,0.9)]"
                                 style={{
                                     left: animationStart.x,
                                     top: animationStart.y,
@@ -580,26 +579,24 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
 
                             </div>
                             <div
-    ref={pointsDisplayRef}
-    // 1. This outer container is now just for stable centering. No animations here.
-    className={`order-4 w-full flex items-center justify-center`} style={{ marginTop: `${scale * 1.5}rem` }}>
+                                ref={pointsDisplayRef}
+                                className={`order-4 w-full flex items-center justify-center`} style={{ marginTop: `${scale * 1.5}rem` }}>
 
-    {/* 2. This new inner container handles the animation and content layout */}
-    <div
-        className={`flex flex-row items-center transition-all duration-500 ease-in-out ${isUpdatingPoints ? 'text-green-500' : ''}`}
-        style={{
-            gap: `${scale * 0.25}rem`,
-            transform: isUpdatingPoints ? 'scale(1.25)' : 'scale(1)',
-            transformOrigin: 'center'
-        }}
-    >
-        <Sparkles style={{ width: `${scale * 1}rem`, height: `${scale * 1}rem` }} />
-        <div className="flex flex-row" style={{ gap: `${scale * 0.25}rem` }}>
-            <p style={{ fontSize: `${scale * 1}rem` }}>{displayPoints}</p>
-            <p style={{ fontSize: `${scale * 1}rem` }}>points</p>
-        </div>
-    </div>
-</div>
+                                <div
+                                    className={`flex flex-row items-center transition-all duration-500 ease-in-out ${isUpdatingPoints ? 'text-green-500' : ''}`}
+                                    style={{
+                                        gap: `${scale * 0.25}rem`,
+                                        transform: isUpdatingPoints ? 'scale(1.25)' : 'scale(1)',
+                                        transformOrigin: 'center'
+                                    }}
+                                >
+                                    <Sparkles style={{ width: `${scale * 1}rem`, height: `${scale * 1}rem` }} />
+                                    <div className="flex flex-row" style={{ gap: `${scale * 0.25}rem` }}>
+                                        <p style={{ fontSize: `${scale * 1}rem` }}>{displayPoints}</p>
+                                        <p style={{ fontSize: `${scale * 1}rem` }}>points</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
