@@ -105,6 +105,10 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
     const gameRef = useRef<Chess | null>(null);
     const moveBeingAnimated = useRef<Move | null>(null);
+    const onMoveAttemptRef = useRef(onMoveAttempt);
+    useEffect(() => {
+        onMoveAttemptRef.current = onMoveAttempt;
+    }, [onMoveAttempt]);
 
     const { preMoveKey, alwaysPromoteQueen, showLegalMoves } = useUserData();
     const heldKeys = useHeldKeys();
@@ -270,7 +274,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 handlePlaySound(moveResult, gameAfterMove);
             }
         };
-    
+
         if (!animationsEnabled || wasDragged || isPremove) {
             onMoveAttempt(from, to, move.promotion as any);
             playSoundForThisMove(move);
@@ -278,14 +282,14 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
             setPossibleMoves([]);
             return;
         }
-    
+
         moveBeingAnimated.current = move;
         const piecesToAnimate: AnimatingPieceInfo[] = [];
         const mainCoords = getCoordsFromRefs(move.from, move.to);
         if (mainCoords) {
             piecesToAnimate.push({ piece: pieceToMove, from: move.from, to: move.to, ...mainCoords });
         }
-    
+
         if (move.flags.includes('k') || move.flags.includes('q')) {
             const isKingside = move.flags.includes('k');
             const rank = move.color === 'w' ? '1' : '8';
@@ -297,14 +301,14 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 piecesToAnimate.push({ piece: rookPiece, from: rookFromSq, to: rookToSq, ...rookCoords });
             }
         }
-    
+
         if (piecesToAnimate.length > 0) {
             setAnimatingPieces(piecesToAnimate);
         } else {
             onMoveAttempt(from, to, move.promotion as any);
             playSoundForThisMove(move);
         }
-    
+
         setSelectedSquare(null);
         setPossibleMoves([]);
     }, [game, isPlayerTurn, canMoveAnyPiece, getCoordsFromRefs, onMoveAttempt, animationsEnabled, preMoves, letters, numbers, soundEnabled, handlePlaySound, alwaysPromoteQueen, heldKeys]);
@@ -314,54 +318,59 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     }, [game]);
 
     useEffect(() => {
-        if (animatingPieces.length > 0) {
-            const duration = 200;
-            const primaryElement = animatedPieceElementsRef.current.get(animatingPieces[0].from);
+    // This effect should ONLY run when the list of animating pieces changes.
+    if (animatingPieces.length > 0) {
+        const duration = 200;
+        const primaryElement = animatedPieceElementsRef.current.get(animatingPieces[0].from);
 
+        // This part sets the initial state for the animation
+        animatingPieces.forEach(p => {
+            const el = animatedPieceElementsRef.current.get(p.from);
+            if (el) {
+                el.style.transform = `translate(${p.startX}px, ${p.startY}px)`;
+                el.style.transition = 'none';
+            }
+        });
+
+        // This part queues the style change that triggers the CSS transition
+        requestAnimationFrame(() => {
             animatingPieces.forEach(p => {
                 const el = animatedPieceElementsRef.current.get(p.from);
                 if (el) {
-                    el.style.transform = `translate(${p.startX}px, ${p.startY}px)`;
-                    el.style.transition = 'none';
+                    el.style.transition = `transform ${duration}ms ease-out`;
+                    el.style.transform = `translate(${p.endX}px, ${p.endY}px)`;
                 }
             });
+        });
 
-            requestAnimationFrame(() => {
-                animatingPieces.forEach(p => {
-                    const el = animatedPieceElementsRef.current.get(p.from);
-                    if (el) {
-                        el.style.transition = `transform ${duration}ms ease-out`;
-                        el.style.transform = `translate(${p.endX}px, ${p.endY}px)`;
-                    }
-                });
-            });
+        if (primaryElement) {
+            const handleTransitionEnd = () => {
+                primaryElement.removeEventListener('transitionend', handleTransitionEnd);
+                const move = moveBeingAnimated.current;
+                const currentGame = gameRef.current; // Use the ref to get the current game state
 
-            if (primaryElement) {
-                const handleTransitionEnd = () => {
-                    primaryElement.removeEventListener('transitionend', handleTransitionEnd);
-                    const move = moveBeingAnimated.current;
-                    if (move) {
-                        // This function now officially makes the move in the game state
-                        onMoveAttempt(move.from, move.to, move.promotion as any);
+                if (move && currentGame) {
+                    // Use the ref to call the latest version of the function
+                    onMoveAttemptRef.current(move.from, move.to, move.promotion as any);
 
-                        // To play the correct sound, we must calculate the board state *after* the move
-                        if (soundEnabled) {
-                            const gameAfterMove = new Chess(game.fen()); // game.fen() is the state before this move
-                            const moveResult = gameAfterMove.move(move);   // moveResult is the state after
-                            if (moveResult) {
-                                handlePlaySound(moveResult, gameAfterMove); // ✅ Corrected call
-                            }
+                    if (soundEnabled) {
+                        const gameAfterMove = new Chess(currentGame.fen());
+                        const moveResult = gameAfterMove.move(move);
+                        if (moveResult) {
+                            handlePlaySound(moveResult, gameAfterMove);
                         }
                     }
-                    setAnimatingPieces([]);
-                    animatedPieceElementsRef.current.clear();
-                    moveBeingAnimated.current = null;
-                };
-                primaryElement.addEventListener('transitionend', handleTransitionEnd);
-                return () => primaryElement.removeEventListener('transitionend', handleTransitionEnd);
-            }
+                }
+                setAnimatingPieces([]);
+                animatedPieceElementsRef.current.clear();
+                moveBeingAnimated.current = null;
+            };
+            primaryElement.addEventListener('transitionend', handleTransitionEnd);
+            return () => primaryElement.removeEventListener('transitionend', handleTransitionEnd);
         }
-    }, [animatingPieces, onMoveAttempt, game, soundEnabled, handlePlaySound]);
+    }
+    // 👇 The ONLY dependency should be animatingPieces
+}, [animatingPieces]);
 
     useEffect(() => {
         if (isPlayerTurn && preMoves.length > 0) return;
@@ -428,6 +437,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
 
     const handleSquareClick = useCallback((clickedSquare: Square, e: React.MouseEvent) => {
         if (interactionState.current?.isDragging) return;
+        if (animatingPieces.length > 0) return;
 
         if (selectedSquare && !isPlayerTurn && !canMoveAnyPiece) {
             if (selectedSquare === clickedSquare) {
@@ -521,7 +531,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                 setPossibleMoves((isPlayerTurn || canMoveAnyPiece) ? getEnhancedPossibleMoves(clickedSquare) : []);
             }
         }
-    }, [heldKeys, game, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece, getInterpretedMove, executeMove, getEnhancedPossibleMoves, preMoves, letters, numbers]);
+    }, [animatingPieces.length, heldKeys, game, selectedSquare, isPlayerTurn, userColor, canMoveAnyPiece, getInterpretedMove, executeMove, getEnhancedPossibleMoves, preMoves, letters, numbers]);
 
     const handleMouseMove = useCallback((e: MouseEvent) => {
         const currentInteraction = interactionState.current;
@@ -606,6 +616,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     }, [currentSquareSize, handleMouseMove, isPlayerTurn, canMoveAnyPiece, getInterpretedMove, executeMove, letters, numbers, game]);
 
     const handleMouseDown = useCallback((e: React.MouseEvent, piece: Piece | undefined, square: Square) => {
+        if (animatingPieces.length > 0) return;
         if (e.button === 2) {
             return;
         }
@@ -621,7 +632,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         };
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
-    }, [handleMouseMove, handleMouseUp, userColor, canMoveAnyPiece]);
+    }, [handleMouseMove, handleMouseUp, userColor, canMoveAnyPiece, animatingPieces.length]);
 
 
     const getPromotionDialogStyle = (): React.CSSProperties => {
@@ -727,7 +738,10 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                     )}
                     {numbers.map((rank) => letters.map((file) => {
                         const algebraicSquare = `${file}${rank}` as Square;
-                        const pieceToDisplay = preMoves.length > 0 ? virtualBoard.get(algebraicSquare) : game.get(algebraicSquare);
+                        let pieceToDisplay = preMoves.length > 0 ? virtualBoard.get(algebraicSquare) : game.get(algebraicSquare);
+                        if (animatingPieces.some(p => p.from === algebraicSquare)) {
+                            pieceToDisplay = null;
+                        }
                         const piece = pieceToDisplay;
                         const isPreMoveOrigin = preMoveOrigins.has(algebraicSquare);
                         const isPreMoveDestination = preMoveDests.has(algebraicSquare);
