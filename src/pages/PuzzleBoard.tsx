@@ -169,11 +169,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
     // This function now accepts the final move times array to pass to the compute function.
     const updatePoints = async (finalMoveTimes: Array<number>) => {
         if (user && !pointsAwarded) {
-            let points = computePuzzleScore(finalMoveTimes);
+            let puzzlePoints = computePuzzleScore(finalMoveTimes);
             setPointsAwarded(true);
-            const totalPoints =  points.points + points.speedBonus + points.noneIncorrectBonus;
+            const totalPoints =  puzzlePoints.points + puzzlePoints.speedBonus + puzzlePoints.noneIncorrectBonus;
             await updateUserInfo(user.id, { points: totalPoints });
-            setPoints(totalPoints);
+            setPoints(points + totalPoints);
         }
     }
 
