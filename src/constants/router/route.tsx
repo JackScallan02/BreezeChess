@@ -73,7 +73,10 @@ function formatTitle(theme: string) {
 }
 
 function capitalizeWords(text: string) {
-  return text.replace(/\b\w/g, char => char.toUpperCase());
+  return text
+    .replace(/([a-z])([A-Z0-9])/g, "$1 $2")   // separate camelCase and letters followed by numbers
+    .replace(/([0-9])([A-Za-z])/g, "$1 $2")   // separate numbers followed by letters
+    .replace(/\b\w/g, char => char.toUpperCase());
 }
 
 export const ROUTES = rawRoutes.map(({ path, element, requiresAuth, allowNewUser }) => ({
