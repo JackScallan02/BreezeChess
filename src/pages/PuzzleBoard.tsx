@@ -37,6 +37,10 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
     const moveStartTimeRef = useRef<number>(Date.now());
     const [pointsAwarded, setPointsAwarded] = useState(false);
     const [incorrectMovePlayed, setIncorrectMovePlayed] = useState(false);
+    const [showPointsAnimation, setShowPointsAnimation] = useState(false);
+    const [lastMoveTo, setLastMoveTo] = useState<Square | null>(null);
+    const [awardedPoints, setAwardedPoints] = useState(0);
+
 
     const timeoutIds = useRef<NodeJS.Timeout[]>([]);
     const chessboardRef = useRef<ChessBoardHandle>(null);
@@ -90,6 +94,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         setFeedbackMessage('');
         setShowHighlights(true);
         setHintSquare(null);
+        setLastMoveTo(null);
+        setAwardedPoints(0);
 
         if (userPlaysFirst) {
             setIsPlayerTurn(true);
@@ -151,7 +157,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         const m = times.length;
         if (m === 0) return { points: 0, speedBonus: 0, noneIncorrectBonus: 0 };
 
-        // Weighted bonuses
         const denominator = (m * (m + 1)) / 2;
         const weights = times.map((_, i) => (m - i) / denominator);
         const bonuses = times.map(t => Math.exp(-lambda * t));
@@ -159,19 +164,30 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         const totalBonus = Math.min(bonusCap, bonusCap * weightedBonus);
         const noneIncorrectBonus = !incorrectMovePlayed ? 0.5 * m : 0;
 
+        console.log({
+            points: Math.round(m * 100),
+            speedBonus: Math.round(totalBonus * 100),
+            noneIncorrectBonus: Math.round(noneIncorrectBonus * 100)
+        })
+
         return {
             points: Math.round(m * 100),
             speedBonus: Math.round(totalBonus * 100),
             noneIncorrectBonus: Math.round(noneIncorrectBonus * 100)
         };
-    }
+    };
 
-    // This function now accepts the final move times array to pass to the compute function.
-    const updatePoints = async (finalMoveTimes: Array<number>) => {
+    const updatePoints = async (finalMoveTimes: Array<number>, lastMove: Square) => {
         if (user && !pointsAwarded) {
             let puzzlePoints = computePuzzleScore(finalMoveTimes);
             setPointsAwarded(true);
-            const totalPoints =  puzzlePoints.points + puzzlePoints.speedBonus + puzzlePoints.noneIncorrectBonus;
+            const totalPoints = puzzlePoints.points + puzzlePoints.speedBonus + puzzlePoints.noneIncorrectBonus;
+            setAwardedPoints(totalPoints);
+            setLastMoveTo(lastMove);
+            setShowPointsAnimation(true);
+            setTimeout(() => {
+                setShowPointsAnimation(false);
+            }, 2000);
             await updateUserInfo(user.id, { points: totalPoints });
             setPoints(points + totalPoints);
         }
@@ -192,7 +208,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
             if (userMoveAlgebraic === expectedMove) {
                 const now = Date.now();
                 const timeTakenSec = (now - moveStartTimeRef.current) / 1000;
-                // Create the new array of move times before setting state.
                 const newMoveTimes = [...moveTimes, timeTakenSec];
                 setMoveTimes(newMoveTimes);
                 moveStartTimeRef.current = now;
@@ -205,8 +220,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                 if (nextIndex >= puzzleSolution.moves.length) {
                     setPuzzleStatus('solved');
                     setFeedbackMessage('Puzzle solved!');
-                    // Pass the newly created move times array directly to updatePoints.
-                    updatePoints(newMoveTimes);
+                    updatePoints(newMoveTimes, to);
                 } else {
                     setPuzzleStatus('correct');
                     setFeedbackMessage('Correct! Opponent is thinking...');
@@ -227,7 +241,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                         } else {
                             setFeedbackMessage('Error in puzzle data. Please reset.');
                         }
-                    }, 1000);
+                    }, 500);
                     timeoutIds.current.push(timeout);
                 }
             } else {
@@ -271,6 +285,31 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         [maxReachedMoveIndex, puzzleSolution, userColor]
     );
 
+const getSquarePosition = (square: Square) => {
+    if (!boardContainerRef.current) return { top: '0px', left: '0px' };
+
+    const container = boardContainerRef.current;
+    const rect = container.getBoundingClientRect();
+
+    const col = square.charCodeAt(0) - 'a'.charCodeAt(0);
+    const row = 8 - parseInt(square.charAt(1), 10);
+    const isFlipped = userColor === 'b';
+
+    const finalRow = isFlipped ? 7 - row : row;
+    const finalCol = isFlipped ? 7 - col : col;
+
+    const squareSize = rect.width / 8;
+
+    const x = finalCol * squareSize + squareSize / 2;
+    const y = finalRow * squareSize + squareSize / 2;
+
+    return {
+        left: `${x}px`,
+        top: `${y}px`,
+    };
+};
+
+
     const handleGoBack = () => navigateMoves(currentMoveIndex - 1);
     const handleGoForward = () => navigateMoves(currentMoveIndex + 1);
 
@@ -291,7 +330,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                     {/* Chessboard */}
                     <div
                         ref={boardContainerRef}
-                        className="flex order-2 items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%]"
+                        className="flex order-2 items-center justify-center w-full [@media(min-width:900px)]:flex-[1_1_0%] relative"
                         style={{ aspectRatio: '1 / 1', maxWidth: 'calc(100vh - 80px)' }}
                     >
                         <ChessBoard
@@ -307,6 +346,23 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                             hintSquare={hintSquare}
                             soundEnabled={true}
                         />
+                        {/* The points animation */}
+                        {showPointsAnimation && lastMoveTo && (
+                            <div
+                                className="absolute drop-shadow-[0_1.7px_1.7px_rgba(40,40,40,1)] text-green-500 font-bold text-2xl flex items-center justify-center pointer-events-none"
+                                style={{
+                                    ...getSquarePosition(lastMoveTo),
+                                    width: '12.5%',
+                                    height: '12.5%',
+                                    transform: 'translateY(-100%)',
+                                    transition: 'opacity 1s, transform 1s',
+                                    opacity: 1,
+                                    zIndex: 100, // Note: the chess board has a zIndex of 3 for the pieces
+                                }}
+                            >
+                                +{awardedPoints}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right Side */}

@@ -38,11 +38,9 @@ const PointsPage = () => {
     const [pointItems, setPointItems] = useState<Array<{ amount: number; price: number; image: string }>>([]);
     const [loading, setLoading] = useState(true);
     useEffect(() => {
-        // Simulate an API call with a timeout
         setTimeout(() => {
-            // TODO: fetch our data here
             const itemsFromApi = Array.from({ length: 12 }, (_, i) => ({
-                amount: (i + 1) * 100,
+                amount: (i + 1) * 100000,
                 price: (i + 1) * 9.99,
                 image: 'https://picsum.photos/200'
             }));
