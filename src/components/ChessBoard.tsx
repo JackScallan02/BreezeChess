@@ -765,8 +765,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                         else if (isHintSquare) bgColorClass = "bg-amber-200";
                         if (isHoveredTarget) bgColorClass = "bg-indigo-100";
 
-                        const isHiddenDuringAnimation = animatingPieces.some(p => p.from === algebraicSquare || p.to === algebraicSquare);
-
                         return (
                             <div key={algebraicSquare} ref={el => { if (el) { squareRefs.current.set(algebraicSquare, el); } else { squareRefs.current.delete(algebraicSquare); } }} className={`relative flex items-center justify-center ${bgColorClass} ${selectedSquare && 'cursor-pointer'}`} onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)} onClick={(e) => handleSquareClick(algebraicSquare, e)}>
                                 {isPossibleMoveTarget && showLegalMoves && <div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>}
