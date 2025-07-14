@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle, useLayoutEffect } from "react";
 import { Chess, Square, Piece, Move } from 'chess.js';
+import { CircleCheckBig, CircleX } from 'lucide-react';
 import { useUserData } from "../contexts/UserDataContext";
 import useMovePieceSound from '../util/MovePieceSound';
 import PromotionDialog from "./PromotionDialog";
@@ -20,6 +21,7 @@ interface ChessBoardProps {
     animationsEnabled?: boolean;
     orientation?: 'w' | 'b';
     soundEnabled: boolean;
+    correctLabel?: 'correct' | 'incorrect' | undefined;
 }
 
 interface DraggedPieceState {
@@ -80,7 +82,8 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     canMoveAnyPiece,
     animationsEnabled = true,
     soundEnabled = true,
-    orientation = 'w'
+    orientation = 'w',
+    correctLabel
 }, ref) => {
     const letters = orientation === 'w' ? ["a", "b", "c", "d", "e", "f", "g", "h"] : ["h", "g", "f", "e", "d", "c", "b", "a"];
     const numbers = orientation === 'w' ? [8, 7, 6, 5, 4, 3, 2, 1] : [1, 2, 3, 4, 5, 6, 7, 8];
@@ -318,59 +321,59 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     }, [game]);
 
     useEffect(() => {
-    // This effect should ONLY run when the list of animating pieces changes.
-    if (animatingPieces.length > 0) {
-        const duration = 200;
-        const primaryElement = animatedPieceElementsRef.current.get(animatingPieces[0].from);
+        // This effect should ONLY run when the list of animating pieces changes.
+        if (animatingPieces.length > 0) {
+            const duration = 200;
+            const primaryElement = animatedPieceElementsRef.current.get(animatingPieces[0].from);
 
-        // This part sets the initial state for the animation
-        animatingPieces.forEach(p => {
-            const el = animatedPieceElementsRef.current.get(p.from);
-            if (el) {
-                el.style.transform = `translate(${p.startX}px, ${p.startY}px)`;
-                el.style.transition = 'none';
-            }
-        });
-
-        // This part queues the style change that triggers the CSS transition
-        requestAnimationFrame(() => {
+            // This part sets the initial state for the animation
             animatingPieces.forEach(p => {
                 const el = animatedPieceElementsRef.current.get(p.from);
                 if (el) {
-                    el.style.transition = `transform ${duration}ms ease-out`;
-                    el.style.transform = `translate(${p.endX}px, ${p.endY}px)`;
+                    el.style.transform = `translate(${p.startX}px, ${p.startY}px)`;
+                    el.style.transition = 'none';
                 }
             });
-        });
 
-        if (primaryElement) {
-            const handleTransitionEnd = () => {
-                primaryElement.removeEventListener('transitionend', handleTransitionEnd);
-                const move = moveBeingAnimated.current;
-                const currentGame = gameRef.current; // Use the ref to get the current game state
+            // This part queues the style change that triggers the CSS transition
+            requestAnimationFrame(() => {
+                animatingPieces.forEach(p => {
+                    const el = animatedPieceElementsRef.current.get(p.from);
+                    if (el) {
+                        el.style.transition = `transform ${duration}ms ease-out`;
+                        el.style.transform = `translate(${p.endX}px, ${p.endY}px)`;
+                    }
+                });
+            });
 
-                if (move && currentGame) {
-                    // Use the ref to call the latest version of the function
-                    onMoveAttemptRef.current(move.from, move.to, move.promotion as any);
+            if (primaryElement) {
+                const handleTransitionEnd = () => {
+                    primaryElement.removeEventListener('transitionend', handleTransitionEnd);
+                    const move = moveBeingAnimated.current;
+                    const currentGame = gameRef.current; // Use the ref to get the current game state
 
-                    if (soundEnabled) {
-                        const gameAfterMove = new Chess(currentGame.fen());
-                        const moveResult = gameAfterMove.move(move);
-                        if (moveResult) {
-                            handlePlaySound(moveResult, gameAfterMove);
+                    if (move && currentGame) {
+                        // Use the ref to call the latest version of the function
+                        onMoveAttemptRef.current(move.from, move.to, move.promotion as any);
+
+                        if (soundEnabled) {
+                            const gameAfterMove = new Chess(currentGame.fen());
+                            const moveResult = gameAfterMove.move(move);
+                            if (moveResult) {
+                                handlePlaySound(moveResult, gameAfterMove);
+                            }
                         }
                     }
-                }
-                setAnimatingPieces([]);
-                animatedPieceElementsRef.current.clear();
-                moveBeingAnimated.current = null;
-            };
-            primaryElement.addEventListener('transitionend', handleTransitionEnd);
-            return () => primaryElement.removeEventListener('transitionend', handleTransitionEnd);
+                    setAnimatingPieces([]);
+                    animatedPieceElementsRef.current.clear();
+                    moveBeingAnimated.current = null;
+                };
+                primaryElement.addEventListener('transitionend', handleTransitionEnd);
+                return () => primaryElement.removeEventListener('transitionend', handleTransitionEnd);
+            }
         }
-    }
-    // 👇 The ONLY dependency should be animatingPieces
-}, [animatingPieces]);
+        // 👇 The ONLY dependency should be animatingPieces
+    }, [animatingPieces]);
 
     useEffect(() => {
         if (isPlayerTurn && preMoves.length > 0) return;
@@ -766,9 +769,54 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                         if (isHoveredTarget) bgColorClass = "bg-indigo-100";
 
                         return (
-                            <div key={algebraicSquare} ref={el => { if (el) { squareRefs.current.set(algebraicSquare, el); } else { squareRefs.current.delete(algebraicSquare); } }} className={`relative flex items-center justify-center ${bgColorClass} ${selectedSquare && 'cursor-pointer'}`} onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)} onClick={(e) => handleSquareClick(algebraicSquare, e)}>
-                                {isPossibleMoveTarget && showLegalMoves && <div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>}
-                                {piece && !isDragged && <img src={getPieceImage(piece)} draggable={false} alt={`${piece?.color} ${piece?.type}`} style={{ width: '75%', height: '75%', objectFit: 'contain', cursor: (canMoveAnyPiece || (piece?.color === userColor)) ? 'grab' : selectedSquare ? 'pointer' : 'default', userSelect: 'none', zIndex: 3 }} />}
+                            <div key={algebraicSquare} ref={el => {
+                                if (el) {
+                                    squareRefs.current.set(algebraicSquare, el);
+                                } else {
+                                    squareRefs.current.delete(algebraicSquare);
+                                }
+                            }} className={`relative flex items-center justify-center ${bgColorClass} ${selectedSquare && 'cursor-pointer'}`} onMouseDown={(e) => handleMouseDown(e, piece || undefined, algebraicSquare)} onClick={(e) => handleSquareClick(algebraicSquare, e)}>
+                                {isPossibleMoveTarget && showLegalMoves && (
+                                    <div className={`absolute rounded-full ${piece ? 'border-4 border-slate-400' : 'bg-slate-400 opacity-50'}`} style={{ width: piece ? '100%' : '30%', height: piece ? '100%' : '30%', zIndex: 1, transform: piece ? 'scale(0.9)' : 'none' }}></div>
+                                )}
+                                {piece && !isDragged && (
+                                    <img
+                                        src={getPieceImage(piece)}
+                                        draggable={false}
+                                        alt={`${piece?.color} ${piece?.type}`}
+                                        style={{
+                                            width: '75%',
+                                            height: '75%',
+                                            objectFit: 'contain',
+                                            cursor: (canMoveAnyPiece || (piece?.color === userColor)) ? 'grab' : selectedSquare ? 'pointer' : 'default',
+                                            userSelect: 'none',
+                                            zIndex: 3
+                                        }}
+                                    />
+                                )}
+                                {algebraicSquare === lastMove?.to && correctLabel && (
+                                    <div
+                                        className="absolute top-0 right-0 z-10"
+                                        style={{
+                                            width: currentSquareSize * 0.4,
+                                            height: currentSquareSize * 0.4,
+                                            padding: currentSquareSize * 0.05,
+                                        }}
+                                    >
+                                        {correctLabel === "correct" && (
+                                            <CircleCheckBig
+                                            strokeWidth={3.5}
+                                                style={{ width: '100%', height: '100%', color: 'rgb(34 197 94)', filter: 'drop-shadow(0 0 0.75px rgba(0,0,0,0.3))', }} // Tailwind: text-green-500
+                                            />
+                                        )}
+                                        {correctLabel === "incorrect" && (
+                                            <CircleX
+                                            strokeWidth={3.5}
+                                                style={{ width: '100%', height: '100%', color: 'rgb(239 68 68)', filter: 'drop-shadow(0 0 0.75px rgba(0,0,0,0.3))', }} // Tailwind: text-red-500
+                                            />
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         );
                     }))}

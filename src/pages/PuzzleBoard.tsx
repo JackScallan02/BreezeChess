@@ -40,6 +40,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
     const [showPointsAnimation, setShowPointsAnimation] = useState(false);
     const [lastMoveTo, setLastMoveTo] = useState<Square | null>(null);
     const [awardedPoints, setAwardedPoints] = useState(0);
+    const [correctLabel, setCorrectLabel] = useState<'correct' | 'incorrect' | undefined>();
 
     // State for bonus points and their animations
     const [speedBonus, setSpeedBonus] = useState(0);
@@ -340,7 +341,9 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                     setPuzzleStatus('correct');
                     setFeedbackMessage('Correct! Opponent is thinking...');
                     setIsPlayerTurn(false);
+                    setCorrectLabel('correct');
                     const timeout = setTimeout(() => {
+                        setCorrectLabel(undefined);
                         const opponentGame = new Chess(tempGame.fen());
                         const opponentMove = puzzleSolution.moves[nextIndex];
                         const opponentMoveObj = opponentGame.move(opponentMove);
@@ -366,12 +369,14 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                 if (!incorrectMovePlayed) setIncorrectMovePlayed(true);
                 setPuzzleStatus('incorrect');
                 setFeedbackMessage('Incorrect move. Try again!');
+                setCorrectLabel('incorrect');
                 const timeout = setTimeout(() => {
                     setGame(new Chess(originalFen));
                     setIncorrectSquare(null);
                     setPuzzleStatus('playing');
+                    setCorrectLabel(undefined);
                     setFeedbackMessage(`Your turn as ${userColor === 'w' ? 'White' : 'Black'}`);
-                }, 500);
+                }, 200);
                 timeoutIds.current.push(timeout);
             }
         },
@@ -459,6 +464,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                             userColor={userColor}
                             orientation={userColor || 'w'}
                             hintSquare={hintSquare}
+                            correctLabel={correctLabel}
                             soundEnabled={true}
                         />
                         {/* The points animation */}
