@@ -323,7 +323,8 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     useEffect(() => {
         // This effect should ONLY run when the list of animating pieces changes.
         if (animatingPieces.length > 0) {
-            const duration = 200;
+            // This is the movement speed of the animation: 150ms
+            const duration = 150;
             const primaryElement = animatedPieceElementsRef.current.get(animatingPieces[0].from);
 
             // This part sets the initial state for the animation
@@ -798,8 +799,8 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                                     <div
                                         className="absolute top-0 right-0 z-10"
                                         style={{
-                                            width: currentSquareSize * 0.4,
-                                            height: currentSquareSize * 0.4,
+                                            width: currentSquareSize * 0.35,
+                                            height: currentSquareSize * 0.35,
                                             padding: currentSquareSize * 0.05,
                                         }}
                                     >

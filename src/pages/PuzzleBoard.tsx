@@ -516,7 +516,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
 
                                     <button
                                         onClick={resetPuzzle}
-                                        className="cursor-pointer bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
+                                        className="cursor-pointer bg-blue-600 disabled:opacity-70 disabled:bg-blue-400 disabled:cursor-default text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors w-full"
+                                        disabled={!pointsAwarded}
                                         style={{
                                             fontSize: `${scale * 1}rem`,
                                             padding: `${scale * 0.625}rem ${scale * 1.25}rem`,
