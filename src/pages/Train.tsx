@@ -21,7 +21,7 @@ const Train = () => {
                     <p className="dark:text-white text-xl">Earn points and collect chess pieces by selecting the Puzzle Trainer!</p>
                 </div>
                 <br />
-                <div className="flex md:flex-row flex-col w-full items-center justify-center mt-8 gap-x-8 gap-y-4">
+                <div className="flex md:flex-row flex-col w-full items-start justify-center mt-8 gap-x-8 gap-y-4">
                     <button
                         className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
                         onClick={() => handleNavigation('/train/board-builder')}
