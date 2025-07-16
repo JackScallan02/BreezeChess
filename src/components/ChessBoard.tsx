@@ -412,7 +412,8 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     }, [preMoves.length]);
 
     const getPieceImage = (piece: Piece | undefined): string | undefined => {
-        if (piece) return `https://images.chesscomfiles.com/chess-themes/pieces/neo/150/${piece.color}${piece.type}.png`;
+        console.log(piece);
+        if (piece) return `/assets/chess_pieces/default/${piece.color}/${piece.type}.png`;
         return undefined;
     };
 
@@ -758,7 +759,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                         const isPossibleMoveTarget = possibleMoves.includes(algebraicSquare);
                         const isHintSquare = hintSquare === algebraicSquare;
 
-                        let bgColorClass = isDark ? "bg-sky-700" : "bg-slate-100";
+                        let bgColorClass = isDark ? "bg-[#95b2d1]" : "bg-slate-100";
                         if (algebraicSquare === incorrectSquare) bgColorClass = "bg-red-200";
                         else if (isPreMoveOrigin && isPreMoveDestination) bgColorClass = "bg-red-300";
                         else if (isPreMoveDestination) bgColorClass = "bg-red-200";
