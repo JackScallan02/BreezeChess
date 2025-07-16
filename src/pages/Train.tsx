@@ -2,6 +2,7 @@ import React from 'react';
 import useDarkMode from '../darkmode/useDarkMode';
 import MainToolBar from '../components/MainToolBar';
 import { useNavigation } from '../navigator/navigate';
+import { Swords, Wrench } from 'lucide-react';
 
 const Train = () => {
 
@@ -14,21 +15,27 @@ const Train = () => {
             <MainToolBar />
             <main className="w-full h-full">
                 <div className="flex flex-row w-full justify-center mt-8">
-                    <p className="dark:text-white text-[3rem] font-bold">Choose a training method</p>
+                    <p className="dark:text-white text-4xl font-bold">Choose a training method</p>
                 </div>
                 <br />
-                <div className="flex flex-row w-full justify-center mt-8">
+                <div className="flex md:flex-row flex-col w-full items-center justify-center mt-8 gap-x-8 gap-y-4">
                     <button
-                        className="ml-4 bg-indigo-500 text-white font-bold py-2 px-4 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
+                        className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
                         onClick={() => handleNavigation('/train/board-builder')}
                     >
-                        Board Builder
+                        <div className="flex flex-row gap-x-2 items-center stroke-10">
+                            <Wrench className="w-6 h-6" />
+                            Board Builder
+                        </div>
                     </button>
                     <button
-                        className="ml-4 bg-indigo-500 text-white font-bold py-2 px-4 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
+                        className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
                         onClick={() => handleNavigation('/train/puzzle')}
                     >
-                        Puzzle Trainer
+                        <div className="flex flex-row gap-x-2 items-center stroke-10">
+                            <Swords className="w-6 h-6" />
+                            Puzzle Trainer
+                        </div>
                     </button>
                 </div>
             </main>

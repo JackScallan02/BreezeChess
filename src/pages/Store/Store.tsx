@@ -7,6 +7,8 @@ import PointsPage from "./PointsPage";
 import FeaturedPage from "./FeaturedPage";
 import ChessPiecePage from "./ChessPiecePage";
 import ChessSetPage from "./ChessSetPage";
+import { Sparkles } from "lucide-react";
+import { useUserData } from "../../contexts/UserDataContext";
 
 interface MenuItems {
     [key: string]: string;
@@ -15,7 +17,6 @@ interface MenuItems {
 const StoreToolBar = () => {
 
     const [_, setSearchParams] = useSearchParams();
-
     const [menuOpen, setMenuOpen] = useState(false);
     const [menuItems, setMenuItems] = useState<MenuItems>({
         'Featured': 'featured',
@@ -80,13 +81,27 @@ const StoreToolBar = () => {
 const Store = () => {
     const [searchParams] = useSearchParams();
     const currentPage = searchParams.get('page') || 'featured';
+    const { points } = useUserData();
 
     return (
         <div className="flex flex-col w-full h-full">
             <MainToolBar />
-            <div className="flex items-center w-full justify-center md:mt-8 mt-4 md:mb-8 mb-4 md:h-12 h-8">
-                <h1 className="md:text-4xl text-2xl font-bold mb-4">Item Shop</h1>
+            <div className="relative w-full flex items-center h-12 p-8">
+                {/* Item Shop (Centered to page) */}
+                <div className="md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
+                    <h1 className="md:text-4xl text-2xl font-bold">Item Shop</h1>
+                </div>
+
+                {/* Points (Right side) */}
+                <div className="ml-auto flex flex-row items-center gap-x-2">
+                    <div className="flex flex-row items-center gap-x-1">
+                        <Sparkles className="md:w-6 md:h-6 h-4 w-4" />
+                        <p className="md:text-2xl text-lg">{points}</p>
+                    </div>
+                    <p className="md:text-2xl text-lg">points</p>
+                </div>
             </div>
+
             <div>
                 <StoreToolBar />
             </div>

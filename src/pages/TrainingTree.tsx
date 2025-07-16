@@ -265,7 +265,7 @@ const Tree = ({ data }) => {
  */
 const TrainingTree = () => {
     return (
-        <div className="w-full max-w-7xl mx-auto p-4 font-sans flex flex-col md:flex-row gap-y-12 md:gap-x-12 lg:gap-x-16 xl:gap-x-24">
+        <div className="w-full xl:max-w-[80%] mx-auto p-4 font-sans flex flex-col md:flex-row gap-y-12 md:gap-x-16 lg:gap-x-24 xl:gap-x-32">
             <div className="w-full"><Tree data={checkmatesData} /></div>
             <div className="w-full"><Tree data={tacticsData} /></div>
         </div>
