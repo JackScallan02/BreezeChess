@@ -17,6 +17,9 @@ const Train = () => {
                 <div className="flex flex-row w-full justify-center mt-8">
                     <p className="dark:text-white text-4xl font-bold">Choose a training method</p>
                 </div>
+                <div className="flex flex-row w-full justify-center mt-8">
+                    <p className="dark:text-white text-xl">Earn points and collect chess pieces by selecting the Puzzle Trainer!</p>
+                </div>
                 <br />
                 <div className="flex md:flex-row flex-col w-full items-center justify-center mt-8 gap-x-8 gap-y-4">
                     <button

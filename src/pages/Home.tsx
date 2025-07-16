@@ -3,6 +3,7 @@ import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from './Loading';
 import { useNavigation } from '../navigator/navigate';
+import { Swords, WalletCards, Bot } from 'lucide-react';
 
 const Home = () => {
   const { user, loading } = useAuth();
@@ -23,62 +24,40 @@ const Home = () => {
         <MainToolBar />
         <main className="w-full h-full">
           <div className="flex flex-row w-full justify-center mt-8">
-            <p className="text-[3rem] font-bold">Welcome, {user.username}</p>
+            <p className="dark:text-white text-4xl font-bold">Welcome, {user.username}</p>
           </div>
-          <div className="flex flex-row w-full justify-evenly mt-16 h-[30rem]">
-          <div
-              className="group relative rounded-2xl p-4 bg-white shadow-md border w-[25%] h-full text-center flex flex-col justify-center items-center active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all overflow-hidden"
-              onMouseOver={() => setHovered(0)}
-              onMouseLeave={() => setHovered(-1)}
-              onClick={() => handleNavigation('/train')}
+          <div className="flex flex-row w-full justify-center mt-8">
+            <p className="dark:text-white text-xl">Choose an option from below!</p>
+          </div>
+          <br />
+          <div className="flex md:flex-row flex-col w-full items-center justify-center mt-8 gap-x-16 gap-y-4">
+            <button
+              className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
+              onClick={() => {}}
             >
-              <img
-                src="/assets/other_images/training-image.jpeg"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div
-                className="relative z-10 text-white text-[2.5rem] tracking-wide font-bold transition-all duration-300 ease-in-out group-hover:text-[2.75rem]"
-                style={{ textShadow: '2px 2px 6px rgba(0, 0, 0, 0.9)' }}
-              >
-                Train
-              </div>
-              <div className={`absolute inset-0 ${hovered !== 0 && 'bg-black/20'} z-0`} />
-            </div>
-            <div
-              className="group relative rounded-2xl p-4 bg-white shadow-md border w-[25%] h-full text-center flex flex-col justify-center items-center active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all overflow-hidden"
-              onMouseOver={() => setHovered(1)}
-              onMouseLeave={() => setHovered(-1)}
-            >
-              <img
-                src="/assets/other_images/play-image.jpeg"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div
-                className="relative z-10 text-white text-[2.5rem] tracking-wide font-bold transition-all duration-300 ease-in-out group-hover:text-[2.75rem]"
-                style={{ textShadow: '2px 2px 6px rgba(0, 0, 0, 0.9)' }}
-              >
-                Play
-              </div>
-              <div className={`absolute inset-0 ${hovered !== 1 && 'bg-black/20'} z-0`} />
-            </div>
-            <div
-              className="group relative rounded-2xl p-4 bg-white shadow-md border w-[25%] h-full text-center flex flex-col justify-center items-center active:scale-[.98] active:duration-75 hover:scale-[1.01] hover:cursor-pointer ease-in-out transition-all overflow-hidden"
-              onMouseOver={() => setHovered(2)}
-              onMouseLeave={() => setHovered(-1)}
-            >
-              <img
-                src="/assets/other_images/collection-image.jpeg"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div
-                className="relative z-10 text-white text-[2.5rem] tracking-wide font-bold transition-all duration-300 ease-in-out group-hover:text-[2.75rem]"
-                style={{ textShadow: '2px 2px 6px rgba(0, 0, 0, 0.9)' }}
-              >
+              <div className="flex flex-row gap-x-2 items-center stroke-10">
+                <WalletCards className="w-6 h-6" />
                 Collection
               </div>
-              <div className={`absolute inset-0 ${hovered !== 2 && 'bg-black/20'} z-0`} />
-            </div>
-
+            </button>
+            <button
+              className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
+              onClick={() => handleNavigation('/train')}
+            >
+              <div className="flex flex-row gap-x-2 items-center stroke-10">
+                <Swords className="w-6 h-6" />
+                Training
+              </div>
+            </button>
+            <button
+              className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105"
+              onClick={() => {}}
+            >
+              <div className="flex flex-row gap-x-2 items-center stroke-10">
+                <Bot className="w-6 h-6" />
+                Online play
+              </div>
+            </button>
           </div>
         </main>
       </div>
