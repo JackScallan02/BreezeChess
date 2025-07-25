@@ -82,10 +82,13 @@ services:
     image: localstack/localstack:latest
     environment:
       - SERVICES=s3,sqs,sns,sts,iam
-      - DEFAULT_REGION=us-east-2
+      - DEFAULT_REGION=us-east-1
       - DEBUG=1
     ports:
       - "4566:4566"
+    volumes:
+      - "./init-s3.py:/etc/localstack/init/ready.d/init-s3.py"  # ready hook
+      - "./assets:/assets"
     networks:
      - breezechess-network
 
