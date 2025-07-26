@@ -14,10 +14,15 @@ interface Piece {
     type: string;
     color: string;
 }
+interface Board {
+    white: string;
+    black: string;
+}
 
 const Collection = () => {
     const [displayType, setDisplayType] = useState('white'); // white, black, or both
     const [allPieces, setAllPieces] = useState<Array<Piece>>([]);
+    const [allBoards, setAllBoards] = useState<Array<Board>>([]);
     const [displayedPieces, setDisplayedPieces] = useState<DisplayedPieces>({
         white: { p: '', r: '', n: '', b: '', q: '', k: '' },
         black: { p: '', r: '', n: '', b: '', q: '', k: '' },
@@ -83,6 +88,50 @@ const Collection = () => {
 
         setAllPieces(allPieces);
 
+        setAllBoards([
+            {
+                white: 'bg-blue-100',
+                black: 'bg-blue-950',
+            },
+            {
+                white: 'bg-neutral-100',
+                black: 'bg-zinc-700',
+            },
+            {
+                white: 'bg-yellow-100',
+                black: 'bg-yellow-700',
+            },
+            {
+                white: 'bg-green-100',
+                black: 'bg-green-800',
+            },
+            {
+                white: 'bg-gray-200',
+                black: 'bg-gray-900',
+            },
+            {
+                white: 'bg-pink-100',
+                black: 'bg-pink-900',
+            },
+            {
+                white: 'bg-slate-100',
+                black: 'bg-slate-800',
+            },
+            {
+                white: 'bg-stone-100',
+                black: 'bg-stone-700',
+            },
+            {
+                white: 'bg-orange-100',
+                black: 'bg-orange-800',
+            },
+            {
+                white: 'bg-emerald-100',
+                black: 'bg-emerald-900',
+            },
+        ]);
+
+
 
     }, []);
     return (
@@ -96,7 +145,7 @@ const Collection = () => {
                     <div className="w-full"><p></p></div>
                     <CollectionDisplay displayedPieces={displayedPieces} displayType={displayType} />
                 </div>
-                <CollectionContainer allPieces={allPieces} />
+                <CollectionContainer allPieces={allPieces} allBoards={allBoards} />
             </div>
         </>
     );
@@ -149,9 +198,10 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
 
 interface CollectionContainerProps {
     allPieces: Array<Piece>;
+    allBoards: Array<Board>;
 }
 
-const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces }) => {
+const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allBoards }) => {
     const [searchParams, setSearchParams] = useSearchParams();
     const initialTab = searchParams.get('tab') as Tab;
     const [activeTab, setActiveTab] = useState<Tab>(validTabs.includes(initialTab) ? initialTab : 'sets');
@@ -182,7 +232,7 @@ const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces }) 
             <div className="p-4 text-white w-full">
                 {activeTab === 'sets' && <div>Display Set content here</div>}
                 {activeTab === 'pieces' && <PiecesPage allPieces={allPieces} />}
-                {activeTab === 'boards' && <div>Display Board content here</div>}
+                {activeTab === 'boards' && <BoardsPage allBoards={allBoards} />}
                 {activeTab === 'effects' && <div>Display Effect content here</div>}
             </div>
         </div>
@@ -194,18 +244,80 @@ interface PiecesPageProps {
 }
 
 const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
+    const [selectedImg, setSelectedImg] = useState<string | null>(null);
+    const handleClick = (src: string) => {
+        setSelectedImg(prev => (prev === src ? null : src)); // toggle
+    };
     return (
-<div className="w-full grid [grid-template-columns:repeat(auto-fit,minmax(5rem,1fr))] gap-2 bg-slate-600 pt-4 pb-4 rounded-lg">
-    {allPieces.map((piece) => (
-        <img
-            key={piece.src}
-            src={piece.src}
-            className="aspect-square min-h-20 w-full object-contain"
-        />
-    ))}
-</div>
+        <div className="w-full grid lg:grid-cols-8 xl:grid-cols-10 md:grid-cols-6 grid-cols-4 gap-4 bg-slate-600 p-4 rounded-lg">
+            {allPieces.map((piece) => (
+                <div
+                    key={piece.src}
+                    onClick={() => handleClick(piece.src)}
+                    className={`flex h-full cursor-pointer flex-col items-center justify-between gap-3 rounded-md border-2 p-2 transition-all duration-200 ${selectedImg === piece.src
+                        ? 'border-gray-400 bg-slate-700'
+                        : 'border-transparent hover:border-gray-500'
+                        }`}
+                >
+                    <img
+                        src={piece.src}
+                        className="h-auto w-full rounded-sm object-contain select-none "
+                        draggable={false}
+                    />
+                    {selectedImg === piece.src && (
+                        <SelectedItemMenu />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
 
-    )
+interface BoardsPageProps {
+    allBoards: Array<Board>;
 }
+
+const BoardsPage: React.FC<BoardsPageProps> = ({ allBoards }) => {
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+    const handleClick = (index: number) => {
+        setSelectedIndex(prev => (prev === index ? null : index)); // toggle selection
+    };
+
+    return (
+        <div className="w-full grid [grid-template-columns:repeat(auto-fit,minmax(5rem,1fr))] gap-2 bg-slate-600 p-4 rounded-lg">
+            {allBoards.map((board, index) => (
+                <div key={index} className="flex flex-col items-center gap-2">
+                    <div
+                        onClick={() => handleClick(index)}
+                        className={`grid grid-cols-2 grid-rows-2 w-30 h-30 rounded-md border-2 p-4 transition-all duration-200 cursor-pointer ${selectedIndex === index
+                            ? 'border-gray-400'
+                            : 'border-transparent hover:border-gray-500'
+                            }`}
+                    >
+                        <div className={`w-full h-full ${board.white}`} />
+                        <div className={`w-full h-full ${board.black}`} />
+                        <div className={`w-full h-full ${board.black}`} />
+                        <div className={`w-full h-full ${board.white}`} />
+                    </div>
+                    {selectedIndex === index && (
+                        <SelectedItemMenu />
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const SelectedItemMenu = () => (
+    <div className="flex flex-col gap-y-2 w-full">
+        <button className="w-full cursor-pointer rounded bg-indigo-600 py-2 text-sm text-white transition hover:bg-indigo-700">
+            Equip
+        </button>
+        <button className="w-full cursor-pointer rounded bg-indigo-600 py-2 text-sm text-white transition hover:bg-indigo-700">
+            Details
+        </button>
+    </div>
+);
 
 export default Collection;
