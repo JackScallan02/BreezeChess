@@ -2,6 +2,7 @@
 import React from 'react';
 import Login from "../../pages/Login";
 import About from "../../pages/About";
+import Collection from '../../pages/Collection';
 import Register from "../../pages/Register";
 import Home from "../../pages/Home";
 import Welcome from "../../pages/Welcome";
@@ -28,6 +29,7 @@ const rawRoutes: Array<Route> = [
   { path: "/about", element: <About />, requiresAuth: false, allowNewUser: true },
   { path: "/register", element: <Register />, requiresAuth: false },
   { path: "/home", element: <Home />, requiresAuth: true },
+  { path: "/collection", element: <Collection />, requiresAuth: true},
   { path: "/welcome", element: <Welcome />, requiresAuth: true, allowNewUser: true },
   { path: "/profile", element: <Profile />, requiresAuth: true },
   { path: "/settings", element: <SettingsPage />, requiresAuth: true },

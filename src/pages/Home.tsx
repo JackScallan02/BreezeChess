@@ -30,7 +30,7 @@ const Home = () => {
               className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer 
             hover:bg-indigo-600 transition duration-200 ease-in-out transform
             hover:scale-105 w-full md:w-auto disabled:cursor-default disabled:opacity-60 disabled:hover:scale-100 disabled:hover:bg-indigo-500"
-              onClick={() => { }}
+              onClick={() => handleNavigation('/collection')}
               disabled={!user}
             >
               <div className="flex flex-row gap-x-2 items-center justify-center stroke-10"> {/* Added justify-center */}
