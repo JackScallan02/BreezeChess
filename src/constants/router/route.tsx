@@ -1,6 +1,5 @@
 // src/constants/router/routes.tsx
 import React from 'react';
-import FrontPage from "../../pages/FrontPage";
 import Login from "../../pages/Login";
 import About from "../../pages/About";
 import Register from "../../pages/Register";
@@ -24,7 +23,7 @@ interface Route {
 }
 
 const rawRoutes: Array<Route> = [
-  { path: "/", element: <FrontPage />, requiresAuth: false },
+  { path: "/", element: <Home />, requiresAuth: false },
   { path: "/login", element: <Login />, requiresAuth: false },
   { path: "/about", element: <About />, requiresAuth: false, allowNewUser: true },
   { path: "/register", element: <Register />, requiresAuth: false },
@@ -34,9 +33,9 @@ const rawRoutes: Array<Route> = [
   { path: "/settings", element: <SettingsPage />, requiresAuth: true },
   { path: "/store", element: <Store />, requiresAuth: false, allowNewUser: true},
   { path: "/contact", element: <Contact />, requiresAuth: false, allowNewUser: true },
-  { path: "/train", element: <Train />, requiresAuth: true },
-  { path: "/train/board-builder", element: <BoardBuilder />, requiresAuth: true },
-  { path: "/train/puzzle", element: <PuzzleHome />, requiresAuth: true },
+  { path: "/train", element: <Train />, requiresAuth: false },
+  { path: "/train/board-builder", element: <BoardBuilder />, requiresAuth: false },
+  { path: "/train/puzzle", element: <PuzzleHome />, requiresAuth: false },
 
   ...[
     ["mateIn1"], ["mateIn2"], ["mateIn3"], ["mateIn4"], ["mateIn5"], ["mate"],
@@ -55,7 +54,7 @@ const rawRoutes: Array<Route> = [
   ].map(([theme]) => ({
     path: `/train/puzzle/${theme}`,
     element: <PuzzleType title={formatTitle(theme)} themes={[theme]} />,
-    requiresAuth: true,
+    requiresAuth: false,
   }))
 ];
 
