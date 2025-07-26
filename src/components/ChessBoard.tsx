@@ -412,7 +412,6 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     }, [preMoves.length]);
 
     const getPieceImage = (piece: Piece | undefined): string | undefined => {
-        console.log(piece);
         if (piece) return `/assets/chess_pieces/default/${piece.color}/${piece.type}.png`;
         return undefined;
     };

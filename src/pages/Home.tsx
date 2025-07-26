@@ -3,7 +3,7 @@ import MainToolBar from '../components/MainToolBar';
 import { useAuth } from "../contexts/AuthContext";
 import LoadingScreen from './Loading';
 import { useNavigation } from '../navigator/navigate';
-import { Swords, WalletCards, Bot } from 'lucide-react';
+import { Swords, WalletCards, Bot, LogIn } from 'lucide-react';
 import { CalendarArrowDown } from 'lucide-react';
 
 const Home = () => {
@@ -17,7 +17,7 @@ const Home = () => {
       <MainToolBar />
       <main className="w-full h-full">
         <div className="flex flex-row w-full justify-center mt-8">
-          <p className="dark:text-white text-4xl font-bold">{user? `Welcome, ${user.username}` : 'Welcome to BreezeChess!'}</p>
+          <p className="dark:text-white text-4xl font-bold">{user ? `Welcome, ${user.username}` : 'Welcome to BreezeChess!'}</p>
         </div>
         <div className="flex flex-row w-full justify-center mt-8">
           <p className="dark:text-white text-xl">Choose an option from below!</p>
@@ -25,15 +25,28 @@ const Home = () => {
         <br />
 
         <div className="flex md:flex-row flex-col w-full items-start justify-center gap-x-16 gap-y-4 p-8">
-          <button
-            className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105 w-full md:w-auto" // Added w-full for small screens, md:w-auto for medium+
-            onClick={() => { }}
-          >
-            <div className="flex flex-row gap-x-2 items-center justify-center stroke-10"> {/* Added justify-center */}
-              <WalletCards className="w-6 h-6" />
-              Collection
-            </div>
-          </button>
+          <div className="flex flex-col items-center w-full md:w-auto">
+            <button
+              className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer 
+            hover:bg-indigo-600 transition duration-200 ease-in-out transform
+            hover:scale-105 w-full md:w-auto disabled:cursor-default disabled:opacity-60 disabled:hover:scale-100 disabled:hover:bg-indigo-500"
+              onClick={() => { }}
+              disabled={!user}
+            >
+              <div className="flex flex-row gap-x-2 items-center justify-center stroke-10"> {/* Added justify-center */}
+                <WalletCards className="w-6 h-6" />
+                Collection
+              </div>
+            </button>
+            {!user && (
+              <div className="flex flex-row items-center justify-center gap-x-2 mt-2 w-full"> {/* justify-center already present */}
+                <LogIn className="text-gray-200 select-none" />
+                <p className="text-sm text-gray-200">
+                  <a href="/login" className="text-blue-300 hover:text-blue-200">Sign in</a> to view
+                </p>
+              </div>
+            )}
+          </div>
           <button
             className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded cursor-pointer hover:bg-indigo-600 transition duration-200 ease-in-out transform hover:scale-105 w-full md:w-auto" // Added w-full for small screens, md:w-auto for medium+
             onClick={() => handleNavigation('/train')}
@@ -43,7 +56,6 @@ const Home = () => {
               Training
             </div>
           </button>
-
           <div className="flex flex-col items-center w-full md:w-auto">
             <button
               className="text-xl bg-indigo-500 text-white font-bold py-4 px-8 rounded opacity-60 w-full md:w-auto" // Added w-full for small screens, md:w-auto for medium+

@@ -16,7 +16,7 @@ export const useNavigation = () => {
         const route = ROUTES.find(r => r.path === page);
         const requiresAuth = route?.requiresAuth;
 
-        const allowedNewUserPages = ['/welcome', '/about', '/contact'];
+        const allowedNewUserPages = ['/welcome', '/about', '/contact', '/store'];
 
         // Redirect if route is protected and user is not logged in
         if (requiresAuth && !isLoggedIn) {

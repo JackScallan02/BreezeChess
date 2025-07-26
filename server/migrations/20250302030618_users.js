@@ -11,7 +11,6 @@ export function up(knex) {
         table.string('provider').notNullable();
         table.string('username').unique();
         table.boolean('is_new_user').notNullable();
-        table.string('experience_level');
     });
 }
 
@@ -20,8 +19,6 @@ export function up(knex) {
  * @returns { Promise<void> }
  */
 export async function down(knex) {
-    await knex.schema
-        .dropTableIfExists('user_goals');
-    return await knex.schema.dropTableIfExists('users');
+    return knex.schema.dropTableIfExists('users');
 }
 
