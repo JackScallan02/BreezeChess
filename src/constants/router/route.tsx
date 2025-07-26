@@ -80,8 +80,8 @@ function capitalizeWords(text: string) {
 
 export const ROUTES = rawRoutes.map(({ path, element, requiresAuth, allowNewUser }) => ({
   path,
-  element: requiresAuth
-    ? <ProtectedRoute requiresAuth={true} allowNewUser={!!allowNewUser}>{element}</ProtectedRoute>
+  element: (requiresAuth || !allowNewUser)
+    ? <ProtectedRoute requiresAuth={requiresAuth} allowNewUser={allowNewUser}>{element}</ProtectedRoute>
     : element,
   requiresAuth
 }));

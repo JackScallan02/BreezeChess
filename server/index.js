@@ -9,7 +9,7 @@ const port = 9001;
 async function insertPuzzles() {
   const csvFileUrl = 'https://github.com/JackScallan02/BreezeChess/releases/download/v0.1.0/lichess_db_puzzle.csv';
   const BATCH_SIZE = 1000; // Number of rows to insert in each batch
-  const MAX_PUZZLE_AMOUNT=process.env.MAX_PUZZLE_AMOUNT || 10000;
+  const MAX_PUZZLE_AMOUNT = process.env.MAX_PUZZLE_AMOUNT || 10000;
 
   let records = [];
   let insertedCount = 0;
@@ -75,16 +75,22 @@ async function insertPuzzles() {
 
 async function setupDatabase() {
   try {
-    console.log('Rolling back migrations...');
-    await db.migrate.rollback();
-    console.log('Running migrations...');
-    await db.migrate.latest();
-    console.log('Running seeds...');
-    await db.seed.run();
+    // TODO: Need to figure out a way to set up database in production
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+      await db.raw('DROP SCHEMA public CASCADE;');
+      await db.raw('CREATE SCHEMA public;');
 
-    await insertPuzzles();
-    
-    console.log('Database setup complete.');
+      console.log('Rolling back migrations...');
+      await db.migrate.rollback();
+      console.log('Running migrations...');
+      await db.migrate.latest();
+      console.log('Running seeds...');
+      await db.seed.run();
+
+      await insertPuzzles();
+
+      console.log('Database setup complete.');
+    }
   } catch (error) {
     console.error('Database setup failed:', error);
     process.exit(1); // Exit if setup fails
@@ -98,17 +104,17 @@ async function readRoutes() {
   // Read all files in the 'routes' directory
   for (const file of fs.readdirSync(routesDirectory)) {
     if (file.endsWith('.js')) { // Only import JavaScript files
-        const routeName = file.replace('.js', ''); // Remove file extension
-        const route = await import(path.join(routesDirectory, file));
-        const router = route.default || route;
-        if (router && typeof router === 'function') {
-            app.use(`/${routeName}`, router);
-          } else {
-            console.error(`Invalid router in ${file}, skipping.`);
-          }
+      const routeName = file.replace('.js', ''); // Remove file extension
+      const route = await import(path.join(routesDirectory, file));
+      const router = route.default || route;
+      if (router && typeof router === 'function') {
+        app.use(`/${routeName}`, router);
+      } else {
+        console.error(`Invalid router in ${file}, skipping.`);
       }
+    }
   }
-  
+
   console.log("Finished loading all routes");
 }
 

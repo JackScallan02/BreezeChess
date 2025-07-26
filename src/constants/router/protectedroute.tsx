@@ -13,7 +13,7 @@ const ProtectedRoute: React.FC<Props> = ({ children, requiresAuth, allowNewUser 
 const { user, loading } = useAuth();
 const location = useLocation();
 
-  const isLoggedIn = !!user && Object.keys(user).length > 0;
+  const isLoggedIn = user && Object.keys(user).length > 0;
   const isNewUser = user?.is_new_user;
 
   if (loading) {
