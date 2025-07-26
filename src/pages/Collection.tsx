@@ -1,5 +1,5 @@
 import MainToolBar from "../components/MainToolBar";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 const validTabs = ['sets', 'pieces', 'boards', 'effects'] as const;
@@ -20,13 +20,45 @@ interface Board {
 }
 
 const Collection = () => {
-    const [displayType, setDisplayType] = useState('white'); // white, black, or both
     const [allPieces, setAllPieces] = useState<Array<Piece>>([]);
     const [allBoards, setAllBoards] = useState<Array<Board>>([]);
+    const [dropDownExpanded, setDropDownExpanded] = useState<boolean>(false);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialDisplay = searchParams.get('display') || 'both';
+    const initialTab = searchParams.get('tab') || 'sets';
+
+    const [displayType, setDisplayType] = useState(initialDisplay);
+    const [displayState, setDisplayState] = useState(() => {
+        if (initialDisplay === 'white') return 'Show white only';
+        if (initialDisplay === 'black') return 'Show black only';
+        return 'Show black and white';
+    });
+
+    const [activeTab, setActiveTab] = useState<Tab>(
+        validTabs.includes(initialTab as Tab) ? (initialTab as Tab) : 'sets'
+    );
+
+    // Update query params on change
+    useEffect(() => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('display', displayType);
+        newParams.set('tab', activeTab);
+        setSearchParams(newParams);
+    }, [displayType, activeTab]);
+
     const [displayedPieces, setDisplayedPieces] = useState<DisplayedPieces>({
         white: { p: '', r: '', n: '', b: '', q: '', k: '' },
         black: { p: '', r: '', n: '', b: '', q: '', k: '' },
     });
+
+    useEffect(() => {
+        const displayParam = searchParams.get('display') || 'both';
+        setDisplayType(displayParam);
+        if (displayParam === 'white') setDisplayState('Show white only');
+        else if (displayParam === 'black') setDisplayState('Show black only');
+        else setDisplayState('Show black and white');
+    }, [searchParams]);
+
 
     useEffect(() => {
         // On initial load, get all of their pieces from API, as well as their "selected" pieces (which to display by default)
@@ -142,10 +174,84 @@ const Collection = () => {
                 style={{ height: 'calc(100vh - 64px)' }}
             >
                 <div className="p-4 min-h-[200px] h-full">
-                    <div className="w-full"><p></p></div>
+                    <div className="w-full">
+                        <button
+                            id="dropdownDefaultButton"
+                            className="cursor-pointer text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none
+                            focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center
+                            dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                            type="button"
+                            onClick={() => setDropDownExpanded((prev) => !prev)}
+                        >
+                            {displayState}
+                            <svg className="w-2.5 h-2.5 ms-3"
+                                aria-hidden="true"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 10 6">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
+                            </svg>
+                        </button>
+                        {dropDownExpanded && (
+                            <div className="absolute z-10 bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700">
+                                <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+                                    <li>
+                                        <button
+                                            onClick={() => {
+                                                const newParams = new URLSearchParams(searchParams);
+                                                newParams.set('display', 'black');
+                                                setSearchParams(newParams);
+                                                setDisplayType('black');
+                                                setDisplayState('Show black only');
+                                                setDropDownExpanded(false);
+                                            }}
+                                            className="cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                                        >
+                                            Show black only
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button
+                                            onClick={() => {
+                                                const newParams = new URLSearchParams(searchParams);
+                                                newParams.set('display', 'white');
+                                                setSearchParams(newParams);
+                                                setDisplayType('white');
+                                                setDisplayState('Show white only');
+                                                setDropDownExpanded(false);
+                                            }}
+                                            className="cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                                        >
+                                            Show white only
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button
+                                            onClick={() => {
+                                                setSearchParams({ display: 'both' });
+                                                setDisplayType('both');
+                                                setDisplayState('Show black and white');
+                                                setDropDownExpanded(false);
+                                            }}
+                                            className="cursor-pointer block w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
+                                        >
+                                            Show black and white
+                                        </button>
+                                    </li>
+                                </ul>
+
+                            </div>
+                        )}
+
+                    </div>
                     <CollectionDisplay displayedPieces={displayedPieces} displayType={displayType} />
                 </div>
-                <CollectionContainer allPieces={allPieces} allBoards={allBoards} />
+                <CollectionContainer
+                    allPieces={allPieces}
+                    allBoards={allBoards}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                />
             </div>
         </>
     );
@@ -160,37 +266,132 @@ interface CollectionDisplayProps {
 
 const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, displayType }) => {
 
+    const getDisplayedPieces = () => {
+        if (displayType === 'white') {
+            return (
+                <div
+                    className={`
+                        grid
+                        gap-4
+                        gap-x-2
+                        justify-center
+                        items-end
+                        w-full
+                        max-w-[90vw]
+                        md:flex md:flex-row md:gap-x-12
+                    `}
+                    style={{
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                    }}
+                >
+                    {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
+
+                        <img
+                            key={piece}
+                            src={displayedPieces.white[piece]}
+                            alt={`White ${piece}`}
+                            draggable={false}
+                            className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
+                        />
+
+                    ))}
+                </div>
+            )
+        } else if (displayType === 'black') {
+            return (
+                <div
+                    className={`
+                        grid
+                        gap-4
+                        gap-x-2
+                        justify-center
+                        items-end
+                        w-full
+                        max-w-[90vw]
+                        md:flex md:flex-row md:gap-x-12
+                    `}
+                    style={{
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                    }}
+                >
+                    {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
+
+                        <img
+                            key={piece}
+                            src={displayedPieces.black[piece]}
+                            alt={`Black ${piece}`}
+                            draggable={false}
+                            className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
+                        />
+
+                    ))}
+                </div>
+            )
+        }
+
+        return (
+            <div className="flex flex-col gap-y-8">
+                <div
+                    className={`
+                        grid
+                        gap-4
+                        gap-x-2
+                        justify-center
+                        items-end
+                        w-full
+                        max-w-[90vw]
+                        md:flex md:flex-row md:gap-x-12
+                    `}
+                    style={{
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                    }}
+                >
+                    {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
+                        <img
+                            key={piece}
+                            src={displayedPieces.white[piece]}
+                            alt={`White ${piece}`}
+                            draggable={false}
+                            className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
+                        />
+                    ))}
+                </div>
+                <div
+                    className={`
+                        grid
+                        gap-4
+                        gap-x-2
+                        justify-center
+                        items-end
+                        w-full
+                        max-w-[90vw]
+                        md:flex md:flex-row md:gap-x-12
+                    `}
+                    style={{
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                    }}
+                >
+                    {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
+                        <img
+                            key={piece}
+                            src={displayedPieces.black[piece]}
+                            alt={`Black ${piece}`}
+                            draggable={false}
+                            className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
+                        />
+                    ))}
+                </div>
+
+            </div>
+        )
+    }
+
     return (
         <>
-            {displayType === 'white' && (
-                <div className="w-full flex justify-center items-center h-full">
-                    <div
-                        className={`
-                            grid
-                            gap-4
-                            gap-x-2
-                            justify-center
-                            items-end
-                            w-full
-                            max-w-[90vw]
-                            md:flex md:flex-row md:gap-x-12
-                        `}
-                        style={{
-                            gridTemplateColumns: 'repeat(3, 1fr)',
-                        }}
-                    >
-                        {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
-                            <img
-                                key={piece}
-                                src={displayedPieces.white[piece]}
-                                alt={`White ${piece}`}
-                                draggable={false}
-                                className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
+            <div className="w-full flex justify-center items-center h-full">
+
+                {getDisplayedPieces()}
+            </div>
         </>
     );
 
@@ -199,17 +400,12 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
 interface CollectionContainerProps {
     allPieces: Array<Piece>;
     allBoards: Array<Board>;
+    activeTab: Tab;
+    setActiveTab: React.Dispatch<React.SetStateAction<Tab>>;
 }
 
-const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allBoards }) => {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const initialTab = searchParams.get('tab') as Tab;
-    const [activeTab, setActiveTab] = useState<Tab>(validTabs.includes(initialTab) ? initialTab : 'sets');
 
-    // Sync tab to URL when activeTab changes
-    useEffect(() => {
-        setSearchParams({ tab: activeTab });
-    }, [activeTab, setSearchParams]);
+const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allBoards, activeTab, setActiveTab }) => {
 
     return (
         <div className="bg-slate-900 w-full h-full min-h-[200px] border-t border-gray-700">
