@@ -378,7 +378,7 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
                 <div
                     key={piece.src}
                     onClick={() => handleClick(piece.src)}
-                    className={`flex h-full cursor-pointer flex-col lg:h-30 lg:w-30 h-20 w-20 transition-all items-center justify-between gap-3 rounded-md border-2 p-2 transition-all duration-200 ${selectedImg === piece.src
+                    className={`flex cursor-pointer flex-col lg:min-h-30 lg:w-30 min-h-20 w-20 items-center justify-between gap-3 rounded-md border-2 p-2 transition-all duration-200 ${selectedImg === piece.src
                         ? 'border-gray-400 bg-slate-700'
                         : 'border-transparent hover:border-gray-500'
                         }`}
