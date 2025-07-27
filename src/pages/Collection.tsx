@@ -2,7 +2,9 @@ import MainToolBar from "../components/MainToolBar";
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useUserData } from "../contexts/UserDataContext";
+import { updateUserInfo } from "../api/users";
 import { Board } from "../types/board";
+import { useAuth } from "../contexts/AuthContext";
 
 const validTabs = ['sets', 'pieces', 'boards', 'effects'] as const;
 type Tab = typeof validTabs[number];
@@ -23,7 +25,8 @@ const Collection = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const initialDisplay = searchParams.get('display') || 'both';
     const initialTab = searchParams.get('tab') || 'sets';
-    const { allOwnedBoards } = useUserData();
+    const { allOwnedBoards, setSelectedBoard } = useUserData();
+    console.log(allOwnedBoards);
 
     const [displayType, setDisplayType] = useState(initialDisplay);
     const [displayState, setDisplayState] = useState(() => {
@@ -143,7 +146,7 @@ const Collection = () => {
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
                                 viewBox="0 0 10 6">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4" />
+                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
                             </svg>
                         </button>
                         {dropDownExpanded && (
@@ -205,6 +208,7 @@ const Collection = () => {
                     allOwnedBoards={allOwnedBoards}
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
+                    setSelectedBoard={setSelectedBoard}
                 />
             </div>
         </>
@@ -236,7 +240,7 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
 
                         <img
                             key={piece}
-                            src={displayedPieces.white[piece]}
+                            src={displayedPieces.white[piece] || undefined}
                             alt={`White ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -260,7 +264,7 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
 
                         <img
                             key={piece}
-                            src={displayedPieces.black[piece]}
+                            src={displayedPieces.black[piece] || undefined}
                             alt={`Black ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -285,7 +289,7 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
                         <img
                             key={piece}
-                            src={displayedPieces.white[piece]}
+                            src={displayedPieces.white[piece] || undefined}
                             alt={`White ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -304,7 +308,7 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
                         <img
                             key={piece}
-                            src={displayedPieces.black[piece]}
+                            src={displayedPieces.black[piece] || undefined}
                             alt={`Black ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -330,11 +334,12 @@ interface CollectionContainerProps {
     allOwnedBoards: Array<Board>;
     activeTab: Tab;
     setActiveTab: React.Dispatch<React.SetStateAction<Tab>>;
+    setSelectedBoard: (board_id: Board) => void;
 }
 
 
-const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab }) => {
-
+const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab, setSelectedBoard }) => {
+    
     return (
         <div className="bg-slate-900 w-full h-full min-h-[200px] border-t border-gray-700">
             <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 ml-2 mt-1">
@@ -356,7 +361,7 @@ const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, al
             <div className="p-4 text-white w-full">
                 {activeTab === 'sets' && <div>Display Set content here</div>}
                 {activeTab === 'pieces' && <PiecesPage allPieces={allPieces} />}
-                {activeTab === 'boards' && <BoardsPage allOwnedBoards={allOwnedBoards} />}
+                {activeTab === 'boards' && <BoardsPage allOwnedBoards={allOwnedBoards} setSelectedBoard={setSelectedBoard} />}
                 {activeTab === 'effects' && <div>Display Effect content here</div>}
             </div>
         </div>
@@ -389,7 +394,7 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
                         draggable={false}
                     />
                     {selectedImg === piece.src && (
-                        <SelectedItemMenu />
+                        <SelectedItemMenu onClickFn={() => {}} />
                     )}
                 </div>
             ))}
@@ -399,14 +404,28 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
 
 interface BoardsPageProps {
     allOwnedBoards: Array<Board>;
+    setSelectedBoard: (board_id: Board) => void;
 }
 
-const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards }) => {
+const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, setSelectedBoard }) => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const { user } = useAuth();
 
     const handleClick = (index: number) => {
         setSelectedIndex(prev => (prev === index ? null : index)); // toggle selection
     };
+
+    const handleEquip = async (board: Board) => {
+        try {
+            if (user) {
+                await updateUserInfo(user.id, { selected_board_id: board.board_id })
+                setSelectedBoard(board);
+                setSelectedIndex(null);
+            }
+        } catch (error) {
+            console.error("Failed to update the board: ", error);
+        }
+    }
 
     return (
         <div className="w-full flex flex-row flex-wrap gap-2 bg-slate-600 p-4 rounded-lg">
@@ -425,7 +444,7 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards }) => {
                         <div className={`w-full h-full ${board.whiteSquare}`} />
                     </div>
                     {selectedIndex === index && (
-                        <SelectedItemMenu />
+                        <SelectedItemMenu onClickFn={() => {handleEquip(board)}} />
                     )}
                 </div>
             ))}
@@ -433,11 +452,15 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards }) => {
     );
 };
 
-const SelectedItemMenu = () => (
+interface SelectedItemMenuProps {
+    onClickFn: () => void;
+}
+
+const SelectedItemMenu: React.FC<SelectedItemMenuProps> = ({ onClickFn }) => (
     <div className="flex flex-col gap-y-2 w-full">
         <button
             className="w-full cursor-pointer rounded bg-indigo-600 py-1 text-sm text-white transition hover:bg-indigo-700"
-            onClick={() => { }}
+            onClick={onClickFn}
         >
             Equip
         </button>

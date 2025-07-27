@@ -113,7 +113,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         onMoveAttemptRef.current = onMoveAttempt;
     }, [onMoveAttempt]);
 
-    const { preMoveKey, alwaysPromoteQueen, showLegalMoves } = useUserData();
+    const { preMoveKey, alwaysPromoteQueen, showLegalMoves, selectedBoard } = useUserData();
     const heldKeys = useHeldKeys();
 
     const { handlePlaySound } = useMovePieceSound();
@@ -758,7 +758,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                         const isPossibleMoveTarget = possibleMoves.includes(algebraicSquare);
                         const isHintSquare = hintSquare === algebraicSquare;
 
-                        let bgColorClass = isDark ? "bg-[#95b2d1]" : "bg-slate-100";
+                        let bgColorClass = isDark ? selectedBoard?.blackSquare || "bg-[#95b2d1]" : selectedBoard?.whiteSquare || "bg-slate-100";
                         if (algebraicSquare === incorrectSquare) bgColorClass = "bg-red-200";
                         else if (isPreMoveOrigin && isPreMoveDestination) bgColorClass = "bg-red-300";
                         else if (isPreMoveDestination) bgColorClass = "bg-red-200";

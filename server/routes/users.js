@@ -93,14 +93,15 @@ router.get('/:id/info', async (req, res) => {
     try {
         let query = db('user_info')
             .join('users', 'user_info.user_id', 'users.id')
+            .join('boards', 'boards.id', 'user_info.selected_board_id')
             .where('users.id', userId);
 
         // Conditionally join the countries table if requested
         if (includeCountry) {
             query = query.join('countries', 'user_info.country_id', 'countries.id')
-                .select('user_info.*', 'countries.name as country_name', 'countries.iso_code as country_code');
+                .select('user_info.*', 'boards.*', 'countries.name as country_name', 'countries.iso_code as country_code');
         } else {
-            query = query.select('user_info.*');
+            query = query.select('user_info.*', 'boards.*');
         }
 
         const userInfo = await query.first();

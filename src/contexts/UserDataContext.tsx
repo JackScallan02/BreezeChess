@@ -25,7 +25,7 @@ type UserSettings = {
   showMoveTypeLabels: boolean;
   showPuzzleTimer: boolean;
   points: number;
-  selectedBoardID: number;
+  selectedBoard: Board | null;
   allOwnedBoards: Array<Board>;
   setTheme: (theme: ThemeSetting) => void;
   setPreMoveKey: (value: string | undefined) => void;
@@ -37,7 +37,7 @@ type UserSettings = {
   setShowMoveTypeLabels: (value: boolean) => void;
   setShowPuzzleTimer: (value: boolean) => void;
   setPoints: (value: number) => void;
-  setSelectedBoardID: (value: number) => void;
+  setSelectedBoard: (value: Board | null) => void;
   setAllOwnedBoards: (value: Array<Board>) => void;
   dataFetched: boolean;
 };
@@ -55,7 +55,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [showMoveTypeLabels, setShowMoveTypeLabels] = useState(true);
   const [showPuzzleTimer, setShowPuzzleTimer] = useState(true);
   const [points, setPoints] = useState(0);
-  const [selectedBoardID, setSelectedBoardID] = useState(1);
+  const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
   const [allOwnedBoards, setAllOwnedBoards] = useState<Board[]>([]);
 
   const [dataFetched, setDataFetched] = useState(false);
@@ -77,8 +77,11 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
           setShowMoveTypeLabels(data.showMoveTypeLabels);
           setShowPuzzleTimer(data.showPuzzleTimer);
           setPoints(data.points);
-          setSelectedBoardID(data.selected_board_id);
-
+          setSelectedBoard({
+            board_id: data.selected_board_id,
+            whiteSquare: data.whiteSquare,
+            blackSquare: data.blackSquare,
+          });
           setDataFetched(true);
         })
         .catch((err) => {
@@ -107,7 +110,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     showMoveTypeLabels,
     showPuzzleTimer,
     points,
-    selectedBoardID,
+    selectedBoard,
     allOwnedBoards,
     setTheme,
     setPreMoveKey,
@@ -119,7 +122,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     setShowMoveTypeLabels,
     setShowPuzzleTimer,
     setPoints,
-    setSelectedBoardID,
+    setSelectedBoard,
     setAllOwnedBoards,
     dataFetched
   };
