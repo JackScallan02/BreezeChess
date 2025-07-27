@@ -7,7 +7,10 @@ import {
 } from "react";
 
 import { getUserInfo } from "../api/users";
+import { getBoards } from "../api/boards";
 import { useAuth } from "../contexts/AuthContext";
+
+import { Board } from "../types/board";
 
 type ThemeSetting = "light" | "dark" | "systemDefault";
 
@@ -22,6 +25,8 @@ type UserSettings = {
   showMoveTypeLabels: boolean;
   showPuzzleTimer: boolean;
   points: number;
+  selectedBoardID: number;
+  allOwnedBoards: Array<Board>;
   setTheme: (theme: ThemeSetting) => void;
   setPreMoveKey: (value: string | undefined) => void;
   setCountryID: (value: number) => void;
@@ -32,7 +37,8 @@ type UserSettings = {
   setShowMoveTypeLabels: (value: boolean) => void;
   setShowPuzzleTimer: (value: boolean) => void;
   setPoints: (value: number) => void;
-
+  setSelectedBoardID: (value: number) => void;
+  setAllOwnedBoards: (value: Array<Board>) => void;
   dataFetched: boolean;
 };
 
@@ -49,6 +55,8 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
   const [showMoveTypeLabels, setShowMoveTypeLabels] = useState(true);
   const [showPuzzleTimer, setShowPuzzleTimer] = useState(true);
   const [points, setPoints] = useState(0);
+  const [selectedBoardID, setSelectedBoardID] = useState(1);
+  const [allOwnedBoards, setAllOwnedBoards] = useState<Board[]>([]);
 
   const [dataFetched, setDataFetched] = useState(false);
 
@@ -69,12 +77,17 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
           setShowMoveTypeLabels(data.showMoveTypeLabels);
           setShowPuzzleTimer(data.showPuzzleTimer);
           setPoints(data.points);
+          setSelectedBoardID(data.selected_board_id);
 
           setDataFetched(true);
         })
         .catch((err) => {
           console.error("Failed to fetch user settings:", err);
         });
+
+      getBoards(user.id).then((data) => {
+        setAllOwnedBoards(data);
+      });
     } else {
       // When user logs out, reset to defaults
       setTheme("systemDefault");
@@ -94,6 +107,8 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     showMoveTypeLabels,
     showPuzzleTimer,
     points,
+    selectedBoardID,
+    allOwnedBoards,
     setTheme,
     setPreMoveKey,
     setCountryID,
@@ -104,6 +119,8 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
     setShowMoveTypeLabels,
     setShowPuzzleTimer,
     setPoints,
+    setSelectedBoardID,
+    setAllOwnedBoards,
     dataFetched
   };
 

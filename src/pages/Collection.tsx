@@ -1,6 +1,8 @@
 import MainToolBar from "../components/MainToolBar";
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useUserData } from "../contexts/UserDataContext";
+import { Board } from "../types/board";
 
 const validTabs = ['sets', 'pieces', 'boards', 'effects'] as const;
 type Tab = typeof validTabs[number];
@@ -14,18 +16,14 @@ interface Piece {
     type: string;
     color: string;
 }
-interface Board {
-    white: string;
-    black: string;
-}
 
 const Collection = () => {
     const [allPieces, setAllPieces] = useState<Array<Piece>>([]);
-    const [allBoards, setAllBoards] = useState<Array<Board>>([]);
     const [dropDownExpanded, setDropDownExpanded] = useState<boolean>(false);
     const [searchParams, setSearchParams] = useSearchParams();
     const initialDisplay = searchParams.get('display') || 'both';
     const initialTab = searchParams.get('tab') || 'sets';
+    const { allOwnedBoards } = useUserData();
 
     const [displayType, setDisplayType] = useState(initialDisplay);
     const [displayState, setDisplayState] = useState(() => {
@@ -120,50 +118,6 @@ const Collection = () => {
 
         setAllPieces(allPieces);
 
-        setAllBoards([
-            {
-                white: 'bg-blue-100',
-                black: 'bg-blue-950',
-            },
-            {
-                white: 'bg-neutral-100',
-                black: 'bg-zinc-700',
-            },
-            {
-                white: 'bg-yellow-100',
-                black: 'bg-yellow-700',
-            },
-            {
-                white: 'bg-green-100',
-                black: 'bg-green-800',
-            },
-            {
-                white: 'bg-gray-200',
-                black: 'bg-gray-900',
-            },
-            {
-                white: 'bg-pink-100',
-                black: 'bg-pink-900',
-            },
-            {
-                white: 'bg-slate-100',
-                black: 'bg-slate-800',
-            },
-            {
-                white: 'bg-stone-100',
-                black: 'bg-stone-700',
-            },
-            {
-                white: 'bg-orange-100',
-                black: 'bg-orange-800',
-            },
-            {
-                white: 'bg-emerald-100',
-                black: 'bg-emerald-900',
-            },
-        ]);
-
-
 
     }, []);
     return (
@@ -173,7 +127,7 @@ const Collection = () => {
                 className="w-full flex flex-col justify-between"
                 style={{ height: 'calc(100vh - 64px)' }}
             >
-                <div className="p-4 min-h-[200px] h-full">
+                <div className="p-4 flex flex-col gap-4">
                     <div className="w-full">
                         <button
                             id="dropdownDefaultButton"
@@ -248,7 +202,7 @@ const Collection = () => {
                 </div>
                 <CollectionContainer
                     allPieces={allPieces}
-                    allBoards={allBoards}
+                    allOwnedBoards={allOwnedBoards}
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}
                 />
@@ -271,18 +225,12 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
             return (
                 <div
                     className={`
-                        grid
-                        gap-4
-                        gap-x-2
-                        justify-center
+                        flex flex-row flex-wrap
+                        gap-y-4
+                        justify-evenly
                         items-end
-                        w-full
-                        max-w-[90vw]
-                        md:flex md:flex-row md:gap-x-12
+                        w-[75%]
                     `}
-                    style={{
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                    }}
                 >
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
 
@@ -291,7 +239,7 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
                             src={displayedPieces.white[piece]}
                             alt={`White ${piece}`}
                             draggable={false}
-                            className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
+                            className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
                         />
 
                     ))}
@@ -301,18 +249,12 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
             return (
                 <div
                     className={`
-                        grid
-                        gap-4
-                        gap-x-2
-                        justify-center
+                        flex flex-row flex-wrap
+                        gap-y-4
+                        justify-evenly
                         items-end
-                        w-full
-                        max-w-[90vw]
-                        md:flex md:flex-row md:gap-x-12
+                        w-[75%]
                     `}
-                    style={{
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                    }}
                 >
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
 
@@ -321,7 +263,7 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
                             src={displayedPieces.black[piece]}
                             alt={`Black ${piece}`}
                             draggable={false}
-                            className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
+                            className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
                         />
 
                     ))}
@@ -330,21 +272,15 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
         }
 
         return (
-            <div className="flex flex-col gap-y-8">
+            <div className="flex flex-col gap-y-8 w-[75%]">
                 <div
                     className={`
-                        grid
-                        gap-4
-                        gap-x-2
-                        justify-center
+                        flex flex-row flex-wrap
+                        gap-y-4
+                        justify-evenly
                         items-end
                         w-full
-                        max-w-[90vw]
-                        md:flex md:flex-row md:gap-x-12
                     `}
-                    style={{
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                    }}
                 >
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
                         <img
@@ -352,24 +288,18 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
                             src={displayedPieces.white[piece]}
                             alt={`White ${piece}`}
                             draggable={false}
-                            className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
+                            className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
                         />
                     ))}
                 </div>
                 <div
                     className={`
-                        grid
-                        gap-4
-                        gap-x-2
-                        justify-center
+                        flex flex-row flex-wrap
+                        gap-y-4
+                        justify-evenly
                         items-end
                         w-full
-                        max-w-[90vw]
-                        md:flex md:flex-row md:gap-x-12
                     `}
-                    style={{
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                    }}
                 >
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
                         <img
@@ -377,11 +307,10 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
                             src={displayedPieces.black[piece]}
                             alt={`Black ${piece}`}
                             draggable={false}
-                            className="select-none lg:h-30 md:h-20 h-15 object-scale-down"
+                            className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
                         />
                     ))}
                 </div>
-
             </div>
         )
     }
@@ -389,7 +318,6 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
     return (
         <>
             <div className="w-full flex justify-center items-center h-full">
-
                 {getDisplayedPieces()}
             </div>
         </>
@@ -399,13 +327,13 @@ const CollectionDisplay: React.FC<CollectionDisplayProps> = ({ displayedPieces, 
 
 interface CollectionContainerProps {
     allPieces: Array<Piece>;
-    allBoards: Array<Board>;
+    allOwnedBoards: Array<Board>;
     activeTab: Tab;
     setActiveTab: React.Dispatch<React.SetStateAction<Tab>>;
 }
 
 
-const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allBoards, activeTab, setActiveTab }) => {
+const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab }) => {
 
     return (
         <div className="bg-slate-900 w-full h-full min-h-[200px] border-t border-gray-700">
@@ -428,7 +356,7 @@ const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, al
             <div className="p-4 text-white w-full">
                 {activeTab === 'sets' && <div>Display Set content here</div>}
                 {activeTab === 'pieces' && <PiecesPage allPieces={allPieces} />}
-                {activeTab === 'boards' && <BoardsPage allBoards={allBoards} />}
+                {activeTab === 'boards' && <BoardsPage allOwnedBoards={allOwnedBoards} />}
                 {activeTab === 'effects' && <div>Display Effect content here</div>}
             </div>
         </div>
@@ -445,19 +373,19 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
         setSelectedImg(prev => (prev === src ? null : src)); // toggle
     };
     return (
-        <div className="w-full grid lg:grid-cols-8 xl:grid-cols-10 md:grid-cols-6 grid-cols-4 gap-4 bg-slate-600 p-4 rounded-lg">
+        <div className="w-full flex flex-row flex-wrap gap-2 bg-slate-600 p-4 rounded-lg">
             {allPieces.map((piece) => (
                 <div
                     key={piece.src}
                     onClick={() => handleClick(piece.src)}
-                    className={`flex h-full cursor-pointer flex-col items-center justify-between gap-3 rounded-md border-2 p-2 transition-all duration-200 ${selectedImg === piece.src
+                    className={`flex h-full cursor-pointer flex-col lg:h-30 lg:w-30 h-20 w-20 transition-all items-center justify-between gap-3 rounded-md border-2 p-2 transition-all duration-200 ${selectedImg === piece.src
                         ? 'border-gray-400 bg-slate-700'
                         : 'border-transparent hover:border-gray-500'
                         }`}
                 >
                     <img
                         src={piece.src}
-                        className="h-auto w-full rounded-sm object-contain select-none "
+                        className="h-auto w-full rounded-sm object-contain select-none"
                         draggable={false}
                     />
                     {selectedImg === piece.src && (
@@ -470,10 +398,10 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
 };
 
 interface BoardsPageProps {
-    allBoards: Array<Board>;
+    allOwnedBoards: Array<Board>;
 }
 
-const BoardsPage: React.FC<BoardsPageProps> = ({ allBoards }) => {
+const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards }) => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     const handleClick = (index: number) => {
@@ -481,8 +409,8 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allBoards }) => {
     };
 
     return (
-        <div className="w-full grid [grid-template-columns:repeat(auto-fit,minmax(5rem,1fr))] gap-2 bg-slate-600 p-4 rounded-lg">
-            {allBoards.map((board, index) => (
+        <div className="w-full flex flex-row flex-wrap gap-2 bg-slate-600 p-4 rounded-lg">
+            {allOwnedBoards.map((board, index) => (
                 <div key={index} className="flex flex-col items-center gap-2">
                     <div
                         onClick={() => handleClick(index)}
@@ -491,10 +419,10 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allBoards }) => {
                             : 'border-transparent hover:border-gray-500'
                             }`}
                     >
-                        <div className={`w-full h-full ${board.white}`} />
-                        <div className={`w-full h-full ${board.black}`} />
-                        <div className={`w-full h-full ${board.black}`} />
-                        <div className={`w-full h-full ${board.white}`} />
+                        <div className={`w-full h-full ${board.whiteSquare}`} />
+                        <div className={`w-full h-full ${board.blackSquare}`} />
+                        <div className={`w-full h-full ${board.blackSquare}`} />
+                        <div className={`w-full h-full ${board.whiteSquare}`} />
                     </div>
                     {selectedIndex === index && (
                         <SelectedItemMenu />
@@ -507,10 +435,13 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allBoards }) => {
 
 const SelectedItemMenu = () => (
     <div className="flex flex-col gap-y-2 w-full">
-        <button className="w-full cursor-pointer rounded bg-indigo-600 py-2 text-sm text-white transition hover:bg-indigo-700">
+        <button
+            className="w-full cursor-pointer rounded bg-indigo-600 py-1 text-sm text-white transition hover:bg-indigo-700"
+            onClick={() => { }}
+        >
             Equip
         </button>
-        <button className="w-full cursor-pointer rounded bg-indigo-600 py-2 text-sm text-white transition hover:bg-indigo-700">
+        <button className="w-full cursor-pointer rounded bg-indigo-600 py-1 text-sm text-white transition hover:bg-indigo-700">
             Details
         </button>
     </div>

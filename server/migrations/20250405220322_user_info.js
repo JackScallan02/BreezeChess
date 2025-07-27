@@ -7,15 +7,16 @@ export function up(knex) {
         table.increments('id');
         table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE');
         table.integer('country_id').unsigned().references('id').inTable('countries');
-        table.jsonb('ratings')
-        table.integer('points').defaultTo(0)
-        table.string('premove').defaultTo('shift')
-        table.boolean('alwaysPromoteQueen').defaultTo(false)
-        table.boolean('showLegalMoves').defaultTo(true)
-        table.boolean('showBoardBuilderEvalBar').defaultTo(true)
-        table.boolean('showBoardBuilderEngineEval').defaultTo(true)
-        table.boolean('showMoveTypeLabels').defaultTo(true)
-        table.boolean('showPuzzleTimer').defaultTo(true)
+        table.jsonb('ratings');
+        table.integer('points').defaultTo(0);
+        table.integer('selected_board_id').defaultTo(1);
+        table.string('premove').defaultTo('shift');
+        table.boolean('alwaysPromoteQueen').defaultTo(false);
+        table.boolean('showLegalMoves').defaultTo(true);
+        table.boolean('showBoardBuilderEvalBar').defaultTo(true);
+        table.boolean('showBoardBuilderEngineEval').defaultTo(true);
+        table.boolean('showMoveTypeLabels').defaultTo(true);
+        table.boolean('showPuzzleTimer').defaultTo(true);
         table.timestamps(true, true);
     });
 };
