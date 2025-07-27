@@ -340,7 +340,7 @@ interface CollectionContainerProps {
 
 
 const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab, selectedBoard, setSelectedBoard }) => {
-    
+
     return (
         <div className="bg-slate-900 w-full h-full min-h-[200px] border-t border-gray-700">
             <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 ml-2 mt-1">
@@ -395,7 +395,7 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
                         draggable={false}
                     />
                     {selectedImg === piece.src && (
-                        <SelectedItemMenu onClickFn={() => {}} />
+                        <SelectedItemMenu onClickFn={() => { }} />
                     )}
                 </div>
             ))}
@@ -412,6 +412,7 @@ interface BoardsPageProps {
 const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, setSelectedBoard }) => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [equipped, setEquipped] = useState<number>(-1);
+    const [showBoardDetailsModal, setShowBoardDetailsModal] = useState(false);
     const { user } = useAuth();
 
     useEffect(() => {
@@ -436,50 +437,140 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, 
         }
     }
 
+    const handleDetails = async (board: Board) => {
+        setShowBoardDetailsModal(true);
+    };
+
     return (
-        <div className="w-full flex flex-row flex-wrap gap-2 bg-slate-600 p-4 rounded-lg">
-            {allOwnedBoards.map((board) => (
-                <div key={board.board_id} className="flex flex-col items-center gap-2">
-                    <div
-                        onClick={() => handleClick(board.board_id)}
-                        className={`grid grid-cols-2 grid-rows-2 w-30 h-30 rounded-md border-2 p-4 transition-all duration-200 cursor-pointer ${selectedIndex === board.board_id
-                            ? 'border-gray-400'
-                            : 'border-transparent hover:border-gray-500'
-                            }`}
-                    >
-                        <div className={`w-full h-full ${board.whiteSquare}`} />
-                        <div className={`w-full h-full ${board.blackSquare}`} />
-                        <div className={`w-full h-full ${board.blackSquare}`} />
-                        <div className={`w-full h-full ${board.whiteSquare}`} />
+        <>
+            <div className="w-full flex flex-row flex-wrap gap-2 bg-slate-600 p-4 rounded-lg">
+                {allOwnedBoards.map((board) => (
+                    <div key={board.board_id} className="flex flex-col items-center gap-2">
+                        <div
+                            onClick={() => handleClick(board.board_id)}
+                            className={`grid grid-cols-2 grid-rows-2 w-30 h-30 rounded-md border-2 p-4 transition-all duration-200 cursor-pointer ${selectedIndex === board.board_id
+                                ? 'border-gray-400'
+                                : 'border-transparent hover:border-gray-500'
+                                }`}
+                        >
+                            <div className={`w-full h-full ${board.whiteSquare}`} />
+                            <div className={`w-full h-full ${board.blackSquare}`} />
+                            <div className={`w-full h-full ${board.blackSquare}`} />
+                            <div className={`w-full h-full ${board.whiteSquare}`} />
+                        </div>
+                        {selectedIndex === board.board_id && (
+                            <SelectedItemMenu
+                                onEquipFn={() => { handleEquip(board) }}
+                                onDetailsFn={() => handleDetails(board)}
+                                equipped={equipped}
+                                index={board.board_id}
+                            />
+                        )}
                     </div>
-                    {selectedIndex === board.board_id && (
-                        <SelectedItemMenu onClickFn={() => {handleEquip(board)}} equipped={equipped} index={board.board_id}/>
-                    )}
-                </div>
-            ))}
-        </div>
+                ))}
+            </div>
+            {
+                showBoardDetailsModal && (
+                    <BoardDetailsModal setShowBoardDetailsModal={setShowBoardDetailsModal}/>
+                )
+            }
+        </>
+
     );
 };
 
 interface SelectedItemMenuProps {
-    onClickFn: () => void;
+    onEquipFn: () => void;
+    onDetailsFn: () => void;
     index: number;
     equipped: number;
 }
 
-const SelectedItemMenu: React.FC<SelectedItemMenuProps> = ({ onClickFn, equipped, index }) => (
+const SelectedItemMenu: React.FC<SelectedItemMenuProps> = ({ onEquipFn, onDetailsFn, equipped, index }) => (
     <div className="flex flex-col gap-y-2 w-full">
         <button
             className={`${equipped === index ? 'bg-slate-700' : 'bg-indigo-600 cursor-pointer hover:bg-indigo-700'} w-full rounded py-1 text-sm text-white transition`}
-            onClick={onClickFn}
+            onClick={onEquipFn}
             disabled={equipped === index}
         >
             {equipped === index ? 'Equipped' : 'Equip'}
         </button>
-        <button className="w-full cursor-pointer rounded bg-indigo-600 py-1 text-sm text-white transition hover:bg-indigo-700">
+        <button
+            className="w-full cursor-pointer rounded bg-indigo-600 py-1 text-sm text-white transition hover:bg-indigo-700"
+            onClick={onDetailsFn}
+        >
             Details
         </button>
     </div>
 );
+
+interface BoardDetailsModalProps {
+    setShowBoardDetailsModal: (show: boolean) => void;
+}
+
+const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ setShowBoardDetailsModal }) => {
+
+    return (
+        <>
+            {/* Backdrop */}
+            <div className="fixed inset-0 bg-black/50 z-40"></div>
+
+            {/* Modal */}
+            <div
+                id="default-modal"
+                className="overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 flex justify-center items-center w-full h-full"
+            >
+                <div className="relative p-4 w-full max-w-2xl">
+                    <div className="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                Board name will go here
+                            </h3>
+                            <button
+                                type="button"
+                                className="cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                onClick={() => {
+                                    setShowBoardDetailsModal(false);
+                                }} // Set state to close
+                            >
+                                <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                                </svg>
+                                <span className="sr-only">Close modal</span>
+                            </button>
+                        </div>
+                        {/* Modal Body */}
+                        <div className="p-4 md:p-5 space-y-4">
+                            <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
+                                Details will go here
+                            </p>
+                        </div>
+                        {/* Modal Footer */}
+                        <div className="flex items-center justify-end p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
+                            <>
+                                <button
+                                    type="button"
+                                    className="cursor-pointer py-2.5 px-5 ms-3 text-sm font-medium
+                                        text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200
+                                        hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2
+                                        focus:ring-gray-100 dark:focus:ring-blue-700 dark:bg-gray-700
+                                        dark:text-gray-300 dark:border-gray-600 dark:hover:text-white
+                                        dark:hover:bg-gray-700"
+                                    onClick={() => {
+                                        setShowBoardDetailsModal(false);
+                                    }} // Set state to close
+                                >
+                                    Close
+                                </button>
+                            </>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
 
 export default Collection;
