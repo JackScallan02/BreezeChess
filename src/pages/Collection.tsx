@@ -25,8 +25,7 @@ const Collection = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const initialDisplay = searchParams.get('display') || 'both';
     const initialTab = searchParams.get('tab') || 'sets';
-    const { allOwnedBoards, setSelectedBoard } = useUserData();
-    console.log(allOwnedBoards);
+    const { allOwnedBoards, selectedBoard, setSelectedBoard } = useUserData();
 
     const [displayType, setDisplayType] = useState(initialDisplay);
     const [displayState, setDisplayState] = useState(() => {
@@ -207,6 +206,7 @@ const Collection = () => {
                     allPieces={allPieces}
                     allOwnedBoards={allOwnedBoards}
                     activeTab={activeTab}
+                    selectedBoard={selectedBoard}
                     setActiveTab={setActiveTab}
                     setSelectedBoard={setSelectedBoard}
                 />
@@ -333,12 +333,13 @@ interface CollectionContainerProps {
     allPieces: Array<Piece>;
     allOwnedBoards: Array<Board>;
     activeTab: Tab;
+    selectedBoard: Board | null;
     setActiveTab: React.Dispatch<React.SetStateAction<Tab>>;
     setSelectedBoard: (board_id: Board) => void;
 }
 
 
-const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab, setSelectedBoard }) => {
+const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab, selectedBoard, setSelectedBoard }) => {
     
     return (
         <div className="bg-slate-900 w-full h-full min-h-[200px] border-t border-gray-700">
@@ -361,7 +362,7 @@ const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, al
             <div className="p-4 text-white w-full">
                 {activeTab === 'sets' && <div>Display Set content here</div>}
                 {activeTab === 'pieces' && <PiecesPage allPieces={allPieces} />}
-                {activeTab === 'boards' && <BoardsPage allOwnedBoards={allOwnedBoards} setSelectedBoard={setSelectedBoard} />}
+                {activeTab === 'boards' && <BoardsPage allOwnedBoards={allOwnedBoards} selectedBoard={selectedBoard} setSelectedBoard={setSelectedBoard} />}
                 {activeTab === 'effects' && <div>Display Effect content here</div>}
             </div>
         </div>
@@ -404,12 +405,20 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
 
 interface BoardsPageProps {
     allOwnedBoards: Array<Board>;
+    selectedBoard: Board | null;
     setSelectedBoard: (board_id: Board) => void;
 }
 
-const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, setSelectedBoard }) => {
+const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, setSelectedBoard }) => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const [equipped, setEquipped] = useState<number>(-1);
     const { user } = useAuth();
+
+    useEffect(() => {
+        if (selectedBoard) {
+            setEquipped(selectedBoard.board_id);
+        }
+    }, [selectedBoard]);
 
     const handleClick = (index: number) => {
         setSelectedIndex(prev => (prev === index ? null : index)); // toggle selection
@@ -420,20 +429,20 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, setSelectedBoar
             if (user) {
                 await updateUserInfo(user.id, { selected_board_id: board.board_id })
                 setSelectedBoard(board);
-                setSelectedIndex(null);
             }
         } catch (error) {
             console.error("Failed to update the board: ", error);
+            setEquipped(-1);
         }
     }
 
     return (
         <div className="w-full flex flex-row flex-wrap gap-2 bg-slate-600 p-4 rounded-lg">
-            {allOwnedBoards.map((board, index) => (
-                <div key={index} className="flex flex-col items-center gap-2">
+            {allOwnedBoards.map((board) => (
+                <div key={board.board_id} className="flex flex-col items-center gap-2">
                     <div
-                        onClick={() => handleClick(index)}
-                        className={`grid grid-cols-2 grid-rows-2 w-30 h-30 rounded-md border-2 p-4 transition-all duration-200 cursor-pointer ${selectedIndex === index
+                        onClick={() => handleClick(board.board_id)}
+                        className={`grid grid-cols-2 grid-rows-2 w-30 h-30 rounded-md border-2 p-4 transition-all duration-200 cursor-pointer ${selectedIndex === board.board_id
                             ? 'border-gray-400'
                             : 'border-transparent hover:border-gray-500'
                             }`}
@@ -443,8 +452,8 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, setSelectedBoar
                         <div className={`w-full h-full ${board.blackSquare}`} />
                         <div className={`w-full h-full ${board.whiteSquare}`} />
                     </div>
-                    {selectedIndex === index && (
-                        <SelectedItemMenu onClickFn={() => {handleEquip(board)}} />
+                    {selectedIndex === board.board_id && (
+                        <SelectedItemMenu onClickFn={() => {handleEquip(board)}} equipped={equipped} index={board.board_id}/>
                     )}
                 </div>
             ))}
@@ -454,15 +463,18 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, setSelectedBoar
 
 interface SelectedItemMenuProps {
     onClickFn: () => void;
+    index: number;
+    equipped: number;
 }
 
-const SelectedItemMenu: React.FC<SelectedItemMenuProps> = ({ onClickFn }) => (
+const SelectedItemMenu: React.FC<SelectedItemMenuProps> = ({ onClickFn, equipped, index }) => (
     <div className="flex flex-col gap-y-2 w-full">
         <button
-            className="w-full cursor-pointer rounded bg-indigo-600 py-1 text-sm text-white transition hover:bg-indigo-700"
+            className={`${equipped === index ? 'bg-slate-700' : 'bg-indigo-600 cursor-pointer hover:bg-indigo-700'} w-full rounded py-1 text-sm text-white transition`}
             onClick={onClickFn}
+            disabled={equipped === index}
         >
-            Equip
+            {equipped === index ? 'Equipped' : 'Equip'}
         </button>
         <button className="w-full cursor-pointer rounded bg-indigo-600 py-1 text-sm text-white transition hover:bg-indigo-700">
             Details
