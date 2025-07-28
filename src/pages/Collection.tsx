@@ -546,7 +546,7 @@ const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ board, setShowBoa
                 <div className="relative p-4 w-full max-w-2xl">
                     <div className="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
+                        <div className="relative flex flex-col p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
                             <div className="flex flex-col gap-y-2">
                                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                                     {board.board_name}
@@ -567,7 +567,7 @@ const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ board, setShowBoa
                             </div>
                             <button
                                 type="button"
-                                className="cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+                                className="absolute top-4 right-4 cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
                                 onClick={() => {
                                     setShowBoardDetailsModal(false);
                                 }} // Set state to close
