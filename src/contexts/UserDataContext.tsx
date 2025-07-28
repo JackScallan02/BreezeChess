@@ -65,7 +65,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (user?.id) {
       // When user logs in or changes, refetch settings
-      getUserInfo(user.id, "")
+      getUserInfo(user.id, "?include=boards")
         .then((data) => {
           setTheme(data.theme ?? "systemDefault");
           setCountryID(data.country_id ?? -1);
@@ -81,6 +81,10 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
             board_id: data.selected_board_id,
             whiteSquare: data.whiteSquare,
             blackSquare: data.blackSquare,
+            rarity: data.board_rarity,
+            description: data.board_description,
+            acquired_at: data.board_acquired_at,
+            board_name: data.board_name,
           });
           setDataFetched(true);
         })

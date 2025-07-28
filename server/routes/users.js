@@ -85,28 +85,54 @@ router.get('/', async (req, res) => {
 
 
 // GET route to fetch a user's info by user id.
-// Optional query parameter to include country name/code
+// Optional query parameters:
+//   include=country — includes country_name and iso_code
+//   include=boards — includes selected board info
 router.get('/:id/info', async (req, res) => {
     const userId = req.params.id;
-    const includeCountry = req.query.include && req.query.include.includes('country'); // Check if country is requested
+    const includeCountry = req.query.include?.includes('country');
+    const includeBoard = req.query.include?.includes('boards');
 
     try {
+        // Start building base query
         let query = db('user_info')
             .join('users', 'user_info.user_id', 'users.id')
-            .join('boards', 'boards.id', 'user_info.selected_board_id')
             .where('users.id', userId);
 
-        // Conditionally join the countries table if requested
+        // Always select user_info columns
+        let columns = ['user_info.*'];
+
+        // Conditionally join countries
         if (includeCountry) {
-            query = query.join('countries', 'user_info.country_id', 'countries.id')
-                .select('user_info.*', 'boards.*', 'countries.name as country_name', 'countries.iso_code as country_code');
-        } else {
-            query = query.select('user_info.*', 'boards.*');
+            query = query.leftJoin('countries', 'user_info.country_id', 'countries.id');
+            columns.push(
+                'countries.name as country_name',
+                'countries.iso_code as country_code'
+            );
         }
 
-        const userInfo = await query.first();
+        // Conditionally join selected board via user_boards and boards
+        if (includeBoard) {
+            query = query
+                .leftJoin('user_boards', function () {
+                    this.on('user_boards.user_id', '=', 'user_info.user_id')
+                        .andOn('user_boards.board_id', '=', 'user_info.selected_board_id');
+                })
+                .leftJoin('boards', 'boards.id', 'user_boards.board_id');
 
-        if (!userInfo || Object.keys(userInfo).length === 0) {
+            columns.push(
+                'boards.board_name',
+                'boards.description as board_description',
+                'boards.rarity as board_rarity',
+                'boards.whiteSquare',
+                'boards.blackSquare',
+                'user_boards.acquired_at as board_acquired_at'
+            );
+        }
+
+        const userInfo = await query.select(columns).first();
+
+        if (!userInfo) {
             return res.status(404).json({ error: 'User info not found' });
         }
 

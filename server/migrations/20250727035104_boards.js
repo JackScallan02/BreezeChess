@@ -7,6 +7,9 @@ export function up(knex) {
     table.increments();
     table.string('whiteSquare');
     table.string('blackSquare');
+    table.string('board_name');
+    table.string('description');
+    table.string('rarity'); // common, rare, ultra, legendary, divine
   });
 };
 

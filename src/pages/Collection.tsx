@@ -395,7 +395,7 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
                         draggable={false}
                     />
                     {selectedImg === piece.src && (
-                        <SelectedItemMenu onClickFn={() => { }} />
+                        <SelectedItemMenu onClickFn={() => { }} equipped={-1} />
                     )}
                 </div>
             ))}
@@ -413,6 +413,8 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, 
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [equipped, setEquipped] = useState<number>(-1);
     const [showBoardDetailsModal, setShowBoardDetailsModal] = useState(false);
+    const [modalBoard, setModalBoard] = useState<Board | null>(null);
+
     const { user } = useAuth();
 
     useEffect(() => {
@@ -437,7 +439,8 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, 
         }
     }
 
-    const handleDetails = async (board: Board) => {
+    const handleDetails = (board: Board) => {
+        setModalBoard(board);
         setShowBoardDetailsModal(true);
     };
 
@@ -469,11 +472,10 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, 
                     </div>
                 ))}
             </div>
-            {
-                showBoardDetailsModal && (
-                    <BoardDetailsModal setShowBoardDetailsModal={setShowBoardDetailsModal}/>
-                )
-            }
+            {showBoardDetailsModal && modalBoard && (
+                <BoardDetailsModal board={modalBoard} setShowBoardDetailsModal={setShowBoardDetailsModal} />
+            )}
+
         </>
 
     );
@@ -505,11 +507,32 @@ const SelectedItemMenu: React.FC<SelectedItemMenuProps> = ({ onEquipFn, onDetail
 );
 
 interface BoardDetailsModalProps {
+    board: Board;
     setShowBoardDetailsModal: (show: boolean) => void;
 }
 
-const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ setShowBoardDetailsModal }) => {
+const formatDate = (date: string) => {
+    const dateObj = new Date(date);
+    const formatted = dateObj.toLocaleDateString('en-US', {
+        month: 'long', // Full month name
+        day: '2-digit',
+        year: 'numeric',
+    });
 
+    return formatted;
+};
+
+
+type Rarity = "common" | "rare" | "ultra" | "legendary" | "divine";
+const rarityMapping: Record<Rarity, string> = {
+    "common": 'text-slate-200',
+    "rare": 'text-blue-400',
+    "ultra": 'text-indigo-600',
+    "legendary": 'text-amber-500',
+    "divine": 'text-fuchsia-500',
+}
+
+const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ board, setShowBoardDetailsModal }) => {
     return (
         <>
             {/* Backdrop */}
@@ -524,9 +547,24 @@ const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ setShowBoardDetai
                     <div className="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
                         {/* Modal Header */}
                         <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600 border-gray-200">
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                                Board name will go here
-                            </h3>
+                            <div className="flex flex-col gap-y-2">
+                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                                    {board.board_name}
+                                </h3>
+                                <div>
+                                    <p>
+                                        <span className={`font-semibold text-sm`}>Rarity: </span>
+                                        <span className={`text-md ${rarityMapping[board.rarity as Rarity]}`}>
+                                            {board.rarity}
+                                        </span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm">
+                                        <span className="font-semibold">Date acquired:</span> {formatDate(board.acquired_at || '')}
+                                    </p>
+                                </div>
+                            </div>
                             <button
                                 type="button"
                                 className="cursor-pointer text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -540,10 +578,24 @@ const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ setShowBoardDetai
                                 <span className="sr-only">Close modal</span>
                             </button>
                         </div>
+                        <div className="w-full flex justify-center mt-8 sm:mt-4">
+                            <div className="drop-shadow-[0_0px_20px_rgba(0,0,0,0.5)] rounded-md">
+                                <div
+                                    className={`grid grid-cols-2 grid-rows-2 w-30 h-30 transition-all duration-200`}
+                                >
+                                    <div className={`w-full h-full ${board.whiteSquare}`} />
+                                    <div className={`w-full h-full ${board.blackSquare}`} />
+                                    <div className={`w-full h-full ${board.blackSquare}`} />
+                                    <div className={`w-full h-full ${board.whiteSquare}`} />
+                                </div>
+                            </div>
+                        </div>
+
+
                         {/* Modal Body */}
-                        <div className="p-4 md:p-5 space-y-4">
+                        <div className="p-4 md:p-5 space-y-4 flex justify-center">
                             <p className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
-                                Details will go here
+                                {board.description}
                             </p>
                         </div>
                         {/* Modal Footer */}

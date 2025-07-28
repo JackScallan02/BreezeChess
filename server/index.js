@@ -77,7 +77,12 @@ async function setupDatabase() {
   try {
     // TODO: Need to figure out a way to set up database in production
     if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
-      await db.raw('DROP SCHEMA public CASCADE;');
+      try {
+        await db.raw('DROP SCHEMA public CASCADE;');
+      } catch {
+        console.log("Schema public did not exist, not dropping...")
+      }
+      
       await db.raw('CREATE SCHEMA public;');
 
       console.log('Rolling back migrations...');

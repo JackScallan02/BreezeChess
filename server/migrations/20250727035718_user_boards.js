@@ -7,6 +7,7 @@ export function up(knex) {
     table.increments();
     table.integer('user_id');
     table.integer('board_id');
+    table.timestamp('acquired_at').defaultTo(knex.fn.now());
   });
 };
 
