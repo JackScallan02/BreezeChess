@@ -334,7 +334,7 @@ interface CollectionContainerProps {
 const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab, selectedBoard, setSelectedBoard }) => {
 
     return (
-        <div className="bg-slate-900 w-full h-full min-h-[200px] border-t border-gray-700">
+        <div className="dark:bg-slate-900 bg-gray-200 w-full h-full min-h-[200px] border-t border-gray-700">
             <ul className="flex flex-wrap text-sm font-medium text-center text-gray-500 dark:text-gray-400 ml-2 mt-1">
                 {validTabs.map((tab) => (
                     <li key={tab} className="mr-4">
@@ -371,24 +371,28 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
         setSelectedImg(prev => (prev === src ? null : src)); // toggle
     };
     return (
-        <div className="w-full flex flex-row flex-wrap gap-2 bg-slate-600 p-4 rounded-lg">
+        <div className="w-full flex flex-row flex-wrap gap-2 dark:bg-slate-600 bg-gray-300 p-4 rounded-lg">
             {allPieces.map((piece) => (
                 <div
                     key={piece.src}
-                    onClick={() => handleClick(piece.src)}
-                    className={`flex cursor-pointer flex-col lg:min-h-30 lg:w-30 min-h-20 w-20 items-center justify-between gap-3 rounded-md border-2 p-2 transition-all duration-200 ${selectedImg === piece.src
-                        ? 'border-gray-400 bg-slate-700'
-                        : 'border-transparent hover:border-gray-500'
-                        }`}
+                    className={`flex flex-col lg:min-h-30 lg:w-30 min-h-20 w-20 items-center
+                        justify-between gap-3`}
                 >
-                    <img
-                        src={piece.src}
-                        className="h-auto w-full rounded-sm object-contain select-none"
-                        draggable={false}
-                    />
-                    {selectedImg === piece.src && (
-                        <SelectedItemMenu onClickFn={() => { }} equipped={-1} />
-                    )}
+                    <div className={`rounded-md border-2 p-2 transition-all duration-200 cursor-pointer
+                        ${selectedImg === piece.src ? 'dark:border-gray-400 border-gray-500'
+                            : 'border-transparent hover:border-gray-400 dark:hover:border-gray-500'}`}
+                        onClick={() => handleClick(piece.src)}
+
+                    >
+                        <img
+                            src={piece.src}
+                            className="h-auto w-full rounded-sm object-contain select-none"
+                            draggable={false}
+                        />
+                        {selectedImg === piece.src && (
+                            <SelectedItemMenu onClickFn={() => { }} equipped={-1} />
+                        )}
+                    </div>
                 </div>
             ))}
         </div>
@@ -438,14 +442,14 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, 
 
     return (
         <>
-            <div className="w-full flex flex-row flex-wrap gap-2 bg-slate-600 p-4 rounded-lg">
+            <div className="w-full flex flex-row flex-wrap gap-2 dark:bg-slate-600 bg-gray-300 p-4 rounded-lg">
                 {allOwnedBoards.map((board) => (
                     <div key={board.board_id} className="flex flex-col items-center gap-2">
                         <div
                             onClick={() => handleClick(board.board_id)}
                             className={`grid grid-cols-2 grid-rows-2 w-30 h-30 rounded-md border-2 p-4 transition-all duration-200 cursor-pointer ${selectedIndex === board.board_id
-                                ? 'border-gray-400'
-                                : 'border-transparent hover:border-gray-500'
+                                ? 'dark:border-gray-400 border-gray-500'
+                                : 'border-transparent hover:border-gray-400 dark:hover:border-gray-500'
                                 }`}
                         >
                             <div className={`w-full h-full ${board.whiteSquare}`} />
@@ -481,9 +485,9 @@ interface SelectedItemMenuProps {
 }
 
 const SelectedItemMenu: React.FC<SelectedItemMenuProps> = ({ onEquipFn, onDetailsFn, equipped, index }) => (
-    <div className="flex flex-col gap-y-2 w-full">
+    <div className="flex flex-col gap-y-2 w-full mt-2">
         <button
-            className={`${equipped === index ? 'bg-slate-700' : 'bg-indigo-600 cursor-pointer hover:bg-indigo-700'} w-full rounded py-1 text-sm text-white transition`}
+            className={`${equipped === index ? 'bg-slate-700' : 'bg-indigo-600 cursor-pointer hover:bg-indigo-700'} w-full rounded py-1 text-sm dark:text-white transition`}
             onClick={onEquipFn}
             disabled={equipped === index}
         >
@@ -545,14 +549,14 @@ const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ board, setShowBoa
                                 </h3>
                                 <div>
                                     <p>
-                                        <span className={`font-semibold text-sm`}>Rarity: </span>
+                                        <span className={`font-semibold text-sm dark:text-white text-black`}>Rarity: </span>
                                         <span className={`text-md ${rarityMapping[board.rarity as Rarity]}`}>
                                             {board.rarity}
                                         </span>
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm">
+                                    <p className="text-sm dark:text-white text-black">
                                         <span className="font-semibold">Date acquired:</span> {formatDate(board.acquired_at || '')}
                                     </p>
                                 </div>
