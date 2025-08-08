@@ -20,6 +20,7 @@ const MainToolBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuItems, setMenuItems] = useState<MenuItems>({
     'Home': '/',
+    'Collection': '/collection',
     'Store': '/store',
     'About': '/about',
     'Contact': '/contact',
@@ -41,6 +42,7 @@ const MainToolBar = () => {
       // Called every time user login status changes
       setMenuItems({
         'Home': !user ? '/' : '/home',
+        'Collection': '/collection',
         'Store': '/store',
         'About': '/about',
         'Contact': '/contact',
@@ -65,17 +67,44 @@ const MainToolBar = () => {
       />
       <ul className="xl:flex hidden items-center gap-12 font-semibold text-base">
         {Object.keys(menuItems).map((menuItem, i) => (
-          <li
-            key={i}
-            className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${['Sign in', 'Logout'].includes(menuItem) && 'pt-1 pb-1'}`}
-            onClick={() => handleNavigation(menuItems[menuItem])}
-          >
-            {menuItem}
-          </li>
+          <>
+            {menuItem === 'Collection' ? (
+              <>
+              {user ? (
+                <li
+                  key={i}
+                  className={`p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer select-none ${['Sign in', 'Logout'].includes(menuItem) && 'pt-1 pb-1'}`}
+                  onClick={() => handleNavigation(menuItems[menuItem])}
+                >
+                  {menuItem}
+                </li>
+              ) : (
+                <li
+                  key={i}
+                  className={'p-3 text-gray-400 pointer-events-none select-none'}
+                  onClick={() => {if (user) handleNavigation(menuItems[menuItem])}}
+                >
+                  {menuItem}
+                </li>
+              )}
+
+              </>
+            ) : (
+              <li
+                key={i}
+                className={`select-none p-3 hover:text-sky-400 rounded-md transition-all cursor-pointer ${['Sign in', 'Logout'].includes(menuItem) && 'pt-1 pb-1'}`}
+                onClick={() => handleNavigation(menuItems[menuItem])}
+              >
+                {menuItem}
+              </li>
+            )}
+
+          </>
+
         )
         )}
         <li
-          className={`p-3 rounded-md ${!user && 'pt-1 pb-1 hover:text-sky-400 hover:cursor-pointer'}`}
+          className={`select-none p-3 rounded-md ${!user && 'pt-1 pb-1 hover:text-sky-400 hover:cursor-pointer'}`}
           onClick={() => !user && handleNavigation('/login')}
         >
           {!user ? (<p className="hover:text-sky-400">Login</p>) : (
@@ -114,53 +143,55 @@ const MainToolBar = () => {
           <div className='w-6 h-1 bg-black dark:bg-white'></div>
         </div>
       </button>
-      {menuOpen && createPortal(
-        <div className={`absolute xl:hidden top-16 left-0 w-full bg-white bc-dark-bg-light flex flex-col items-center gap-6 font-semibold text-lg transform
+      {
+        menuOpen && createPortal(
+          <div className={`absolute xl:hidden top-16 left-0 w-full bg-white bc-dark-bg-light flex flex-col items-center gap-6 font-semibold text-lg transform
           ${menuOpen ? 'opacity-100 z-50' : 'opacity-0 pointer-events-none'} transition-opacity transition-transform duration-300 ease-in-out`}
-        >
-          {Object.keys(menuItems).map((menuItem, i) => (
-            <li
-              key={i}
-              className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-              onClick={() => { handleNavigation(menuItems[menuItem]); if (curPage === menuItems[menuItem]) setMenuOpen(false); }}
-            >
-              {menuItem}
-            </li>
-          ))}
-          <li
-            className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-            onClick={() => {
-              let nextPage = !user ? '/login' : '/profile';
-              if (curPage === nextPage) {
-                setMenuOpen(false);
-              } else {
-                handleNavigation(nextPage);
-              }
-            }}
           >
-            {!user ? 'Login' : 'Profile'}
-          </li>
-          {user && (
-            <>
+            {Object.keys(menuItems).map((menuItem, i) => (
               <li
+                key={i}
                 className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-                onClick={() => { handleNavigation('/settings'); setMenuOpen(false); }}
+                onClick={() => { handleNavigation(menuItems[menuItem]); if (curPage === menuItems[menuItem]) setMenuOpen(false); }}
               >
-                Settings
+                {menuItem}
               </li>
-              <li
-                className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
-                onClick={() => { handleLogout(); setMenuOpen(false); }}
-              >
-                Logout
-              </li>
-            </>
-          )}
+            ))}
+            <li
+              className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+              onClick={() => {
+                let nextPage = !user ? '/login' : '/profile';
+                if (curPage === nextPage) {
+                  setMenuOpen(false);
+                } else {
+                  handleNavigation(nextPage);
+                }
+              }}
+            >
+              {!user ? 'Login' : 'Profile'}
+            </li>
+            {user && (
+              <>
+                <li
+                  className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+                  onClick={() => { handleNavigation('/settings'); setMenuOpen(false); }}
+                >
+                  Settings
+                </li>
+                <li
+                  className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+                  onClick={() => { handleLogout(); setMenuOpen(false); }}
+                >
+                  Logout
+                </li>
+              </>
+            )}
 
-        </div>,
-        document.body
-      )}
-    </header>
+          </div>,
+          document.body
+        )
+      }
+    </header >
   )
 };
 
