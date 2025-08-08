@@ -16,21 +16,37 @@ export default function App() {
   const [serverReady, setServerReady] = useState(true);
 
   useEffect(() => {
+    let intervalId: number | null = null;
+
     const checkServer = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}`);
-        if (!res.ok) {
-          console.warn("Server responded but not ready");
+        const res = await fetch(`${API_BASE_URL}`, { cache: "no-store" });
+        if (res.ok) {
+          setServerReady(true);
+          if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+          }
+        } else {
           setServerReady(false);
         }
       } catch (err) {
-        console.warn("Server unreachable", err);
         setServerReady(false);
       }
     };
 
+    // Run first check
     checkServer();
-  }, []);
+
+    // Only start retry loop if server is not ready
+    if (!serverReady) {
+      intervalId = setInterval(checkServer, 3000) as unknown as number;
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [serverReady]);
 
   if (!serverReady) {
     return <SplashScreen />;
