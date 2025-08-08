@@ -10,9 +10,8 @@ import Profile from "../../pages/Profile";
 import SettingsPage from "../../pages/Settings/Settings";
 import Store from '../../pages/Store/Store';
 import Contact from "../../pages/Contact";
-import Train from "../../pages/Train";
 import BoardBuilder from "../../pages/BoardBuilder";
-import PuzzleHome from "../../pages/PuzzleHome";
+import TrainingHome from "../../pages/TrainingHome";
 import PuzzleType from "../../components/PuzzleType";
 import ProtectedRoute from "./protectedroute";
 
@@ -35,9 +34,8 @@ const rawRoutes: Array<Route> = [
   { path: "/settings", element: <SettingsPage />, requiresAuth: true },
   { path: "/store", element: <Store />, requiresAuth: false, allowNewUser: true},
   { path: "/contact", element: <Contact />, requiresAuth: false, allowNewUser: true },
-  { path: "/train", element: <Train />, requiresAuth: false },
   { path: "/train/board-builder", element: <BoardBuilder />, requiresAuth: false },
-  { path: "/train/puzzle", element: <PuzzleHome />, requiresAuth: false },
+  { path: "/train", element: <TrainingHome />, requiresAuth: false },
 
   ...[
     ["mateIn1"], ["mateIn2"], ["mateIn3"], ["mateIn4"], ["mateIn5"], ["mate"],

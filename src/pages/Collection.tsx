@@ -5,19 +5,11 @@ import { useUserData } from "../contexts/UserDataContext";
 import { updateUserInfo } from "../api/users";
 import { Board } from "../types/board";
 import { useAuth } from "../contexts/AuthContext";
+import { PieceCode, DisplayedPieces, Piece } from "../types/Piece";
+
 
 const validTabs = ['sets', 'pieces', 'boards', 'effects'] as const;
 type Tab = typeof validTabs[number];
-
-type PieceCode = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
-type Color = 'white' | 'black';
-type PieceSet = Record<PieceCode, string>;
-type DisplayedPieces = Record<Color, PieceSet>;
-interface Piece {
-    src: string;
-    type: string;
-    color: string;
-}
 
 const Collection = () => {
     const [allPieces, setAllPieces] = useState<Array<Piece>>([]);

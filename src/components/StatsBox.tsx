@@ -9,6 +9,9 @@ import { Column } from 'primereact/column';
 import { Skeleton } from 'primereact/skeleton';
 import useDarkMode from '../darkmode/useDarkMode';
 
+/*
+ This component is currently not being used, but may be used when online play is introduced.
+*/
 
 const StatsBox = () => {
 

@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@custom-variant dark (&:where(.dark, .dark *));
 html, body, #root {
     @apply min-h-screen;
     height: 100%;

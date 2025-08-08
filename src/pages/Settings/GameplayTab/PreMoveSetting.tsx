@@ -136,7 +136,7 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
                                     ? "text-green-500 opacity-100"
                                     : saveStatus === "error"
                                         ? "text-red-500 opacity-100"
-                                        : "text-gray-200 opacity-70"
+                                        : "dark:text-gray-200 text-gray-700 opacity-70"
                                     }`}
                             >
                                 {premoveBottomLabelText}

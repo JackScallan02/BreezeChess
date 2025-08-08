@@ -8,6 +8,9 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Skeleton } from 'primereact/skeleton';
 
+/*
+ This component is currently not being used, but may be used when online play is introduced.
+*/
 
 const RecentGamesBox = () => {
 

@@ -49,7 +49,7 @@ const ChangePassword = () => {
 
     return (
         <div>
-            <p className="text-sm mt-2 text-gray-200">Password must be between 8-30 characters long, and contain at least 2 numbers and 1 special character</p>
+            <p className="text-sm mt-2 dark:text-gray-200 text-gray-800">Password must be between 8-30 characters long, and contain at least 2 numbers and 1 special character</p>
             <div className="max-w-[300px] flex flex-col gap-y-2 mt-4">
                 <TextField value={typedPassword.p1} topLabel="New password" eyeToggle={true} onChange={(e) => setTypedPassword({ ...typedPassword, p1: e.target.value })} />
                 <TextField value={typedPassword.p2} topLabel="Retype password" eyeToggle={true} onChange={(e) => setTypedPassword({ ...typedPassword, p2: e.target.value })} />

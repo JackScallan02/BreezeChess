@@ -17,6 +17,7 @@ export function up(knex) {
         table.boolean('showBoardBuilderEngineEval').defaultTo(true);
         table.boolean('showMoveTypeLabels').defaultTo(true);
         table.boolean('showPuzzleTimer').defaultTo(true);
+        table.string('theme').defaultTo('systemDefault');
         table.timestamps(true, true);
     });
 };

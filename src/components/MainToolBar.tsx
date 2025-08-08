@@ -121,14 +121,14 @@ const MainToolBar = () => {
           {Object.keys(menuItems).map((menuItem, i) => (
             <li
               key={i}
-              className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+              className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
               onClick={() => { handleNavigation(menuItems[menuItem]); if (curPage === menuItems[menuItem]) setMenuOpen(false); }}
             >
               {menuItem}
             </li>
           ))}
           <li
-            className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+            className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
             onClick={() => {
               let nextPage = !user ? '/login' : '/profile';
               if (curPage === nextPage) {
@@ -143,13 +143,13 @@ const MainToolBar = () => {
           {user && (
             <>
               <li
-                className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+                className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
                 onClick={() => { handleNavigation('/settings'); setMenuOpen(false); }}
               >
                 Settings
               </li>
               <li
-                className="list-none w-full text-center dark:text-white p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
+                className="list-none w-full text-center dark:text-white text-black p-4 hover:bg-sky-400 hover:text-white transition-all cursor-pointer"
                 onClick={() => { handleLogout(); setMenuOpen(false); }}
               >
                 Logout

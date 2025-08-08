@@ -2,7 +2,7 @@ import useDarkMode from '../darkmode/useDarkMode';
 import MainToolBar from '../components/MainToolBar';
 import TrainingTree from './TrainingTree';
 
-const PuzzleHome = () => {
+const TrainingHome = () => {
 
     useDarkMode();
 
@@ -16,4 +16,4 @@ const PuzzleHome = () => {
     );
 };
 
-export default PuzzleHome;
+export default TrainingHome;

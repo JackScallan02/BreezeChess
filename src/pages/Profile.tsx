@@ -9,8 +9,8 @@ import { formatDate } from '../helpers/formatDate';
 import { getFlag } from '../helpers/countryHelpers';
 import { CircleUserRound } from 'lucide-react';
 import CountrySelector from '../components/CountrySelector';
-import StatsBox from '../components/StatsBox';
-import RecentGamesBox from '../components/RecentGamesBox';
+import PuzzleStatsBox from '../components/PuzzleStatsBox';
+import ProfilePieceDisplay from '../components/ProfilePieceDisplay';
 
 const Profile = () => {
   const { user, loading } = useAuth();
@@ -72,16 +72,18 @@ const Profile = () => {
                 </div>
               </div>
               <div className="w-[90%] mx-auto min-w-[20rem] hidden lg:block">
-                <RecentGamesBox />
+                <PuzzleStatsBox />
+
               </div>
             </div>
             <div className="w-[50%] mx-auto min-w-[30rem] hidden lg:block">
-              <StatsBox />
+              <ProfilePieceDisplay />
+
             </div>
           </div>
           <div className="block lg:hidden w-full mt-8 pl-16 pr-16 pb-16">
-            <StatsBox />
-            <RecentGamesBox />
+            <PuzzleStatsBox />
+            <ProfilePieceDisplay />
           </div>
           <CountrySelector openDialog={openDialog} setOpenDialog={setOpenDialog} handleGetUserInfo={handleGetUserInfo} />
         </main>

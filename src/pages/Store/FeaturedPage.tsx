@@ -3,7 +3,7 @@ import { Skeleton } from "primereact/skeleton";
 
 // Fake featured item data for now
 const FEATURED_ITEM = {
-    name: 'Main Featured Item',
+    name: 'Featured Item',
     price: 19.99,
     description: 'This is a featured item description.',
     image: 'https://picsum.photos/400'

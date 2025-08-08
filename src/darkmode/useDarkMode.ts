@@ -17,6 +17,7 @@ export default function useDarkMode() {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
     } else {
+      console.log("removing");
       document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
@@ -40,6 +41,7 @@ export default function useDarkMode() {
 
   const toggleDarkMode = () => {
     const newMode: boolean = !isDarkMode;
+    console.log("setting to newMode: ", newMode);
     setIsDarkMode(newMode);
 
     // Store user preference only if they explicitly toggle

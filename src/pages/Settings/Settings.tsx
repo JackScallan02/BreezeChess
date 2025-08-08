@@ -89,16 +89,16 @@ const getTab = (activeTab: string) => {
     }
 
     return (
-        <div className="w-full min-h-screen text-white bg-gray-900">
+        <div className="w-full min-h-screen dark:bg-gray-900">
             <MainToolBar />
             <div className="flex md:flex-row flex-col">
                 {/* --- Sidebar --- */}
                 {/* Always shows on medium screens and up. On smaller screens, visibility is controlled by state. */}
-                <div className={`bg-slate-800 md:w-[15%] md:min-w-60 w-full h-screen md:border-r md:border-slate-700 md:block ${isMobileListVisible ? 'block' : 'hidden'}`}>
+                <div className={`dark:bg-slate-800 bg-slate-100 md:w-[15%] md:min-w-60 w-full h-screen md:border-r md:border-slate-700 md:block ${isMobileListVisible ? 'block' : 'hidden'}`}>
                     <div className="flex flex-col h-full w-full">
                         <div className="flex flex-row md:p-8 p-4 gap-x-4 items-center border-b border-slate-700 w-full">
-                            <Settings className="md:w-6 md:h-6 w-5 h-5" />
-                            <p className="md:text-xl text-lg font-bold">Settings</p>
+                            <Settings className="md:w-6 md:h-6 w-5 h-5 dark:text-white text-black" />
+                            <p className="md:text-xl text-lg font-bold dark:text-white text-black">Settings</p>
                         </div>
                         <div className="flex flex-col w-full py-4">
                             {Object.keys(settingsTabs).map((tabKey) => {
@@ -109,10 +109,10 @@ const getTab = (activeTab: string) => {
                                     <div
                                         key={tab.url}
                                         onClick={() => handleTabClick(tab.url)}
-                                        className={`w-full h-16 flex flex-row items-center justify-start px-8 gap-x-4 transition-colors duration-150 cursor-pointer ${isActive ? 'bg-slate-600 font-semibold' : 'hover:bg-slate-700'}`}
+                                        className={`w-full h-16 flex flex-row items-center justify-start px-8 gap-x-4 transition-colors duration-150 cursor-pointer ${isActive ? 'dark:bg-slate-600 bg-sky-200 font-semibold' : 'hover:dark:bg-slate-700 hover:bg-sky-100'}`}
                                     >
-                                        <Icon className="w-5 h-5" />
-                                        <p className="text-md">{tabKey}</p>
+                                        <Icon className="w-5 h-5 dark:text-white text-black" />
+                                        <p className="text-md dark:text-white text-black">{tabKey}</p>
                                     </div>
                                 );
                             })}
@@ -129,7 +129,7 @@ const getTab = (activeTab: string) => {
                             className="h-6 w-6 cursor-pointer md:hidden" 
                             onClick={() => setMobileListVisible(true)}
                         />
-                        <h1 className="text-3xl font-bold">
+                        <h1 className="text-3xl font-bold text-black dark:text-white">
                             {Object.values(settingsTabs).find(tab => tab.url === activeTab)?.displayName}
                         </h1>
                     </div>
