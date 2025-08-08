@@ -50,7 +50,7 @@ const rawRoutes: Array<Route> = [
     ["skewer"], ["fork"], ["pin"], ["doubleCheck"], ["sacrifice"],
     ["trappedPiece"], ["hangingPiece"], ["defensiveMove"], ["equality"], ["capturingDefender"],
     ["zugzwang"], ["exposedKing"], ["crushing"], ["master"], ["superGM"],
-    ["masterVsMaster"], ["advantage"]
+    ["masterVsMaster"], ["advantage"], ["random"]
   ].map(([theme]) => ({
     path: `/train/puzzle/${theme}`,
     element: <PuzzleType title={formatTitle(theme)} themes={[theme]} />,

@@ -19,7 +19,13 @@ const PuzzleType: React.FC<PuzzleProps> = ({ title, themes }) => {
 
     const fetchPuzzle = async () => {
         try {
-            const res = await getPuzzles({ themes: themes }, undefined);
+            let res;
+            if (themes[0] === 'random' && themes.length === 1) {
+                res = await getPuzzles({}, undefined);
+            } else {
+                res = await getPuzzles({ themes: themes }, undefined);
+
+            }
             const puzzle = res.result[0];
             const moveList = puzzle.Moves.split(' ');
             setPuzzleSolution({
@@ -44,7 +50,7 @@ return (
     <MainToolBar />
     <div className="flex-1 overflow-y-scroll min-h-0 no-scrollbar">
       {puzzleSolution?.fen && (
-        <PuzzleBoard puzzleSolution={puzzleSolution} />
+        <PuzzleBoard puzzleSolution={puzzleSolution} random={themes.includes('random') ? true : false} />
       )}
     </div>
   </div>

@@ -16,9 +16,12 @@ interface PuzzleBoardProps {
         fetchPuzzle: () => void;
     };
     showLabels?: boolean;
+    random?: boolean;
 }
 
-const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = true }) => {
+const RANDOM_BONUS = 100; // Hardcoded 100 points for "random" puzzle bonus
+
+const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = true, random }) => {
     const { fetchPuzzle } = puzzleSolution;
     const { showPuzzleTimer, points, setPoints } = useUserData();
     const { user } = useAuth();
@@ -41,17 +44,18 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
     const [lastMoveTo, setLastMoveTo] = useState<Square | null>(null);
     const [awardedPoints, setAwardedPoints] = useState(0);
     const [correctLabel, setCorrectLabel] = useState<'correct' | 'incorrect' | undefined>();
+    const [animateBonusesIn, setAnimateBonusesIn] = useState(false);
 
     // State for bonus points and their animations
     const [speedBonus, setSpeedBonus] = useState(0);
     const [accuracyBonus, setAccuracyBonus] = useState(0);
+    const [randomBonus, setRandomBonus] = useState(0);
     const [showBonuses, setShowBonuses] = useState(false);
     const [absorbBonuses, setAbsorbBonuses] = useState(false);
 
     const [animationStart, setAnimationStart] = useState<{ x: number, y: number } | null>(null);
     const [animationEnd, setAnimationEnd] = useState<{ x: number, y: number } | null>(null);
 
-    // --- Start of New Changes ---
 
     // State to hold the points value displayed on the screen for animation
     const [displayPoints, setDisplayPoints] = useState(points);
@@ -63,6 +67,20 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
     useEffect(() => {
         setDisplayPoints(points);
     }, [points, resetKey]);
+
+    useEffect(() => {
+        if (showBonuses) {
+            // This timeout ensures that the browser has rendered the labels in their
+            // initial (hidden) state before we apply the class to animate them in.
+            const timer = setTimeout(() => {
+                setAnimateBonusesIn(true);
+            }, 50); // 50ms is enough to ensure a separate paint cycle.
+            return () => clearTimeout(timer);
+        } else {
+            // When the bonuses are hidden, reset the animation trigger state.
+            setAnimateBonusesIn(false);
+        }
+    }, [showBonuses]);
 
 
     // Effect for the count-up animation
@@ -110,10 +128,6 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         };
     }, [points]); // Rerun this effect when the target 'points' value changes
 
-
-    // --- End of New Changes ---
-
-
     const timeoutIds = useRef<NodeJS.Timeout[]>([]);
     const chessboardRef = useRef<ChessBoardHandle>(null);
     const boardContainerRef = useRef<HTMLDivElement>(null);
@@ -146,17 +160,29 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         return () => resizeObserver.disconnect();
     }, []);
 
+// Main useEffect for starting/resetting a puzzle
     useEffect(() => {
+        // --- FIX: Centralize ALL state resets here ---
         timeoutIds.current.forEach(clearTimeout);
         timeoutIds.current = [];
 
+        // Reset animation states
+        setShowPointsAnimation(false);
+        setAnimationStart(null);
+        setAnimationEnd(null);
+        setShowBonuses(false);
+        setAbsorbBonuses(false);
+        setIsUpdatingPoints(false);
+        setPointsAwarded(false); // Make sure points can be awarded for the new puzzle
+
+        // Reset puzzle-specific states
         const initialGame = new Chess(puzzleSolution.fen);
         const moves = puzzleSolution.moves;
         const fenTurn = initialGame.turn();
         const userPlaysFirst = moves.length % 2 !== 0;
         const determinedUserColor = userPlaysFirst ? fenTurn : fenTurn === 'w' ? 'b' : 'w';
         const initialMaxReachedIndex = userPlaysFirst ? 0 : 1;
-
+        
         setMaxReachedMoveIndex(initialMaxReachedIndex);
         setUserColor(determinedUserColor);
         setGame(new Chess(puzzleSolution.fen));
@@ -167,8 +193,11 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         setFeedbackMessage('');
         setShowHighlights(true);
         setHintSquare(null);
+        setIncorrectSquare(null);
+        setIncorrectMovePlayed(false);
         setLastMoveTo(null);
         setAwardedPoints(0);
+        // --- End of Fix ---
 
         if (userPlaysFirst) {
             setIsPlayerTurn(true);
@@ -194,28 +223,17 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
 
     const nextPuzzle = useCallback(async () => {
         await fetchPuzzle();
-        chessboardRef.current?.resetState();
-        setIncorrectSquare(null);
-        setIncorrectMovePlayed(false);
-        setHintSquare(null);
-        setResetKey(prev => prev + 1);
-        setPointsAwarded(false);
-        setMoveTimes([]);
-        moveStartTimeRef.current = Date.now();
+        // The useEffect will handle all state resets when fetchPuzzle completes and a new puzzleSolution is set.
+        // If fetchPuzzle doesn't change puzzleSolution, we still need to trigger a reset.
+        setResetKey(prev => prev + 1); 
     }, [fetchPuzzle]);
 
     const resetPuzzle = useCallback(() => {
-        timeoutIds.current.forEach(clearTimeout);
-        timeoutIds.current = [];
-        chessboardRef.current?.resetState();
+        // This is now the only thing needed. It triggers the useEffect to run and reset everything.
         setResetKey(prevKey => prevKey + 1);
-        setIncorrectSquare(null);
-        setIncorrectMovePlayed(false);
-        setHintSquare(null);
-        setResetKey(prev => prev + 1);
-        setMoveTimes([]);
-        moveStartTimeRef.current = Date.now();
     }, []);
+
+
 
     const handleGetHint = useCallback(() => {
         if (isPlayerTurn && puzzleStatus === "playing" && currentMoveIndex < puzzleSolution.moves.length) {
@@ -252,6 +270,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
             // Set the state for the bonus points to be displayed
             setSpeedBonus(puzzlePoints.speedBonus);
             setAccuracyBonus(puzzlePoints.noneIncorrectBonus);
+            setRandomBonus(RANDOM_BONUS); // Hardcoded random bonus for now
 
             const totalPoints = puzzlePoints.points + puzzlePoints.speedBonus + puzzlePoints.noneIncorrectBonus;
             setAwardedPoints(totalPoints);
@@ -429,6 +448,8 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         };
     };
 
+    console.log("Accuracy Bonus: ", accuracyBonus);
+    console.log("Speed bonus: ", speedBonus);
 
     const handleGoBack = () => navigateMoves(currentMoveIndex - 1);
     const handleGoForward = () => navigateMoves(currentMoveIndex + 1);
@@ -627,32 +648,50 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
 
                                     {/* Absolutely positioned container for bonus labels */}
                                     <div className="absolute top-full left-0 right-0 mt-1 flex flex-col text-center gap-1 pointer-events-none">
-                                        {/* Speed Bonus Label */}
-                                        {speedBonus > 0 && (
-                                            <div className={`text-sm font-semibold text-green-500 transition-all duration-700 
-                                                ${absorbBonuses
-                                                    ? '-translate-y-4 opacity-0 scale-75' // State 2: Absorb
-                                                    : showBonuses
-                                                        ? 'translate-y-0 opacity-100'   // State 1: Visible
-                                                        : 'translate-y-16 opacity-0'    // State 0: Hidden
-                                                }`}
-                                            >
-                                                +{speedBonus} Speed
-                                            </div>
-                                        )}
-                                        {/* Accuracy Bonus Label */}
-                                        {accuracyBonus > 0 && (
-                                            <div className={`text-sm font-semibold text-green-500 transition-all duration-700 delay-100 
-                                                ${absorbBonuses
-                                                    ? '-translate-y-4 opacity-0 scale-75' // State 2: Absorb
-                                                    : showBonuses
-                                                        ? 'translate-y-0 opacity-100'   // State 1: Visible
-                                                        : 'translate-y-16 opacity-0'    // State 0: Hidden
-                                                }`}
-                                            >
-                                                +{accuracyBonus} None Incorrect
-                                            </div>
-                                        )}
+{/* Absolutely positioned container for bonus labels */}
+{showBonuses && ( // This now acts as a wrapper to mount/unmount all labels at once
+    <div className="absolute top-full left-0 right-0 mt-1 flex flex-col text-center gap-1 pointer-events-none">
+        {/* Speed Bonus Label */}
+        {speedBonus > 0 && (
+            <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 
+                ${absorbBonuses
+                    ? '-translate-y-4 opacity-0 scale-75'
+                    : animateBonusesIn // Use the new state to trigger the animation
+                        ? 'translate-y-0 opacity-100'
+                        : 'translate-y-16 opacity-0'
+                }`}
+            >
+                +{speedBonus} Speed
+            </div>
+        )}
+        {/* Accuracy Bonus Label */}
+        {accuracyBonus > 0 && (
+            <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 delay-100 
+                ${absorbBonuses
+                    ? '-translate-y-4 opacity-0 scale-75'
+                    : animateBonusesIn // Use the new state here too
+                        ? 'translate-y-0 opacity-100'
+                        : 'translate-y-16 opacity-0'
+                }`}
+            >
+                +{accuracyBonus} None Incorrect
+            </div>
+        )}
+        {/* Random Bonus Label */}
+        {random && randomBonus > 0 && (
+            <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 delay-200 
+                ${absorbBonuses
+                    ? '-translate-y-4 opacity-0 scale-75'
+                    : animateBonusesIn // And here as well
+                        ? 'translate-y-0 opacity-100'
+                        : 'translate-y-16 opacity-0'
+                }`}
+            >
+                +{randomBonus} Random
+            </div>
+        )}
+    </div>
+)}
                                     </div>
                                 </div>
                             </div>

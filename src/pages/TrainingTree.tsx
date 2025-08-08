@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigation } from '../navigator/navigate';
 import { Wrench } from 'lucide-react';
+import Button from '../elements/Button';
 
 // Data for the left tree (Checkmates)
 const checkmatesData = {
@@ -285,6 +286,10 @@ export default function App() {
         Puzzles
       </h2>
       <p className="text-center text-slate-500 dark:text-slate-300 text-md lg:text-lg mb-2">Earn points and collect chess pieces by completing puzzles!</p>
+      <div className="m-4">
+        <Button text="Play random puzzles" style="md:text-lg text-md" onClick={() => {handleNavigation('/train/puzzle/random')}} />
+          <p className="text-sm ml-2 mt-[-4px] text-gray-200">*Earn bonus points!</p>
+      </div>
       <TrainingTree />
       <hr className="w-[90%] h-px my-8 bg-gray-200 border-0 dark:bg-gray-700" />
       <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-800 mb-2 tracking-tight text-center dark:text-white">
