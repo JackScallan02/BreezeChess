@@ -3,11 +3,11 @@
  * @returns { Promise<void> }
  */
 export function up(knex) {
-  return knex.schema.createTable('boards', function(table) {
+  return knex.schema.createTable('pieces', function(table) {
     table.increments();
-    table.string('whiteSquare').notNullable();
-    table.string('blackSquare').notNullable();
     table.string('name').notNullable();
+    table.integer('piece_set_id').references('id').inTable('piece_sets');
+    table.text('image_url').notNullable();
     table.string('description');
     table.string('rarity').notNullable(); // common, rare, ultra, legendary, divine
   });
@@ -18,5 +18,5 @@ export function up(knex) {
  * @returns { Promise<void> }
  */
 export function down(knex) {
-  return knex.schema.dropTable('boards');
+  return knex.schema.dropTable('pieces');
 };

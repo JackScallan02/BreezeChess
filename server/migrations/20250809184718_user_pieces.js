@@ -3,10 +3,10 @@
  * @returns { Promise<void> }
  */
 export function up(knex) {
-  return knex.schema.createTable('user_boards', function(table) {
+  return knex.schema.createTable('user_pieces', function(table) {
     table.increments();
     table.integer('user_id').references('id').inTable('users').notNullable();
-    table.integer('board_id').references('id').inTable('boards').notNullable();
+    table.integer('piece_id').references('id').inTable('pieces').notNullable();
     table.timestamp('acquired_at').defaultTo(knex.fn.now());
   });
 };
@@ -16,5 +16,5 @@ export function up(knex) {
  * @returns { Promise<void> }
  */
 export function down(knex) {
-  return knex.schema.dropTable('user_boards');
+  return knex.schema.dropTable('user_pieces');
 };

@@ -61,7 +61,6 @@ describe('Users API', function () {
 
         it('should return 200 for email for a valid password provided', async () => {
             const res = await chai.request(API_BASE_URL).get('/users').query({ email: 'joe@gmail.com', password: 'correctpassword' });
-            console.log(res.body);
             expect(res).to.have.status(200);
             expect(res.body).to.be.an('object');
             expect(res.body.uid).to.equal('kgj982d1omd');

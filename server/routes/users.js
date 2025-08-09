@@ -121,7 +121,7 @@ router.get('/:id/info', async (req, res) => {
                 .leftJoin('boards', 'boards.id', 'user_boards.board_id');
 
             columns.push(
-                'boards.board_name',
+                'boards.name as board_name',
                 'boards.description as board_description',
                 'boards.rarity as board_rarity',
                 'boards.whiteSquare',

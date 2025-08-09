@@ -10,9 +10,9 @@ router.get('/', async (req, res) => {
         let boards;
         if (user_id) {
             boards = await db('user_boards').join('boards', 'user_boards.board_id', 'boards.id').where({ user_id })
-                .select('whiteSquare', 'blackSquare', 'rarity', 'board_id', 'acquired_at', 'board_name', 'description').orderBy('board_id');
+                .select('whiteSquare', 'blackSquare', 'rarity', 'board_id', 'acquired_at', 'name as board_name', 'description').orderBy('board_id');
         } else {
-            boards = await db('user_boards');
+            boards = await db('boards').select();
         }
         return res.status(200).json(boards);
     } catch (error) {
