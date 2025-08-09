@@ -17,7 +17,7 @@ const Collection = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const initialDisplay = searchParams.get('display') || 'both';
     const initialTab = searchParams.get('tab') || 'sets';
-    const { allOwnedBoards, selectedBoard, setSelectedBoard } = useUserData();
+    const { allOwnedBoards, selectedBoard, setUserDataField } = useUserData();
 
     const [displayType, setDisplayType] = useState(initialDisplay);
     const [displayState, setDisplayState] = useState(() => {
@@ -200,7 +200,6 @@ const Collection = () => {
                     activeTab={activeTab}
                     selectedBoard={selectedBoard}
                     setActiveTab={setActiveTab}
-                    setSelectedBoard={setSelectedBoard}
                 />
             </div>
         </>
@@ -327,11 +326,10 @@ interface CollectionContainerProps {
     activeTab: Tab;
     selectedBoard: Board | null;
     setActiveTab: React.Dispatch<React.SetStateAction<Tab>>;
-    setSelectedBoard: (board_id: Board) => void;
 }
 
 
-const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab, selectedBoard, setSelectedBoard }) => {
+const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, allOwnedBoards, activeTab, setActiveTab, selectedBoard }) => {
 
     return (
         <div className="dark:bg-slate-900 bg-gray-200 w-full h-full min-h-[200px] border-t border-gray-700">
@@ -354,7 +352,7 @@ const CollectionContainer: React.FC<CollectionContainerProps> = ({ allPieces, al
             <div className="p-4 text-white w-full">
                 {activeTab === 'sets' && <div>Display Set content here</div>}
                 {activeTab === 'pieces' && <PiecesPage allPieces={allPieces} />}
-                {activeTab === 'boards' && <BoardsPage allOwnedBoards={allOwnedBoards} selectedBoard={selectedBoard} setSelectedBoard={setSelectedBoard} />}
+                {activeTab === 'boards' && <BoardsPage allOwnedBoards={allOwnedBoards} selectedBoard={selectedBoard} />}
                 {activeTab === 'effects' && <div>Display Effect content here</div>}
             </div>
         </div>

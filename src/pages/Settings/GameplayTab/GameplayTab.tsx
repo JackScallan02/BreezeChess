@@ -6,31 +6,22 @@ import { updateUserInfo } from "../../../api/users";
 import PremoveSetting from "./PreMoveSetting";
 import ToggleButton from "../../../elements/ToggleButton";
 import SectionHeader from "../Elements/SectionHeader";
+import { useUserData } from "../../../contexts/UserDataContext";
 
-interface UserDataContextType {
-    alwaysPromoteQueen: boolean;
-    showLegalMoves: boolean;
-    showBoardBuilderEvalBar: boolean;
-    showBoardBuilderEngineEval: boolean;
-    showMoveTypeLabels: boolean;
-    showPuzzleTimer: boolean;
-    preMoveKey?: string | undefined;
-    setAlwaysPromoteQueen: (prev: boolean) => void;
-    setShowLegalMoves: (prev: boolean) => void;
-    setShowBoardBuilderEvalBar: (prev: boolean) => void;
-    setShowBoardBuilderEngineEval: (prev: boolean) => void;
-    setShowMoveTypeLabels: (prev: boolean) => void;
-    setShowPuzzleTimer: (prev: boolean) => void;
-    setPreMoveKey: (prev: string | undefined) => void;
-    dataFetched: boolean;
-}
-
-interface GameplayProps {
-    userDataContext: UserDataContextType;
-}
-const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
+const GameplayTab = () => {
 
     const { user } = useAuth();
+
+    const {
+        setUserDataField,
+        showLegalMoves,
+        alwaysPromoteQueen,
+        showBoardBuilderEngineEval,
+        showBoardBuilderEvalBar,
+        showMoveTypeLabels,
+        showPuzzleTimer,
+        dataFetched,
+    } = useUserData();
 
     const handleUpdateUserInfo = async (data: object) => {
         try {
@@ -42,7 +33,7 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
         }
     }
 
-    if (!userDataContext.dataFetched) return;
+    if (!dataFetched) return;
 
     return (
         <div className="mt-4">
@@ -51,17 +42,17 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
             </div>
             <div className="flex flex-col gap-y-8">
                 <div>
-                    <PremoveSetting userDataContext={userDataContext} />
+                    <PremoveSetting />
                 </div>
                 <div>
                     <ToggleButton
                         label="Always promote to queen"
                         bottomLabel="If this setting is enabled, hold the ALT key when promoting to choose a different piece"
                         onChange={() => {
-                            handleUpdateUserInfo({ alwaysPromoteQueen: !userDataContext.alwaysPromoteQueen })
-                            userDataContext.setAlwaysPromoteQueen(!userDataContext.alwaysPromoteQueen);
+                            handleUpdateUserInfo({ alwaysPromoteQueen })
+                            setUserDataField('alwaysPromoteQueen', !alwaysPromoteQueen);
                         }}
-                        defaultChecked={userDataContext.alwaysPromoteQueen}
+                        defaultChecked={alwaysPromoteQueen}
                     />
                 </div>
                 <div>
@@ -69,10 +60,10 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                         label="Show legal moves for selected piece"
                         bottomLabel="If a piece is selected, legal moves will be denoted on the board"
                         onChange={() => {
-                            handleUpdateUserInfo({ showLegalMoves: !userDataContext.showLegalMoves });
-                            userDataContext.setShowLegalMoves(!userDataContext.showLegalMoves);
+                            handleUpdateUserInfo({ showLegalMoves: !showLegalMoves });
+                            setUserDataField('showLegalMoves', !showLegalMoves);
                         }}
-                        defaultChecked={userDataContext.showLegalMoves}
+                        defaultChecked={showLegalMoves}
                     />
                 </div>
             </div>
@@ -86,10 +77,10 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                             label="Evaluation bar"
                             bottomLabel="Show evaluation bar next to the chess board"
                             onChange={() => {
-                                handleUpdateUserInfo({ showBoardBuilderEvalBar: !userDataContext.showBoardBuilderEvalBar });
-                                userDataContext.setShowBoardBuilderEvalBar(!userDataContext.showBoardBuilderEvalBar);
+                                handleUpdateUserInfo({ showBoardBuilderEvalBar: !showBoardBuilderEvalBar });
+                                setUserDataField('showBoardBuilderEvalBar', !showBoardBuilderEvalBar);
                             }}
-                            defaultChecked={userDataContext.showBoardBuilderEvalBar}
+                            defaultChecked={showBoardBuilderEvalBar}
                         />
                     </div>
                     <div>
@@ -97,10 +88,10 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                             label="Engine evaluation"
                             bottomLabel="Show game evaluation next to the chess board"
                             onChange={() => {
-                                handleUpdateUserInfo({ showBoardBuilderEngineEval: !userDataContext.showBoardBuilderEngineEval });
-                                userDataContext.setShowBoardBuilderEngineEval(!userDataContext.showBoardBuilderEngineEval);
+                                handleUpdateUserInfo({ showBoardBuilderEngineEval: !showBoardBuilderEngineEval });
+                                setUserDataField('showBoardBuilderEngineEval', !showBoardBuilderEngineEval);
                             }}
-                            defaultChecked={userDataContext.showBoardBuilderEngineEval}
+                            defaultChecked={showBoardBuilderEngineEval}
                         />
                     </div>
                     <div>
@@ -108,10 +99,10 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                             label="Move type labels"
                             bottomLabel="Show labels indicating blunders, crushing moves, etc."
                             onChange={() => {
-                                handleUpdateUserInfo({ showMoveTypeLabels: !userDataContext.showMoveTypeLabels });
-                                userDataContext.setShowMoveTypeLabels(!userDataContext.showMoveTypeLabels);
+                                handleUpdateUserInfo({ showMoveTypeLabels: !showMoveTypeLabels });
+                                setUserDataField('showMoveTypeLabels', !showMoveTypeLabels);
                             }}
-                            defaultChecked={userDataContext.showMoveTypeLabels}
+                            defaultChecked={showMoveTypeLabels}
                         />
                     </div>
                 </div>
@@ -126,10 +117,10 @@ const GameplayTab: React.FC<GameplayProps> = ({ userDataContext }) => {
                             label="Show timer"
                             bottomLabel="Show a timer as you solve puzzles"
                             onChange={() => {
-                                handleUpdateUserInfo({ showPuzzleTimer: !userDataContext.showPuzzleTimer });
-                                userDataContext.setShowPuzzleTimer(!userDataContext.showPuzzleTimer);
+                                handleUpdateUserInfo({ showPuzzleTimer: !showPuzzleTimer });
+                                setUserDataField('showPuzzleTimer', !showPuzzleTimer);
                             }}
-                            defaultChecked={userDataContext.showPuzzleTimer}
+                            defaultChecked={showPuzzleTimer}
                         />
                     </div>
                 </div>

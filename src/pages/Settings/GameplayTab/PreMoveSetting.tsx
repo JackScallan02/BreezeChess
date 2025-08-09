@@ -5,20 +5,12 @@ import { UserInfo } from "../../../types/userinfo";
 import TextField from "../../../elements/TextField";
 import { Save } from 'lucide-react';
 import { useState, useEffect, useRef, Dispatch, SetStateAction, useLayoutEffect } from 'react';
+import { useUserData } from "../../../contexts/UserDataContext";
 
-
-interface UserDataContextType {
-    preMoveKey?: string | undefined;
-    setPreMoveKey: (value: string | undefined) => void;
-}
-
-interface PremoveProps {
-    userDataContext: UserDataContextType;
-}
-const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
+const PremoveSetting = () => {
 
     const [premoveToggled, setPremoveToggled] = useState(true);
-    const [premoveVal, setPreMoveVal] = useState<string | undefined>(undefined);
+    const [curPremoveVal, setCurPremoveVal] = useState<string | undefined>(undefined);
     const [premoveBottomLabelText, setPreMoveBottomLabelText] = useState("Key bind");
     const [isSaving, setIsSaving] = useState(false);
     const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">("idle");
@@ -26,17 +18,18 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const { user } = useAuth();
+    const { preMoveKey, setUserDataField, dataFetched } = useUserData();
 
     useLayoutEffect(() => {
-        if (userDataContext) {
-            setPreMoveVal(userDataContext.preMoveKey);
-            if (userDataContext.preMoveKey === undefined) {
+        if (dataFetched) {
+            setCurPremoveVal(preMoveKey);
+            if (preMoveKey === undefined) {
                 setPremoveToggled(false);
             } else {
                 setPremoveToggled(true);
             }
         }
-    }, [userDataContext]);
+    }, [dataFetched]);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         e.preventDefault();
@@ -49,21 +42,21 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
         }
 
         const combo = keys.join('+') || e.key;
-        setPreMoveVal(combo);
+        setCurPremoveVal(combo);
     };
 
     const handleSavePremove = async () => {
-        if (!user || isSaving || !userDataContext) return;
-        if (premoveVal?.toLowerCase() === (userDataContext.preMoveKey?.toLowerCase() || '')) return;
+        if (!user || isSaving) return;
+        if (curPremoveVal?.toLowerCase() === (preMoveKey?.toLowerCase() || '')) return;
 
         setIsSaving(true);
         setSaveStatus("idle");
 
         try {
-            await updateUserInfo(user.id, { premove: premoveVal || null });
+            await updateUserInfo(user.id, { premove: curPremoveVal || null });
             setSaveStatus("success");
             setPreMoveBottomLabelText("Premove key bind saved!");
-            userDataContext.setPreMoveKey(premoveVal);
+            setUserDataField('preMoveKey', curPremoveVal);
         } catch (err) {
             console.error("Failed to update premove:", err);
             setSaveStatus("error");
@@ -78,13 +71,13 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
     };
 
     const handlePreMoveToggled = async () => {
-        const isCurrentlyEnabled = userDataContext.preMoveKey !== undefined;
+        const isCurrentlyEnabled = preMoveKey !== undefined;
         setPremoveToggled((prev) => !prev);
         if (isCurrentlyEnabled) {
             const newVal = undefined;
 
-            setPreMoveVal(newVal);
-            userDataContext.setPreMoveKey(newVal);
+            setCurPremoveVal(newVal);
+            setUserDataField('preMoveKey', newVal);
 
             setIsSaving(true);
             setSaveStatus("idle");
@@ -114,7 +107,7 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
         <>
             <div className="mb-2">
                 <ToggleButton
-                    defaultChecked={userDataContext.preMoveKey !== undefined}
+                    defaultChecked={preMoveKey !== undefined}
                     label="Enable premoves"
                     bottomLabel="Make moves during the opponent's turn which will automatically execute once it becomes your turn"
                     onChange={() => handlePreMoveToggled()}
@@ -125,7 +118,7 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
                 <div className="flex flex-row gap-x-4 items-start">
                     <TextField
                         placeholder="Press a key"
-                        value={premoveVal || ""}
+                        value={curPremoveVal || ""}
                         onKeyDown={handleKeyDown}
                         onChange={() => { }}
                         inputRef={inputRef}
@@ -144,13 +137,13 @@ const PremoveSetting: React.FC<PremoveProps> = ({ userDataContext }) => {
                         }
                     />
                     <Save
-                        className={`select-none mt-2 h-6 w-6 transition-colors duration-200 ${isSaving || premoveVal?.toLowerCase() === (userDataContext.preMoveKey?.toLowerCase() || '')
+                        className={`select-none mt-2 h-6 w-6 transition-colors duration-200 ${isSaving || curPremoveVal?.toLowerCase() === (preMoveKey?.toLowerCase() || '')
                             ? "text-gray-400 cursor-not-allowed"
                             : "cursor-pointer hover:text-blue-500"
                             }`}
                         onClick={
                             isSaving ||
-                                ((premoveVal?.toLowerCase() === (userDataContext.preMoveKey?.toLowerCase() || '')) || premoveVal === undefined)
+                                ((curPremoveVal?.toLowerCase() === (preMoveKey?.toLowerCase() || '')) || curPremoveVal === undefined)
                                 ? undefined
                                 : handleSavePremove
                         }

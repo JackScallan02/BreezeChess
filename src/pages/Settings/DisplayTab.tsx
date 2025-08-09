@@ -6,7 +6,7 @@ import { updateUserInfo } from "../../api/users";
 import { useAuth } from "../../contexts/AuthContext";
 
 const DisplayTab = () => {
-    const { setTheme } = useUserData();
+    const { setUserDataField } = useUserData();
     const { isDarkMode, toggleDarkMode } = useDarkMode();
     const { user } = useAuth();
 
@@ -28,7 +28,7 @@ const DisplayTab = () => {
             <div className="flex flex-col gap-y-8">
                 <div>
                     <ToggleButton label="Dark mode" defaultChecked={isDarkMode} onChange={() => {
-                        setTheme(isDarkMode ? 'dark' : 'light');
+                        setUserDataField('theme', isDarkMode ? 'dark' : 'light');
                         updateTheme(isDarkMode ? 'dark' : 'light');
                         toggleDarkMode();
                         window.location.reload();

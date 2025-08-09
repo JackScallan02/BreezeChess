@@ -14,9 +14,9 @@ import { Board } from "../types/board";
 
 type ThemeSetting = "light" | "dark" | "systemDefault";
 
-type UserSettings = {
+type UserDataState = {
   theme: ThemeSetting;
-  preMoveKey?: string | undefined;
+  preMoveKey?: string;
   countryID: number;
   alwaysPromoteQueen: boolean;
   showLegalMoves: boolean;
@@ -27,108 +27,96 @@ type UserSettings = {
   points: number;
   selectedBoard: Board | null;
   allOwnedBoards: Array<Board>;
-  setTheme: (theme: ThemeSetting) => void;
-  setPreMoveKey: (value: string | undefined) => void;
-  setCountryID: (value: number) => void;
-  setAlwaysPromoteQueen: (value: boolean) => void;
-  setShowLegalMoves: (value: boolean) => void;
-  setShowBoardBuilderEvalBar: (value: boolean) => void;
-  setShowBoardBuilderEngineEval: (value: boolean) => void;
-  setShowMoveTypeLabels: (value: boolean) => void;
-  setShowPuzzleTimer: (value: boolean) => void;
-  setPoints: (value: number) => void;
-  setSelectedBoard: (value: Board | null) => void;
-  setAllOwnedBoards: (value: Array<Board>) => void;
   dataFetched: boolean;
 };
 
-const UserDataContext = createContext<UserSettings | undefined>(undefined);
+type UserDataContextType = UserDataState & {
+  setUserDataField: <K extends keyof UserDataState>(
+    key: K,
+    value: UserDataState[K]
+  ) => void;
+  setMultipleUserDataFields: (data: Partial<UserDataState>) => void;
+};
+
+const DEFAULT_USER_DATA: UserDataState = {
+  theme: "systemDefault",
+  preMoveKey: undefined,
+  countryID: -1,
+  alwaysPromoteQueen: false,
+  showLegalMoves: true,
+  showBoardBuilderEvalBar: true,
+  showBoardBuilderEngineEval: true,
+  showMoveTypeLabels: true,
+  showPuzzleTimer: true,
+  points: 0,
+  selectedBoard: null,
+  allOwnedBoards: [],
+  dataFetched: false,
+};
+
+const UserDataContext = createContext<UserDataContextType | undefined>(
+  undefined
+);
 
 export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<ThemeSetting>("systemDefault");
-  const [preMoveKey, setPreMoveKey] = useState<string | undefined>(undefined);
-  const [countryID, setCountryID] = useState<number>(-1);
-  const [alwaysPromoteQueen, setAlwaysPromoteQueen] = useState(false);
-  const [showLegalMoves, setShowLegalMoves] = useState(true);
-  const [showBoardBuilderEvalBar, setShowBoardBuilderEvalBar] = useState(true);
-  const [showBoardBuilderEngineEval, setShowBoardBuilderEngineEval] = useState(true);
-  const [showMoveTypeLabels, setShowMoveTypeLabels] = useState(true);
-  const [showPuzzleTimer, setShowPuzzleTimer] = useState(true);
-  const [points, setPoints] = useState(0);
-  const [selectedBoard, setSelectedBoard] = useState<Board | null>(null);
-  const [allOwnedBoards, setAllOwnedBoards] = useState<Board[]>([]);
-
-  const [dataFetched, setDataFetched] = useState(false);
-
   const { user } = useAuth();
+  const [userData, setUserData] = useState<UserDataState>(DEFAULT_USER_DATA);
+
+  const setUserDataField = <K extends keyof UserDataState>(
+    key: K,
+    value: UserDataState[K]
+  ) => {
+    setUserData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const setMultipleUserDataFields = (data: Partial<UserDataState>) => {
+    setUserData((prev) => ({ ...prev, ...data }));
+  };
 
   useEffect(() => {
     if (user?.id) {
-      // When user logs in or changes, refetch settings
-      getUserInfo(user.id, "?include=boards")
-        .then((data) => {
-          setTheme(data.theme ?? "systemDefault");
-          setCountryID(data.country_id ?? -1);
-          setPreMoveKey(data.premove ?? undefined);
-          setAlwaysPromoteQueen(data.alwaysPromoteQueen);
-          setShowLegalMoves(data.showLegalMoves);
-          setShowBoardBuilderEvalBar(data.showBoardBuilderEvalBar);
-          setShowBoardBuilderEngineEval(data.showBoardBuilderEngineEval);
-          setShowMoveTypeLabels(data.showMoveTypeLabels);
-          setShowPuzzleTimer(data.showPuzzleTimer);
-          setPoints(data.points);
-          setSelectedBoard({
-            board_id: data.selected_board_id,
-            whiteSquare: data.whiteSquare,
-            blackSquare: data.blackSquare,
-            rarity: data.board_rarity,
-            description: data.board_description,
-            acquired_at: data.board_acquired_at,
-            board_name: data.board_name,
+      Promise.all([
+        getUserInfo(user.id, "?include=boards"),
+        getBoards(user.id),
+      ])
+        .then(([userInfo, boards]) => {
+          setMultipleUserDataFields({
+            theme: userInfo.theme ?? "systemDefault",
+            countryID: userInfo.country_id ?? -1,
+            preMoveKey: userInfo.premove ?? undefined,
+            alwaysPromoteQueen: userInfo.alwaysPromoteQueen,
+            showLegalMoves: userInfo.showLegalMoves,
+            showBoardBuilderEvalBar: userInfo.showBoardBuilderEvalBar,
+            showBoardBuilderEngineEval: userInfo.showBoardBuilderEngineEval,
+            showMoveTypeLabels: userInfo.showMoveTypeLabels,
+            showPuzzleTimer: userInfo.showPuzzleTimer,
+            points: userInfo.points,
+            selectedBoard: {
+              board_id: userInfo.selected_board_id,
+              whiteSquare: userInfo.whiteSquare,
+              blackSquare: userInfo.blackSquare,
+              rarity: userInfo.board_rarity,
+              description: userInfo.board_description,
+              acquired_at: userInfo.board_acquired_at,
+              board_name: userInfo.board_name,
+            },
+            allOwnedBoards: boards,
+            dataFetched: true,
           });
-          setDataFetched(true);
         })
         .catch((err) => {
           console.error("Failed to fetch user settings:", err);
         });
-
-      getBoards(user.id).then((data) => {
-        setAllOwnedBoards(data);
-      });
     } else {
-      // When user logs out, reset to defaults
-      setTheme("systemDefault");
-      setPreMoveKey(undefined);
-      setCountryID(-1);
+      // Reset to defaults on logout
+      setUserData(DEFAULT_USER_DATA);
     }
   }, [user?.id]);
 
-  const value: UserSettings = {
-    theme,
-    preMoveKey,
-    countryID,
-    alwaysPromoteQueen,
-    showLegalMoves,
-    showBoardBuilderEvalBar,
-    showBoardBuilderEngineEval,
-    showMoveTypeLabels,
-    showPuzzleTimer,
-    points,
-    selectedBoard,
-    allOwnedBoards,
-    setTheme,
-    setPreMoveKey,
-    setCountryID,
-    setAlwaysPromoteQueen,
-    setShowLegalMoves,
-    setShowBoardBuilderEvalBar,
-    setShowBoardBuilderEngineEval,
-    setShowMoveTypeLabels,
-    setShowPuzzleTimer,
-    setPoints,
-    setSelectedBoard,
-    setAllOwnedBoards,
-    dataFetched
+  const value: UserDataContextType = {
+    ...userData,
+    setUserDataField,
+    setMultipleUserDataFields,
   };
 
   return (
@@ -140,7 +128,6 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
 
 export const useUserData = () => {
   const context = useContext(UserDataContext);
-
   if (!context) {
     throw new Error("useUserData must be used within a UserSettingsProvider");
   }

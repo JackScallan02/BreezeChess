@@ -7,7 +7,6 @@ import SocialTab from "./SocialTab";
 import NotificationsTab from "./NotificationsTab";
 import AccountTab from "./AccountTab/AccountTab";
 import AccessibilityTab from "./AccessibilityTab";
-import { useUserData } from "../../contexts/UserDataContext";
 
 // Interface for the tab data
 interface SettingsTab {
@@ -29,8 +28,6 @@ const SettingsPage = () => {
         'Accessibility': { url: 'accessibility', icon: PersonStanding, displayName: 'Accessibility Settings' }
     };
     
-    const userDataContext = useUserData();
-
     const [activeTab, setActiveTab] = useState<string>('');
     // State to manage visibility on mobile. True = show list, False = show content.
     const [isMobileListVisible, setMobileListVisible] = useState(true);
@@ -68,7 +65,7 @@ const SettingsPage = () => {
 const getTab = (activeTab: string) => {
     switch (activeTab) {
         case 'gameplay':
-            return <GameplayTab userDataContext={userDataContext} />;
+            return <GameplayTab />;
         case 'display':
             return <DisplayTab />;
         case 'social':

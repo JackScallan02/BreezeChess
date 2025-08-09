@@ -5,6 +5,7 @@ import { updateUserInfo } from '../../api/users';
 import SelectedItemMenu from './SelectedItemMenu';
 import { formatDate } from '../../helpers/formatDate';
 import { Rarity } from '../../types/rarity';
+import { useUserData } from '../../contexts/UserDataContext';
 
 interface BoardDetailsModalProps {
     board: Board;
@@ -116,15 +117,15 @@ const BoardDetailsModal: React.FC<BoardDetailsModalProps> = ({ board, setShowBoa
 interface BoardsPageProps {
     allOwnedBoards: Array<Board>;
     selectedBoard: Board | null;
-    setSelectedBoard: (board_id: Board) => void;
 }
 
 
-const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, setSelectedBoard }) => {
+const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard }) => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const [equipped, setEquipped] = useState<number>(-1);
     const [showBoardDetailsModal, setShowBoardDetailsModal] = useState(false);
     const [modalBoard, setModalBoard] = useState<Board | null>(null);
+    const { setUserDataField } = useUserData();
 
     const { user } = useAuth();
 
@@ -142,7 +143,7 @@ const BoardsPage: React.FC<BoardsPageProps> = ({ allOwnedBoards, selectedBoard, 
         try {
             if (user) {
                 await updateUserInfo(user.id, { selected_board_id: board.board_id })
-                setSelectedBoard(board);
+                setUserDataField('selectedBoard', board);
             }
         } catch (error) {
             console.error("Failed to update the board: ", error);

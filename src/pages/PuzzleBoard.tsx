@@ -23,7 +23,7 @@ const RANDOM_BONUS = 100; // Hardcoded 100 points for "random" puzzle bonus
 
 const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = true, random }) => {
     const { fetchPuzzle } = puzzleSolution;
-    const { showPuzzleTimer, points, setPoints } = useUserData();
+    const { showPuzzleTimer, points, setUserDataField } = useUserData();
     const { user } = useAuth();
     const [game, setGame] = useState(new Chess(puzzleSolution.fen));
     const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
@@ -313,7 +313,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                 // Trigger the text style animation and update points
                 setIsUpdatingPoints(true);
                 await updateUserInfo(user.id, { points: points + totalPoints });
-                setPoints(points + totalPoints);
+                setUserDataField('points', points + totalPoints);
 
                 // Reset all animation states after they've finished
                 const timeout2 = setTimeout(() => {
