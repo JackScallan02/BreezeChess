@@ -18,6 +18,10 @@ export function up(knex) {
         table.boolean('showMoveTypeLabels').defaultTo(true);
         table.boolean('showPuzzleTimer').defaultTo(true);
         table.string('theme').defaultTo('systemDefault');
+
+        /* These are the pieces that are currently selected by the user. Made separate columns for query simplicity */
+        table.jsonb('selected_pieces'); // Stores the ID of each piece that the user currently has selected
+
         table.timestamps(true, true);
     });
 };

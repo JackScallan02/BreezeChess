@@ -27,6 +27,7 @@ type UserDataState = {
   points: number;
   selectedBoard: Board | null;
   allOwnedBoards: Array<Board>;
+  selectedPieces: Object; // Todo: maybe make a specific type
   dataFetched: boolean;
 };
 
@@ -38,6 +39,8 @@ type UserDataContextType = UserDataState & {
   setMultipleUserDataFields: (data: Partial<UserDataState>) => void;
 };
 
+// The defaults don't really matter here, the default values will get retrieved from the DB when a user is logged in.
+// Otherwise, this context should not be getting used.
 const DEFAULT_USER_DATA: UserDataState = {
   theme: "systemDefault",
   preMoveKey: undefined,
@@ -51,6 +54,7 @@ const DEFAULT_USER_DATA: UserDataState = {
   points: 0,
   selectedBoard: null,
   allOwnedBoards: [],
+  selectedPieces: {},
   dataFetched: false,
 };
 
@@ -101,6 +105,7 @@ export const UserSettingsProvider = ({ children }: { children: ReactNode }) => {
               board_name: userInfo.board_name,
             },
             allOwnedBoards: boards,
+            selectedPieces: userInfo.selected_pieces,
             dataFetched: true,
           });
         })

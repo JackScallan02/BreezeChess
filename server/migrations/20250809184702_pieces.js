@@ -9,6 +9,7 @@ export function up(knex) {
     table.integer('piece_set_id').references('id').inTable('piece_sets');
     table.text('image_url').notNullable();
     table.string('description');
+    table.string('type'); // q, k, n, b, r, p
     table.string('rarity').notNullable(); // common, rare, ultra, legendary, divine
   });
 };
