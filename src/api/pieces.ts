@@ -11,12 +11,12 @@ const apiClient = axios.create({
 
 /**
  * Fetch a user's owned boards
- * @param user_id - The ID of the user to query the boards from (optional). Otherwise will get all boards
- * @returns The list of boards or an error message.
+ * @param user_id - The ID of the user to query the pieces from (optional). Otherwise will get all pieces
+ * @returns The list of pieces or an error message.
  */
-export const getBoards = async (user_id?: number) => {
+export const getPieces = async (user_id?: number) => {
   try {
-    const response = await apiClient.get(`${API_BASE_URL}/boards`, {
+    const response = await apiClient.get(`${API_BASE_URL}/pieces`, {
       params: user_id ? { user_id }: {},
       headers: {
         'Content-Type': 'application/json',
@@ -26,10 +26,10 @@ export const getBoards = async (user_id?: number) => {
   } catch (error: any) {
     if (error.response) {
       console.error(`API Error: ${error.response.status} - ${error.response.data.error}`);
-      throw new Error(error.response.data.error || 'Failed to fetch boards.');
+      throw new Error(error.response.data.error || 'Failed to fetch pieces.');
     } else {
       console.error('Network or server error:', error.message);
-      throw new Error('Failed to fetch boards. Please try again later.');
+      throw new Error('Failed to fetch pieces. Please try again later.');
     }
   }
 };

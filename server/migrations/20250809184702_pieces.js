@@ -10,6 +10,7 @@ export function up(knex) {
     table.text('image_url').notNullable();
     table.string('description');
     table.string('type'); // q, k, n, b, r, p
+    table.string('color'); // w or b
     table.string('rarity').notNullable(); // common, rare, ultra, legendary, divine
   });
 };

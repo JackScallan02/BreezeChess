@@ -161,45 +161,88 @@ router.get('/:id', async (req, res) => {
 
 // POST route to create a new user
 router.post('/', validateUser, async (req, res) => {
-    const { uid, username, email, password, provider } = req.body;
+  const { uid, username, email, password, provider } = req.body;
 
-    let hashedPassword;
-    if (password) {
-        // Hash the password, if provided
-        hashedPassword = await bcryptjs.hash(password, saltRounds);
-    }
+  let hashedPassword;
+  if (password) {
+    hashedPassword = await bcryptjs.hash(password, saltRounds);
+  }
 
-    try {
-        const [newUser] = await db('users').insert({
-            uid,
-            email,
-            provider,
-            username: username || null,
-            password: hashedPassword || null,
-            is_new_user: true,
-        }).returning('*');
+  try {
+    const newUser = await db.transaction(async trx => {
+      // 1. Insert into users
+      const [createdUser] = await trx('users')
+        .insert({
+          uid,
+          email,
+          provider,
+          username: username || null,
+          password: hashedPassword || null,
+          is_new_user: true,
+        })
+        .returning('*');
 
-        if (!newUser) {
-            return res.status(400).json({ error: 'Failed to create user' });
-        }
+      if (!createdUser) {
+        throw new Error('Failed to create user');
+      }
 
-        // Insert data into user_info and user_boards
-        await Promise.all([
-            db('user_boards').insert({ user_id: newUser.id, board_id: 1}),
-            db('user_boards').insert({ user_id: newUser.id, board_id: 2}),
-            db('user_boards').insert({ user_id: newUser.id, board_id: 3}),
-            db('user_info').insert({
-                user_id: newUser.id,
-                country_id: 182, // Default to 'United States' for now...
-            })
-        ])
+      // 2. Fetch default boards
+      const defaultBoards = await trx('boards')
+        .select('id')
+        .where('name', 'Default');
 
-        return res.status(201).json(newUser);
-    } catch (error) {
-        console.error('Error inserting user:', error.message);
-        return res.status(500).json({ error: `Failed to insert user: ${error.message}` });
-    }
+      if (defaultBoards.length === 0) {
+        throw new Error('No default boards found');
+      }
+
+      await trx('user_boards').insert(
+        defaultBoards.map(board => ({
+          user_id: createdUser.id,
+          board_id: board.id,
+        }))
+      );
+
+      // 3. Fetch default pieces (includes color + type)
+      const defaultPieces = await trx('pieces')
+        .select('id', 'type', 'image_url', 'color')
+        .where('name', 'Default');
+
+      if (defaultPieces.length === 0) {
+        throw new Error('No default pieces found');
+      }
+
+      // Add all pieces to user_pieces
+      await trx('user_pieces').insert(
+        defaultPieces.map(piece => ({
+          user_id: createdUser.id,
+          piece_id: piece.id,
+        }))
+      );
+
+      // 4. Build selected_pieces mapping based on color
+      const selectedPieces = { 'w': {}, 'b': {} };
+      for (const piece of defaultPieces) {
+        selectedPieces[piece.color][piece.type] = piece.id;
+      }
+
+      // 5. Insert into user_info
+      await trx('user_info').insert({
+        user_id: createdUser.id,
+        country_id: 182,
+        selected_pieces: selectedPieces,
+      });
+
+      return createdUser;
+    });
+
+    return res.status(201).json(newUser);
+  } catch (error) {
+    console.error('Error inserting user:', error.message);
+    return res.status(500).json({ error: `Failed to insert user: ${error.message}` });
+  }
 });
+
+
 
 // PATCH route to update a user
 router.patch('/:id', async (req, res) => {

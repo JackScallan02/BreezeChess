@@ -138,6 +138,15 @@ describe('Users API', function () {
             expect(res.body).to.have.property('email', 'newuser@example.com');
             expect(res.body).to.have.property('provider', 'google');
             expect(res.body).to.have.property('is_new_user', true);
+
+            const piecesRes = await chai.request(API_BASE_URL).get('/pieces').query({ user_id: res.id });
+            expect(piecesRes.body).to.be.an('array');
+            expect(piecesRes.body[0]).to.have.property('type');
+            expect(piecesRes.body[0].type).to.equal('k');
+            expect(piecesRes.body[0]).to.have.property('rarity');
+            expect(piecesRes.body[0].rarity).to.equal('common');
+
+
         });
 
         it('should return 400 for invalid user data', async () => {

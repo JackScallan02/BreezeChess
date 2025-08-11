@@ -76,6 +76,7 @@ export async function seed(knex) {
           description: set.pieces[piece.type][color.code] || "No description available",
           rarity: set.rarity,
           type: piece.type,
+          color: color.code
         });
       }
     }
