@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { Chess, Square } from 'chess.js';
-import { ChevronLeft, ChevronRight, Lightbulb, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Lightbulb, Sparkles, ArrowRight } from 'lucide-react';
 import ChessBoard, { ChessBoardHandle } from '../components/ChessBoard';
 import useMovePieceSound from '../util/MovePieceSound';
 import PuzzleTimer from '../components/PuzzleTimer';
@@ -160,7 +160,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         return () => resizeObserver.disconnect();
     }, []);
 
-// Main useEffect for starting/resetting a puzzle
+    // Main useEffect for starting/resetting a puzzle
     useEffect(() => {
         // --- FIX: Centralize ALL state resets here ---
         timeoutIds.current.forEach(clearTimeout);
@@ -182,7 +182,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         const userPlaysFirst = moves.length % 2 !== 0;
         const determinedUserColor = userPlaysFirst ? fenTurn : fenTurn === 'w' ? 'b' : 'w';
         const initialMaxReachedIndex = userPlaysFirst ? 0 : 1;
-        
+
         setMaxReachedMoveIndex(initialMaxReachedIndex);
         setUserColor(determinedUserColor);
         setGame(new Chess(puzzleSolution.fen));
@@ -225,7 +225,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
         await fetchPuzzle();
         // The useEffect will handle all state resets when fetchPuzzle completes and a new puzzleSolution is set.
         // If fetchPuzzle doesn't change puzzleSolution, we still need to trigger a reset.
-        setResetKey(prev => prev + 1); 
+        setResetKey(prev => prev + 1);
     }, [fetchPuzzle]);
 
     const resetPuzzle = useCallback(() => {
@@ -309,7 +309,7 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
 
                 // Trigger the "absorption" animation for the bonus labels
                 setAbsorbBonuses(true);
-                
+
                 // Trigger the text style animation and update points
                 setIsUpdatingPoints(true);
                 await updateUserInfo(user.id, { points: points + totalPoints });
@@ -632,66 +632,70 @@ const PuzzleBoard: React.FC<PuzzleBoardProps> = ({ puzzleSolution, showLabels = 
                                 <div className="relative">
                                     {/* Main points display */}
                                     <div
-                                        className={`flex flex-row items-center transition-all duration-500 ease-in-out ${isUpdatingPoints ? 'text-green-500' : ''}`}
+                                        className={`flex flex-row items-center justify-center transition-all duration-500 ease-in-out ${isUpdatingPoints ? 'text-green-500' : ''}`}
                                         style={{
                                             gap: `${scale * 0.25}rem`,
                                             transform: isUpdatingPoints ? 'scale(1.25)' : 'scale(1)',
                                             transformOrigin: 'center'
                                         }}
                                     >
-                                        <Sparkles style={{ width: `${scale * 1}rem`, height: `${scale * 1}rem` }} />
+                                        <Sparkles style={{ width: `${scale * 1}rem`, height: `${scale * 1}rem` }} className={`${!user && 'text-gray-300'}`} />
                                         <div className="flex flex-row" style={{ gap: `${scale * 0.25}rem` }}>
-                                            <p style={{ fontSize: `${scale * 1}rem` }}>{displayPoints}</p>
-                                            <p style={{ fontSize: `${scale * 1}rem` }}>points</p>
+                                            <p style={{ fontSize: `${scale * 1}rem` }} className={`${!user && 'text-gray-300'}`}>{displayPoints}</p>
+                                            <p style={{ fontSize: `${scale * 1}rem` }} className={`${!user && 'text-gray-300'}`}>points</p>
                                         </div>
+                                    </div>
+                                    <div className="flex flex-row flex-wrap w-full items-center justify-center" style={{ fontSize: `${scale * 0.8}rem` }}>
+                                        <ArrowRight className="mr-1" style={{ width: `${scale * 1}rem` }} />
+                                        <a href="/login" className="text-blue-300 hover:text-blue-200 mr-2">Sign in</a> to earn points
                                     </div>
 
                                     {/* Absolutely positioned container for bonus labels */}
                                     <div className="absolute top-full left-0 right-0 mt-1 flex flex-col text-center gap-1 pointer-events-none">
-{/* Absolutely positioned container for bonus labels */}
-{showBonuses && ( // This now acts as a wrapper to mount/unmount all labels at once
-    <div className="absolute top-full left-0 right-0 mt-1 flex flex-col text-center gap-1 pointer-events-none">
-        {/* Speed Bonus Label */}
-        {speedBonus > 0 && (
-            <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 
+                                        {/* Absolutely positioned container for bonus labels */}
+                                        {showBonuses && ( // This now acts as a wrapper to mount/unmount all labels at once
+                                            <div className="absolute top-full left-0 right-0 mt-1 flex flex-col text-center gap-1 pointer-events-none">
+                                                {/* Speed Bonus Label */}
+                                                {speedBonus > 0 && (
+                                                    <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 
                 ${absorbBonuses
-                    ? '-translate-y-4 opacity-0 scale-75'
-                    : animateBonusesIn // Use the new state to trigger the animation
-                        ? 'translate-y-0 opacity-100'
-                        : 'translate-y-16 opacity-0'
-                }`}
-            >
-                +{speedBonus} Speed
-            </div>
-        )}
-        {/* Accuracy Bonus Label */}
-        {accuracyBonus > 0 && (
-            <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 delay-100 
+                                                            ? '-translate-y-4 opacity-0 scale-75'
+                                                            : animateBonusesIn // Use the new state to trigger the animation
+                                                                ? 'translate-y-0 opacity-100'
+                                                                : 'translate-y-16 opacity-0'
+                                                        }`}
+                                                    >
+                                                        +{speedBonus} Speed
+                                                    </div>
+                                                )}
+                                                {/* Accuracy Bonus Label */}
+                                                {accuracyBonus > 0 && (
+                                                    <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 delay-100 
                 ${absorbBonuses
-                    ? '-translate-y-4 opacity-0 scale-75'
-                    : animateBonusesIn // Use the new state here too
-                        ? 'translate-y-0 opacity-100'
-                        : 'translate-y-16 opacity-0'
-                }`}
-            >
-                +{accuracyBonus} None Incorrect
-            </div>
-        )}
-        {/* Random Bonus Label */}
-        {random && randomBonus > 0 && (
-            <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 delay-200 
+                                                            ? '-translate-y-4 opacity-0 scale-75'
+                                                            : animateBonusesIn // Use the new state here too
+                                                                ? 'translate-y-0 opacity-100'
+                                                                : 'translate-y-16 opacity-0'
+                                                        }`}
+                                                    >
+                                                        +{accuracyBonus} None Incorrect
+                                                    </div>
+                                                )}
+                                                {/* Random Bonus Label */}
+                                                {random && randomBonus > 0 && (
+                                                    <div className={`whitespace-nowrap text-sm font-semibold text-green-500 transition-all duration-700 delay-200 
                 ${absorbBonuses
-                    ? '-translate-y-4 opacity-0 scale-75'
-                    : animateBonusesIn // And here as well
-                        ? 'translate-y-0 opacity-100'
-                        : 'translate-y-16 opacity-0'
-                }`}
-            >
-                +{randomBonus} Random
-            </div>
-        )}
-    </div>
-)}
+                                                            ? '-translate-y-4 opacity-0 scale-75'
+                                                            : animateBonusesIn // And here as well
+                                                                ? 'translate-y-0 opacity-100'
+                                                                : 'translate-y-16 opacity-0'
+                                                        }`}
+                                                    >
+                                                        +{randomBonus} Random
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

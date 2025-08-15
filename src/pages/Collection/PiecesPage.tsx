@@ -22,6 +22,7 @@ const rarityMapping: Record<Rarity, string> = {
 }
 
 const PieceDetailsModal: React.FC<PieceDetailsModalProps> = ({ piece, setShowPieceDetailsModal }) => {
+    console.log("piece: ", piece);
     return (
         <>
             {/* Backdrop */}
@@ -68,7 +69,7 @@ const PieceDetailsModal: React.FC<PieceDetailsModalProps> = ({ piece, setShowPie
                             </button>
                         </div>
                         <div className="w-full flex justify-center mt-8 sm:mt-4">
-                            <div className="drop-shadow-[0_0px_20px_rgba(0,0,0,0.5)] rounded-md">
+                            <div className="drop-shadow-[0_0px_20px_rgba(0,0,0,0.3)] rounded-md">
                                 <div
                                     className={`w-25 h-25`}
                                 >
