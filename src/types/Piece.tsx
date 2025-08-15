@@ -1,11 +1,11 @@
 export type PieceCode = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
-export type Color = 'white' | 'black';
+export type Color = 'w' | 'b';
 
-export type PieceSet = Record<PieceCode, string>;
+export type PieceSet = Record<PieceCode, Object>;
 export type DisplayedPieces = Record<Color, PieceSet>;
 
 export interface Piece {
-    src: string;
+    signed_url: string;
     type: string;
     color: string;
 }

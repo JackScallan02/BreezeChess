@@ -13,7 +13,7 @@ describe('Users API', function () {
             expect(res).to.have.status(200);
             expect(res.body).to.be.an('array');
             expect(res.body[0]).to.have.keys('id', 'uid', 'username', 'email', 'provider', 'is_new_user');
-        
+
             // Check that limit is 5
             expect(res.body.length).to.be.at.most(5);
             // Check that response is sorted by id in ascending order

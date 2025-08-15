@@ -50,8 +50,33 @@ export const getUserById = async (id: number) => {
     } else {
       console.error('Network or server error:', error.message);
       throw new Error('Failed to connect to the server. Please try again later.');
-    }  }
+    }
+  }
 };
+
+/**
+ * Fetches signed URLs for each of a user's selected pieces
+ * @param id - The ID of the user's selected pieces to fetch.
+ * @returns An object of the user's selected pieces signed urls or an error message.
+ */
+export const getUserPiecesSignedURLs = async (id: number) => {
+  if (!id || typeof id !== 'number') {
+    throw new Error('Invalid user ID. Please provide a valid number.');
+  }
+
+  try {
+    const response = await apiClient.get(`/users/${id}/pieces/signed-urls`);
+    return response.data;
+  } catch (error: any) {
+    if (error.response) {
+      console.error(`API Error: ${error.response.status} - ${error.response.data.error}`);
+      throw new Error(error.response.data.error || 'An error occurred when getting a user\'s selected pieces signed urls.');
+    } else {
+      console.error('Network or server error:', error.message);
+      throw new Error('Failed to connect to the server. Please try again later.');
+    }
+  }
+}
 
 /**
  * Creates a new user.

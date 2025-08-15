@@ -6,6 +6,9 @@ import { Board } from "../../types/board";
 import { PieceCode, DisplayedPieces, Piece } from "../../types/Piece";
 import PiecesPage from "./PiecesPage";
 import BoardsPage from "./BoardsPage";
+import { useAuth } from "../../contexts/AuthContext";
+import { getUserPiecesSignedURLs } from "../../api/users";
+import { getPieces } from "../../api/pieces";
 
 
 const validTabs = ['sets', 'pieces', 'boards', 'effects'] as const;
@@ -17,12 +20,13 @@ const Collection = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const initialDisplay = searchParams.get('display') || 'both';
     const initialTab = searchParams.get('tab') || 'sets';
-    const { allOwnedBoards, selectedBoard, setUserDataField } = useUserData();
+    const { user } = useAuth();
+    const { allOwnedBoards, selectedBoard, setUserDataField, selectedPieces } = useUserData();
 
     const [displayType, setDisplayType] = useState(initialDisplay);
     const [displayState, setDisplayState] = useState(() => {
-        if (initialDisplay === 'white') return 'Show white only';
-        if (initialDisplay === 'black') return 'Show black only';
+        if (initialDisplay === 'w') return 'Show white only';
+        if (initialDisplay === 'b') return 'Show black only';
         return 'Show black and white';
     });
 
@@ -39,81 +43,62 @@ const Collection = () => {
     }, [displayType, activeTab]);
 
     const [displayedPieces, setDisplayedPieces] = useState<DisplayedPieces>({
-        white: { p: '', r: '', n: '', b: '', q: '', k: '' },
-        black: { p: '', r: '', n: '', b: '', q: '', k: '' },
+        w: { p: '', r: '', n: '', b: '', q: '', k: '' },
+        b: { p: '', r: '', n: '', b: '', q: '', k: '' },
     });
 
     useEffect(() => {
         const displayParam = searchParams.get('display') || 'both';
         setDisplayType(displayParam);
-        if (displayParam === 'white') setDisplayState('Show white only');
-        else if (displayParam === 'black') setDisplayState('Show black only');
+        if (displayParam === 'w') setDisplayState('Show white only');
+        else if (displayParam === 'b') setDisplayState('Show black only');
         else setDisplayState('Show black and white');
     }, [searchParams]);
 
 
+
+    const getAllPieces = async () => {
+        if (user) {
+            const res = await getPieces(user.id);
+            return res;
+        }
+    }
+
     useEffect(() => {
         // On initial load, get all of their pieces from API, as well as their "selected" pieces (which to display by default)
         // For now, hardcode it
-        const pieces: DisplayedPieces = {
-            black: {
-                b: '/assets/chess_pieces/default/b/b.png',
-                k: '/assets/chess_pieces/default/b/k.png',
-                n: '/assets/chess_pieces/default/b/n.png',
-                p: '/assets/chess_pieces/default/b/p.png',
-                q: '/assets/chess_pieces/default/b/q.png',
-                r: '/assets/chess_pieces/default/b/r.png'
-            },
-            white: {
-                b: '/assets/chess_pieces/default/w/b.png',
-                k: '/assets/chess_pieces/default/w/k.png',
-                n: '/assets/chess_pieces/default/w/n.png',
-                p: '/assets/chess_pieces/default/w/p.png',
-                q: '/assets/chess_pieces/default/w/q.png',
-                r: '/assets/chess_pieces/default/w/r.png'
-            }
+        if (user && Object.keys(selectedPieces).length > 0) {
+
+            getAllPieces().then((res) => {
+                console.log('selected pieces: ', selectedPieces);
+                console.log('res: ', res);
+                function mapSelectedPieces(selectedPieces, allPieces) {
+                    const result = { w: {}, b: {} };
+
+                    // Create a lookup table for piece_id → piece object
+                    const pieceById = allPieces.reduce((acc, piece) => {
+                        acc[piece.piece_id] = piece;
+                        return acc;
+                    }, {});
+
+                    for (const color of ["w", "b"]) {
+                        result[color] = {};
+                        for (const type in selectedPieces[color]) {
+                            const pieceId = selectedPieces[color][type];
+                            const pieceObj = pieceById[pieceId];
+                            if (pieceObj) {
+                                result[color][type] = pieceObj;
+                            }
+                        }
+                    }
+
+                    return result;
+                }
+                setDisplayedPieces(mapSelectedPieces(selectedPieces, res));
+                setAllPieces(res);
+            });
         }
-        setDisplayedPieces(pieces);
-
-        // Temporarily hardcoding all pieces here - will be replaced with all pieces that user owns
-        const allPieces: Array<Piece> = [
-            // Beta - White
-            { src: '/assets/chess_pieces/beta/w/k.png', color: 'white', type: 'k' },
-            { src: '/assets/chess_pieces/beta/w/q.png', color: 'white', type: 'q' },
-            { src: '/assets/chess_pieces/beta/w/r.png', color: 'white', type: 'r' },
-            { src: '/assets/chess_pieces/beta/w/b.png', color: 'white', type: 'b' },
-            { src: '/assets/chess_pieces/beta/w/n.png', color: 'white', type: 'n' },
-            { src: '/assets/chess_pieces/beta/w/p.png', color: 'white', type: 'p' },
-
-            // Beta - Black
-            { src: '/assets/chess_pieces/beta/b/k.png', color: 'black', type: 'k' },
-            { src: '/assets/chess_pieces/beta/b/q.png', color: 'black', type: 'q' },
-            { src: '/assets/chess_pieces/beta/b/r.png', color: 'black', type: 'r' },
-            { src: '/assets/chess_pieces/beta/b/b.png', color: 'black', type: 'b' },
-            { src: '/assets/chess_pieces/beta/b/n.png', color: 'black', type: 'n' },
-            { src: '/assets/chess_pieces/beta/b/p.png', color: 'black', type: 'p' },
-
-            // Default - White
-            { src: '/assets/chess_pieces/default/w/k.png', color: 'white', type: 'k' },
-            { src: '/assets/chess_pieces/default/w/q.png', color: 'white', type: 'q' },
-            { src: '/assets/chess_pieces/default/w/r.png', color: 'white', type: 'r' },
-            { src: '/assets/chess_pieces/default/w/b.png', color: 'white', type: 'b' },
-            { src: '/assets/chess_pieces/default/w/n.png', color: 'white', type: 'n' },
-            { src: '/assets/chess_pieces/default/w/p.png', color: 'white', type: 'p' },
-
-            // Default - Black
-            { src: '/assets/chess_pieces/default/b/k.png', color: 'black', type: 'k' },
-            { src: '/assets/chess_pieces/default/b/q.png', color: 'black', type: 'q' },
-            { src: '/assets/chess_pieces/default/b/r.png', color: 'black', type: 'r' },
-            { src: '/assets/chess_pieces/default/b/b.png', color: 'black', type: 'b' },
-            { src: '/assets/chess_pieces/default/b/n.png', color: 'black', type: 'n' },
-            { src: '/assets/chess_pieces/default/b/p.png', color: 'black', type: 'p' },
-        ];
-
-        setAllPieces(allPieces);
-
-
-    }, []);
+    }, [user, selectedPieces]);
     return (
         <>
             <MainToolBar />
@@ -147,9 +132,9 @@ const Collection = () => {
                                         <button
                                             onClick={() => {
                                                 const newParams = new URLSearchParams(searchParams);
-                                                newParams.set('display', 'black');
+                                                newParams.set('display', 'b');
                                                 setSearchParams(newParams);
-                                                setDisplayType('black');
+                                                setDisplayType('b');
                                                 setDisplayState('Show black only');
                                                 setDropDownExpanded(false);
                                             }}
@@ -162,9 +147,9 @@ const Collection = () => {
                                         <button
                                             onClick={() => {
                                                 const newParams = new URLSearchParams(searchParams);
-                                                newParams.set('display', 'white');
+                                                newParams.set('display', 'w');
                                                 setSearchParams(newParams);
-                                                setDisplayType('white');
+                                                setDisplayType('w');
                                                 setDisplayState('Show white only');
                                                 setDropDownExpanded(false);
                                             }}
@@ -216,7 +201,7 @@ interface MainCollectionDisplayProps {
 const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayedPieces, displayType }) => {
 
     const getDisplayedPieces = () => {
-        if (displayType === 'white') {
+        if (displayType === 'w') {
             return (
                 <div
                     className={`
@@ -231,7 +216,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
 
                         <img
                             key={piece}
-                            src={displayedPieces.white[piece] || undefined}
+                            src={displayedPieces.w[piece] || undefined}
                             alt={`White ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -240,7 +225,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
                     ))}
                 </div>
             )
-        } else if (displayType === 'black') {
+        } else if (displayType === 'b') {
             return (
                 <div
                     className={`
@@ -255,7 +240,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
 
                         <img
                             key={piece}
-                            src={displayedPieces.black[piece] || undefined}
+                            src={displayedPieces.b[piece] || undefined}
                             alt={`Black ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -265,7 +250,6 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
                 </div>
             )
         }
-
         return (
             <div className="flex flex-col gap-y-8 w-[75%]">
                 <div
@@ -280,7 +264,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
                         <img
                             key={piece}
-                            src={displayedPieces.white[piece] || undefined}
+                            src={displayedPieces.w[piece].signed_url || undefined}
                             alt={`White ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -299,7 +283,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
                         <img
                             key={piece}
-                            src={displayedPieces.black[piece] || undefined}
+                            src={displayedPieces.b[piece].signed_url || undefined}
                             alt={`Black ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
