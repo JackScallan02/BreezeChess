@@ -124,6 +124,28 @@ describe('Users API', function () {
         });
     });
 
+    describe('GET /users/:id/pieces/signed-urls', () => {
+        it('should fetch signed urls for a user\'s selected pieces', async () => {
+            const res = await chai.request(API_BASE_URL).get('/users/1/pieces/signed-urls');
+            expect(res).to.have.status(200);
+            expect(res.body).to.be.an('object');
+            expect(res.body).to.have.property('w');
+            expect(res.body).to.have.property('b');
+            expect(res.body.w).to.have.property('b');
+            expect(res.body.w).to.have.property('r');
+            expect(res.body.b).to.have.property('q');
+            expect(res.body.b).to.have.property('k');
+            expect(res.body.w.b).to.be.a.string;
+            expect(res.body.w.r).to.be.a.string;
+            expect(res.body.b.q).to.be.a.string;
+            expect(res.body.b.k).to.be.a.string;
+            expect(res.body.w.b).to.match(/^https?:\/\//);
+            expect(res.body.w.r).to.match(/^https?:\/\//);
+            expect(res.body.b.q).to.match(/^https?:\/\//);
+            expect(res.body.b.k).to.match(/^https?:\/\//);
+        });
+    });
+
     describe('POST /users', () => {
         it('should create a new user', async () => {
             const newUser = {

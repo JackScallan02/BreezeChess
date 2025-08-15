@@ -7,7 +7,6 @@ import { PieceCode, DisplayedPieces, Piece } from "../../types/Piece";
 import PiecesPage from "./PiecesPage";
 import BoardsPage from "./BoardsPage";
 import { useAuth } from "../../contexts/AuthContext";
-import { getUserPiecesSignedURLs } from "../../api/users";
 import { getPieces } from "../../api/pieces";
 
 
@@ -42,9 +41,9 @@ const Collection = () => {
         setSearchParams(newParams);
     }, [displayType, activeTab]);
 
-    const [displayedPieces, setDisplayedPieces] = useState<DisplayedPieces>({
-        w: { p: '', r: '', n: '', b: '', q: '', k: '' },
-        b: { p: '', r: '', n: '', b: '', q: '', k: '' },
+    const [displayedPieces, setDisplayedPieces] = useState<any>({
+        w: { },
+        b: { },
     });
 
     useEffect(() => {
@@ -65,30 +64,27 @@ const Collection = () => {
     }
 
     useEffect(() => {
-        // On initial load, get all of their pieces from API, as well as their "selected" pieces (which to display by default)
-        // For now, hardcode it
+        // On initial load, get all of their pieces from API, as well as their "selected" pieces
         if (user && Object.keys(selectedPieces).length > 0) {
 
             getAllPieces().then((res) => {
-                console.log('selected pieces: ', selectedPieces);
-                console.log('res: ', res);
-                function mapSelectedPieces(selectedPieces, allPieces) {
-                    const result = { w: {}, b: {} };
+                function mapSelectedPieces(
+                    selectedPieces: Record<string, Record<string, string>>,
+                    allPieces: Array<any>
+                ): DisplayedPieces {
+                    const pieceCodes: PieceCode[] = ['p', 'r', 'n', 'b', 'q', 'k'];
+                    const result: any = { w: {}, b: {}};
 
-                    // Create a lookup table for piece_id → piece object
-                    const pieceById = allPieces.reduce((acc, piece) => {
+                    const pieceById = allPieces.reduce((acc: Record<string, any>, piece: any) => {
                         acc[piece.piece_id] = piece;
                         return acc;
                     }, {});
 
-                    for (const color of ["w", "b"]) {
-                        result[color] = {};
-                        for (const type in selectedPieces[color]) {
-                            const pieceId = selectedPieces[color][type];
-                            const pieceObj = pieceById[pieceId];
-                            if (pieceObj) {
-                                result[color][type] = pieceObj;
-                            }
+                    for (const color of ["w", "b"] as const) {
+                        for (const type of pieceCodes) {
+                            const pieceId = selectedPieces[color]?.[type];
+                            const pieceObj = pieceId ? pieceById[pieceId] : undefined;
+                            result[color][type] = pieceObj || '';
                         }
                     }
 
@@ -216,7 +212,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
 
                         <img
                             key={piece}
-                            src={displayedPieces.w[piece] || undefined}
+                            src={displayedPieces.w[piece]?.signed_url || undefined}
                             alt={`White ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -240,7 +236,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
 
                         <img
                             key={piece}
-                            src={displayedPieces.b[piece] || undefined}
+                            src={displayedPieces.b[piece]?.signed_url || undefined}
                             alt={`Black ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -264,7 +260,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
                         <img
                             key={piece}
-                            src={displayedPieces.w[piece].signed_url || undefined}
+                            src={displayedPieces.w[piece]?.signed_url || undefined}
                             alt={`White ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"
@@ -283,7 +279,7 @@ const MainCollectionDisplay: React.FC<MainCollectionDisplayProps> = ({ displayed
                     {(['p', 'r', 'k', 'q', 'b', 'n'] as PieceCode[]).map((piece) => (
                         <img
                             key={piece}
-                            src={displayedPieces.b[piece].signed_url || undefined}
+                            src={displayedPieces.b[piece]?.signed_url || undefined}
                             alt={`Black ${piece}`}
                             draggable={false}
                             className="select-none lg:h-30 md:h-20 h-15 transition-all object-scale-down"

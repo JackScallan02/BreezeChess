@@ -1,7 +1,7 @@
 export type PieceCode = 'p' | 'r' | 'n' | 'b' | 'q' | 'k';
 export type Color = 'w' | 'b';
 
-export type PieceSet = Record<PieceCode, Object>;
+export type PieceSet = Record<PieceCode, Piece>;
 export type DisplayedPieces = Record<Color, PieceSet>;
 
 export interface Piece {

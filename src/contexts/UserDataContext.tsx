@@ -27,7 +27,7 @@ type UserDataState = {
   points: number;
   selectedBoard: Board | null;
   allOwnedBoards: Array<Board>;
-  selectedPieces: Object; // Todo: maybe make a specific type
+  selectedPieces: Record<string, Record<string, string>>;
   dataFetched: boolean;
 };
 

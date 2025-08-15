@@ -2,11 +2,23 @@ import express from 'express';
 import db from '../db.js';
 import Joi from 'joi';
 import bcryptjs from 'bcryptjs';
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // If this ever gets updated, make sure to update the users test seed
 const saltRounds = 11;
 
 const router = express.Router();
+
+const s3Client = new S3Client({
+  endpoint: process.env.AWS_ENDPOINT || "http://localhost:4566",
+  forcePathStyle: true,
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "test",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "test"
+  }
+});
 
 // Middleware to validate user data
 const validateUser = (req, res, next) => {
@@ -157,6 +169,72 @@ router.get('/:id', async (req, res) => {
         console.error('Error getting user:', error.message);
         return res.status(500).json({ error: `Failed to get user : ${error.message}` });
     }
+});
+
+// GET route to get signed urls for each of the user's selected pieces
+router.get("/:id/pieces/signed-urls", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get user's selected pieces
+    const userInfo = await db("user_info")
+      .where("user_id", id)
+      .first("selected_pieces");
+
+    if (!userInfo) return res.status(404).json({ error: "User not found" });
+
+    const selectedPieces = userInfo.selected_pieces;
+    console.log("selectedPieces: ", selectedPieces);
+    const pieceIds = [
+      ...Object.values(selectedPieces.w),
+      ...Object.values(selectedPieces.b)
+    ];
+
+    const pieces = await db("pieces")
+      .whereIn("id", pieceIds)
+      .select("id", "image_url");
+
+    const pieceLocationMap = Object.fromEntries(
+      pieces.map(p => [p.id, p.image_url])
+    );
+
+    const signedUrls = { w: {}, b: {} };
+
+    // Build promises for all colors & types
+    const promises = [];
+
+    for (const color of ["w", "b"]) {
+      for (const pieceType of Object.keys(selectedPieces[color])) {
+        const pieceId = selectedPieces[color][pieceType];
+        const key = pieceLocationMap[pieceId];
+        if (!key) continue;
+
+        promises.push(
+          getSignedUrl(
+            s3Client,
+            new GetObjectCommand({
+              Bucket: process.env.S3_BUCKET || "breezechess-bucket",
+              Key: key
+            }),
+            { expiresIn: 60 }
+          ).then(url => {
+            if (process.env.NODE_ENV === 'development') {
+                // For some reason, I encountered a problem where the url would get replaced by localstack
+                url = url.replace("localstack:4566", "localhost:4566");
+            }
+            signedUrls[color][pieceType] = url;
+          })
+        );
+      }
+    }
+
+    await Promise.all(promises);
+
+    res.json(signedUrls);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to generate signed URLs" });
+  }
 });
 
 // POST route to create a new user
