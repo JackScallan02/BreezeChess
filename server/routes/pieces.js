@@ -31,7 +31,9 @@ router.get("/", async (req, res) => {
                     "user_pieces.acquired_at",
                     "pieces.name as piece_name",
                     "pieces.description",
-                    "pieces.image_url"
+                    "pieces.image_url",
+                    "pieces.color",
+                    "pieces.type",
                 )
                 .orderBy("user_pieces.piece_id");
         } else {
@@ -40,7 +42,9 @@ router.get("/", async (req, res) => {
                 "name as piece_name",
                 "description",
                 "rarity",
-                "image_url"
+                "image_url",
+                "color",
+                "type"
             );
         }
 

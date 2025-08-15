@@ -5,6 +5,8 @@ import { useUserData } from "../contexts/UserDataContext";
 import useMovePieceSound from '../util/MovePieceSound';
 import PromotionDialog from "./PromotionDialog";
 import { useHeldKeys } from "../helpers/useHeldKeys";
+import { getUserPiecesSignedURLs } from "../api/users";
+import { useAuth } from "../contexts/AuthContext";
 
 // --- TYPE DEFINITIONS (No changes) ---
 
@@ -105,6 +107,8 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     const [preMoves, setPreMoves] = useState<PreMove[]>([]);
     const [animatingPieces, setAnimatingPieces] = useState<AnimatingPieceInfo[]>([]);
     const [promotionState, setPromotionState] = useState<PromotionState | null>(null);
+    const [allPieces, setAllPieces]: any = useState({});
+    const { user } = useAuth();
 
     const gameRef = useRef<Chess | null>(null);
     const moveBeingAnimated = useRef<Move | null>(null);
@@ -113,7 +117,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         onMoveAttemptRef.current = onMoveAttempt;
     }, [onMoveAttempt]);
 
-    const { preMoveKey, alwaysPromoteQueen, showLegalMoves, selectedBoard } = useUserData();
+    const { preMoveKey, alwaysPromoteQueen, showLegalMoves, selectedBoard, selectedPieces } = useUserData();
     const heldKeys = useHeldKeys();
 
     const { handlePlaySound } = useMovePieceSound();
@@ -152,6 +156,14 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
         resizeObserver.observe(observerTarget);
         return () => resizeObserver.disconnect();
     }, []);
+
+    useEffect(() => {
+        getUserPiecesSignedURLs(user?.id).then((res) => {
+            setAllPieces(res);
+        });
+
+
+    }, [user]);
 
     const getCoordsFromRefs = useCallback((from: Square, to: Square) => {
         const boardEl = boardGridRef.current;
@@ -412,7 +424,7 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
     }, [preMoves.length]);
 
     const getPieceImage = (piece: Piece | undefined): string | undefined => {
-        if (piece) return `/assets/chess_pieces/default/${piece.color}/${piece.type}.png`;
+        if (piece) return allPieces[piece.color]?.[piece.type];
         return undefined;
     };
 
@@ -806,13 +818,13 @@ const ChessBoard = forwardRef<ChessBoardHandle, ChessBoardProps>(({
                                     >
                                         {correctLabel === "correct" && (
                                             <CircleCheckBig
-                                            strokeWidth={3.5}
+                                                strokeWidth={3.5}
                                                 style={{ width: '100%', height: '100%', color: 'rgb(34 197 94)', filter: 'drop-shadow(0 0 0.75px rgba(0,0,0,0.3))', }} // Tailwind: text-green-500
                                             />
                                         )}
                                         {correctLabel === "incorrect" && (
                                             <CircleX
-                                            strokeWidth={3.5}
+                                                strokeWidth={3.5}
                                                 style={{ width: '100%', height: '100%', color: 'rgb(239 68 68)', filter: 'drop-shadow(0 0 0.75px rgba(0,0,0,0.3))', }} // Tailwind: text-red-500
                                             />
                                         )}

@@ -175,19 +175,39 @@ router.get('/:id', async (req, res) => {
 router.get("/:id/pieces/signed-urls", async (req, res) => {
   try {
     const { id } = req.params;
+    let selectedPieces;
 
-    // Get user's selected pieces
-    const userInfo = await db("user_info")
-      .where("user_id", id)
-      .first("selected_pieces");
+    if (id === "-1") {
+      // Fetch default pieces
+      const defaultPieceSet = await db("piece_sets")
+        .where("name", "Default")
+        .first("id");
 
-    if (!userInfo) return res.status(404).json({ error: "User not found" });
+      if (!defaultPieceSet)
+        return res.status(404).json({ error: "Default piece set not found" });
 
-    const selectedPieces = userInfo.selected_pieces;
-    console.log("selectedPieces: ", selectedPieces);
+      const pieces = await db("pieces")
+        .where("piece_set_id", defaultPieceSet.id)
+        .select("id", "type", "image_url", "color"); // assume pieces have a color field
+
+      // Build selectedPieces object in the same format as userInfo
+      selectedPieces = { w: {}, b: {} };
+      for (const p of pieces) {
+        selectedPieces[p.color][p.type] = p.id;
+      }
+    } else {
+      // Fetch user-selected pieces
+      const userInfo = await db("user_info")
+        .where("user_id", id)
+        .first("selected_pieces");
+
+      if (!userInfo) return res.status(404).json({ error: "User not found" });
+      selectedPieces = userInfo.selected_pieces;
+    }
+
     const pieceIds = [
       ...Object.values(selectedPieces.w),
-      ...Object.values(selectedPieces.b)
+      ...Object.values(selectedPieces.b),
     ];
 
     const pieces = await db("pieces")
@@ -195,12 +215,10 @@ router.get("/:id/pieces/signed-urls", async (req, res) => {
       .select("id", "image_url");
 
     const pieceLocationMap = Object.fromEntries(
-      pieces.map(p => [p.id, p.image_url])
+      pieces.map((p) => [p.id, p.image_url])
     );
 
     const signedUrls = { w: {}, b: {} };
-
-    // Build promises for all colors & types
     const promises = [];
 
     for (const color of ["w", "b"]) {
@@ -214,13 +232,12 @@ router.get("/:id/pieces/signed-urls", async (req, res) => {
             s3Client,
             new GetObjectCommand({
               Bucket: process.env.S3_BUCKET || "breezechess-bucket",
-              Key: key
+              Key: key,
             }),
             { expiresIn: 60 }
-          ).then(url => {
-            if (process.env.NODE_ENV === 'development') {
-                // For some reason, I encountered a problem where the url would get replaced by localstack
-                url = url.replace("localstack:4566", "localhost:4566");
+          ).then((url) => {
+            if (process.env.NODE_ENV === "development") {
+              url = url.replace("localstack:4566", "localhost:4566");
             }
             signedUrls[color][pieceType] = url;
           })

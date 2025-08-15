@@ -42,8 +42,8 @@ const Collection = () => {
     }, [displayType, activeTab]);
 
     const [displayedPieces, setDisplayedPieces] = useState<any>({
-        w: { },
-        b: { },
+        w: {},
+        b: {},
     });
 
     useEffect(() => {
@@ -54,47 +54,39 @@ const Collection = () => {
         else setDisplayState('Show black and white');
     }, [searchParams]);
 
+    useEffect(() => {
+        const fetchPieces = async () => {
+            if (user) {
+                const res = await getPieces(user.id);
+                setAllPieces(res);
+            }
+        };
 
+        fetchPieces();
+    }, [user]);
 
-    const getAllPieces = async () => {
-        if (user) {
-            const res = await getPieces(user.id);
-            return res;
-        }
+  useEffect(() => {
+    if (!allPieces.length || !selectedPieces) return;
+
+    const pieceCodes: PieceCode[] = ['p', 'r', 'n', 'b', 'q', 'k'];
+
+    const pieceById = allPieces.reduce((acc: Record<string, Piece>, piece) => {
+      acc[piece.piece_id] = piece;
+      return acc;
+    }, {});
+
+    const result: any = { w: {}, b: {} };
+
+    for (const color of ["w", "b"] as const) {
+      for (const type of pieceCodes) {
+        const pieceId = selectedPieces[color]?.[type];
+        const pieceObj = pieceId ? pieceById[pieceId] : undefined;
+        result[color][type] = pieceObj || '';
+      }
     }
 
-    useEffect(() => {
-        // On initial load, get all of their pieces from API, as well as their "selected" pieces
-        if (user && Object.keys(selectedPieces).length > 0) {
-
-            getAllPieces().then((res) => {
-                function mapSelectedPieces(
-                    selectedPieces: Record<string, Record<string, string>>,
-                    allPieces: Array<any>
-                ): DisplayedPieces {
-                    const pieceCodes: PieceCode[] = ['p', 'r', 'n', 'b', 'q', 'k'];
-                    const result: any = { w: {}, b: {}};
-
-                    const pieceById = allPieces.reduce((acc: Record<string, any>, piece: any) => {
-                        acc[piece.piece_id] = piece;
-                        return acc;
-                    }, {});
-
-                    for (const color of ["w", "b"] as const) {
-                        for (const type of pieceCodes) {
-                            const pieceId = selectedPieces[color]?.[type];
-                            const pieceObj = pieceId ? pieceById[pieceId] : undefined;
-                            result[color][type] = pieceObj || '';
-                        }
-                    }
-
-                    return result;
-                }
-                setDisplayedPieces(mapSelectedPieces(selectedPieces, res));
-                setAllPieces(res);
-            });
-        }
-    }, [user, selectedPieces]);
+    setDisplayedPieces(result);
+  }, [selectedPieces, allPieces]);
     return (
         <>
             <MainToolBar />

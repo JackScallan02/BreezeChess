@@ -1,6 +1,9 @@
 import SelectedItemMenu from './SelectedItemMenu';
 import { useState } from 'react';
 import { Piece } from '../../types/Piece';
+import { useAuth } from '../../contexts/AuthContext';
+import { updateUserInfo } from '../../api/users';
+import { useUserData } from '../../contexts/UserDataContext';
 
 interface PiecesPageProps {
     allPieces: Array<Piece>;
@@ -8,8 +11,30 @@ interface PiecesPageProps {
 
 const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
     const [selectedImg, setSelectedImg] = useState<string | null>(null);
+    const { user } = useAuth();
+    const { selectedPieces, setUserDataField } = useUserData();
     const handleClick = (src: string) => {
         setSelectedImg(prev => (prev === src ? null : src)); // toggle
+    };
+
+    const handleEquip = async (piece: Piece) => {
+        try {
+            if (user) {
+                // Create a new object for selectedPieces to trigger a re-render
+                const newSelectedPieces = {
+                    ...selectedPieces,
+                    [piece.color]: {
+                        ...selectedPieces[piece.color],
+                        [piece.type]: piece.piece_id,
+                    },
+                };
+
+                await updateUserInfo(user.id, { selected_pieces: newSelectedPieces });
+                setUserDataField("selectedPieces", newSelectedPieces); // triggers re-render and useEffect
+            }
+        } catch (error) {
+            console.error("Failed to update the board:", error);
+        }
     };
 
     return (
@@ -32,7 +57,7 @@ const PiecesPage: React.FC<PiecesPageProps> = ({ allPieces }) => {
                             draggable={false}
                         />
                         {selectedImg === piece.signed_url && (
-                            <SelectedItemMenu onEquipFn={() => { }} onDetailsFn={() => {}} index={-1} equipped={-1} />
+                            <SelectedItemMenu onEquipFn={() => { handleEquip(piece); }} onDetailsFn={() => { }} index={-1} equipped={(Object.values(selectedPieces).flatMap(colorObj => Object.values(colorObj))).includes(piece.piece_id)} />
                         )}
                     </div>
                 </div>

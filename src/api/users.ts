@@ -56,16 +56,13 @@ export const getUserById = async (id: number) => {
 
 /**
  * Fetches signed URLs for each of a user's selected pieces
- * @param id - The ID of the user's selected pieces to fetch.
- * @returns An object of the user's selected pieces signed urls or an error message.
+ * @param id - The ID of the user's selected pieces to fetch. If not provided, fetches the default pieces.
+ * @returns An object of the user's selected pieces (or default pieces) signed urls or an error message.
  */
-export const getUserPiecesSignedURLs = async (id: number) => {
-  if (!id || typeof id !== 'number') {
-    throw new Error('Invalid user ID. Please provide a valid number.');
-  }
+export const getUserPiecesSignedURLs = async (id?: number) => {
 
   try {
-    const response = await apiClient.get(`/users/${id}/pieces/signed-urls`);
+    const response = await apiClient.get(`/users/${id || -1}/pieces/signed-urls`);
     return response.data;
   } catch (error: any) {
     if (error.response) {
